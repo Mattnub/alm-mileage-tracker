@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALM Mileage Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111111; --surface2:#1a1a1a; --surface3:#222222; --border:#2a2a2a;
+    --amber:#f5a623; --amber-dim:#7a5210; --amber-glow:rgba(245,166,35,0.12);
+    --red:#e53935; --red-dim:rgba(229,57,53,0.15);
+    --green:#4caf50; --green-dim:rgba(76,175,80,0.15);
+    --text:#e8e8e8; --text-dim:#666; --text-mid:#999;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif; --display:'Bebas Neue',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
+
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:baseline;gap:10px;}
+  .logo-mark{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--amber);line-height:1;}
+  .logo-sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .api-pill{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;cursor:pointer;transition:all 0.2s;}
+  .api-pill:hover{border-color:var(--amber);}
+  .api-status{width:8px;height:8px;border-radius:50%;background:var(--red);transition:background 0.3s;}
+  .api-status.active{background:var(--green);box-shadow:0 0 6px var(--green);}
+  .api-pill-label{font-family:var(--mono);font-size:11px;color:var(--text-mid);letter-spacing:1px;}
+  .total-badge{font-family:var(--mono);font-size:12px;color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);padding:6px 14px;border-radius:4px;letter-spacing:1px;}
+
+  .app{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 64px);}
+
+  nav{background:var(--surface);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;}
+  .nav-section{padding:0 16px;margin-bottom:8px;}
+  .nav-section-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;padding:12px 8px 6px;text-transform:uppercase;}
+  .nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:none;background:none;color:var(--text-mid);font-family:var(--sans);font-size:13px;cursor:pointer;border-radius:4px;text-align:left;transition:all 0.15s;}
+  .nav-btn:hover{background:var(--surface2);color:var(--text);}
+  .nav-btn.active{background:var(--amber-glow);color:var(--amber);border-left:2px solid var(--amber);padding-left:10px;}
+  .nav-icon{font-size:16px;width:20px;text-align:center;}
+  .nav-divider{height:1px;background:var(--border);margin:12px 16px;}
+  .stat-mini{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:8px;}
+  .stat-mini-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+  .stat-mini-value{font-family:var(--display);font-size:28px;color:var(--amber);letter-spacing:1px;line-height:1.2;}
+  .stat-mini-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+  main{padding:32px;overflow-y:auto;}
+  .page{display:none;}.page.active{display:block;}
+  .page-header{margin-bottom:28px;border-bottom:1px solid var(--border);padding-bottom:20px;}
+  .page-title{font-family:var(--display);font-size:42px;color:var(--text);letter-spacing:3px;line-height:1;}
+  .page-subtitle{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:2px;margin-top:6px;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:24px;margin-bottom:20px;}
+  .card-title{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+  .card-title::before{content:'';width:3px;height:14px;background:var(--amber);border-radius:2px;}
+
+  /* ── ROUTE BUILDER ── */
+  .route-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  label{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;}
+  input,select{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 12px;width:100%;outline:none;transition:border-color 0.2s;appearance:none;}
+  input:focus,select:focus{border-color:var(--amber);}
+  input::placeholder{color:var(--text-dim);}
+  select option{background:var(--surface2);}
+
+  /* stop list */
+  .stop-list{display:flex;flex-direction:column;gap:0;}
+
+  .stop-row{display:flex;align-items:stretch;gap:0;position:relative;}
+
+  /* connector line between stops */
+  .stop-connector{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0;}
+  .stop-dot{width:12px;height:12px;border-radius:50%;background:var(--amber);border:2px solid var(--bg);z-index:1;flex-shrink:0;margin-top:14px;}
+  .stop-dot.home-dot{background:var(--green);}
+  .stop-dot.end-dot{background:var(--red);}
+  .stop-line{width:2px;background:var(--border);flex:1;margin:0 auto;}
+  .stop-line.hidden{background:transparent;}
+
+  .stop-body{flex:1;padding:8px 0 8px 12px;min-width:0;}
+
+  .stop-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:border-color 0.2s;}
+  .stop-card.active-input{border-color:var(--amber);}
+  .stop-card.excluded-stop{border-color:var(--red);}
+
+  .stop-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+  .stop-location{font-family:var(--mono);font-size:13px;color:var(--text);font-weight:500;}
+  .stop-location.placeholder{color:var(--text-dim);font-style:italic;}
+
+  .stop-select-wrap{flex:1;}
+  .stop-select-wrap select{background:transparent;border:none;padding:0;font-size:13px;color:var(--text);cursor:pointer;width:100%;}
+  .stop-select-wrap select:focus{outline:none;border:none;}
+
+  .leg-badge{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);padding:3px 10px;border-radius:4px;white-space:nowrap;min-width:72px;text-align:center;}
+  .leg-badge.loading{color:var(--text-dim);background:var(--surface3);border-color:var(--border);}
+  .leg-badge.excluded{color:var(--red);background:var(--red-dim);border-color:var(--red);}
+
+  .remove-stop{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:0 4px;line-height:1;transition:color 0.15s;flex-shrink:0;}
+  .remove-stop:hover{color:var(--red);}
+
+  /* add stop button row */
+  .add-stop-row{display:flex;align-items:center;gap:12px;padding:6px 0 6px 52px;}
+  .add-stop-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:7px 16px;border:1px dashed var(--border);border-radius:4px;background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+  .add-stop-btn:hover:not(:disabled){border-color:var(--amber);color:var(--amber);}
+  .add-stop-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+  /* day total bar */
+  .day-total-bar{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px 20px;display:flex;align-items:center;gap:20px;margin-top:16px;}
+  .day-total-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
+  .day-total-value{font-family:var(--display);font-size:40px;color:var(--amber);letter-spacing:2px;line-height:1;}
+  .day-total-unit{font-family:var(--mono);font-size:11px;color:var(--text-dim);}
+  .day-total-breakdown{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.8;text-align:right;}
+
+  .btn{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:11px 20px;border:1px solid;border-radius:4px;cursor:pointer;transition:all 0.15s;}
+  .btn-primary{background:var(--amber);border-color:var(--amber);color:#000;font-weight:600;}
+  .btn-primary:hover{background:#ffb836;box-shadow:0 0 16px rgba(245,166,35,0.3);}
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-ghost{background:transparent;border-color:var(--border);color:var(--text-mid);}
+  .btn-ghost:hover{border-color:var(--amber);color:var(--amber);}
+  .btn-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+
+  /* HISTORY TABLE */
+  .trip-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+  .trip-table th{text-align:left;padding:8px 12px;color:var(--text-dim);letter-spacing:1.5px;font-size:10px;border-bottom:1px solid var(--border);text-transform:uppercase;font-weight:500;}
+  .trip-table td{padding:10px 12px;border-bottom:1px solid rgba(42,42,42,0.5);color:var(--text);vertical-align:middle;}
+  .trip-table tr:last-child td{border-bottom:none;}
+  .trip-table tr:hover td{background:var(--surface2);}
+  .trip-miles{color:var(--amber);font-weight:600;font-size:14px;}
+  .delete-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:3px;transition:all 0.15s;}
+  .delete-btn:hover{color:var(--red);background:var(--red-dim);}
+  .purpose-tag{display:inline-block;background:var(--surface3);border-radius:3px;padding:2px 6px;font-size:10px;color:var(--text-dim);letter-spacing:0.5px;}
+
+  /* route chain in history */
+  .route-chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+  .route-stop{color:var(--text);}
+  .route-arrow{color:var(--amber);font-size:10px;}
+
+  /* expand row */
+  .expand-row{display:none;background:var(--surface2);}
+  .expand-row td{padding:10px 12px 14px 28px;}
+  .leg-detail{font-family:var(--mono);font-size:11px;color:var(--text-mid);display:flex;flex-direction:column;gap:4px;}
+  .leg-detail-row{display:flex;align-items:center;gap:8px;}
+  .leg-detail-mi{color:var(--amber);min-width:50px;}
+
+  /* MATRIX */
+  .matrix-wrapper{overflow-x:auto;margin-top:8px;}
+  .matrix-table{border-collapse:collapse;font-family:var(--mono);font-size:11px;min-width:100%;}
+  .matrix-table th{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:10px;letter-spacing:1px;white-space:nowrap;font-weight:500;}
+  .matrix-table th.row-header{text-align:left;min-width:140px;position:sticky;left:0;z-index:1;}
+  .matrix-table td{border:1px solid var(--border);text-align:center;padding:6px 8px;white-space:nowrap;min-width:70px;position:relative;transition:filter 0.15s;}
+  .matrix-table td:hover{filter:brightness(1.3);}
+  .matrix-table td.self{background:var(--surface3);color:var(--text-dim);}
+  .matrix-table td.excluded{background:repeating-linear-gradient(45deg,rgba(229,57,53,0.05),rgba(229,57,53,0.05) 4px,transparent 4px,transparent 8px);color:var(--red);font-size:10px;letter-spacing:1px;}
+  .matrix-table td.green{background:rgba(76,175,80,0.12);color:#81c784;}
+  .matrix-table td.yellow{background:rgba(255,193,7,0.1);color:#ffd54f;}
+  .matrix-table td.orange{background:rgba(255,152,0,0.12);color:#ffb74d;}
+  .matrix-table td.red-cell{background:rgba(229,57,53,0.1);color:#e57373;}
+  .cell-miles{font-size:12px;font-weight:600;}.cell-unit{font-size:9px;color:var(--text-dim);}
+  .source-dot{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;}
+  .source-dot.live{background:var(--green);}.source-dot.estimated{background:var(--text-dim);}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+  .legend-swatch{width:12px;height:12px;border-radius:2px;}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;}
+  .stat-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+  .stat-value{font-family:var(--display);font-size:36px;color:var(--amber);letter-spacing:1px;line-height:1;}
+  .stat-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .filter-chip{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;}
+  .filter-chip.active,.filter-chip:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-glow);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-dim);}
+  .empty-icon{font-size:40px;margin-bottom:12px;opacity:0.3;}
+  .empty-text{font-family:var(--mono);font-size:12px;letter-spacing:1px;}
+
+  /* REFRESH */
+  .refresh-section{display:flex;align-items:center;gap:16px;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:16px;}
+  .refresh-info{flex:1;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.5;}
+  .progress-bar{height:3px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden;display:none;}
+  .progress-fill{height:100%;background:var(--amber);border-radius:2px;transition:width 0.3s;width:0;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:32px;max-width:520px;width:90%;}
+  .modal-title{font-family:var(--display);font-size:32px;letter-spacing:3px;color:var(--text);margin-bottom:6px;}
+  .modal-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:20px;line-height:1.6;}
+  .modal-sub a{color:var(--amber);text-decoration:none;}
+  .modal-steps{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:20px;}
+  .modal-step{display:flex;gap:12px;padding:6px 0;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.5;}
+  .step-num{color:var(--amber);font-weight:600;min-width:16px;}
+  .modal-btn-row{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+
+  /* TOAST */
+  .toast-container{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px;}
+  .toast{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:12px 16px;font-family:var(--mono);font-size:12px;color:var(--text);min-width:280px;display:flex;align-items:center;gap:10px;animation:slideIn 0.2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+  .toast.success{border-color:var(--green);}.toast.error{border-color:var(--red);}.toast.info{border-color:var(--amber);}
+  @keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+  ::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--surface);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:var(--text-dim);}
+
+  .miles-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- API MODAL -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <div class="modal-title">ORS API KEY</div>
+    <div class="modal-sub">Connect to <a href="https://openrouteservice.org" target="_blank">openrouteservice.org</a> for real driving distances — free, no credit card required.</div>
+    <div class="modal-steps">
+      <div class="modal-step"><span class="step-num">1</span><span>Go to <strong style="color:var(--amber)">openrouteservice.org</strong> → "Get started for free"</span></div>
+      <div class="modal-step"><span class="step-num">2</span><span>Sign up with just an email address</span></div>
+      <div class="modal-step"><span class="step-num">3</span><span>Copy your API key from the dashboard</span></div>
+      <div class="modal-step"><span class="step-num">4</span><span>Paste it below — 2,000 free requests/day</span></div>
+    </div>
+    <div class="form-group"><label>OpenRouteService API Key</label><input type="text" id="apiKeyInput" placeholder="5b3ce3597851110001cf624800000000..."/></div>
+    <div class="modal-btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveApiKey()">Connect API</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<header>
+  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span></div>
+  <div class="header-right">
+    <div class="api-pill" onclick="openModal()">
+      <div class="api-status" id="apiStatus"></div>
+      <span class="api-pill-label" id="apiLabel">NO API KEY</span>
+    </div>
+    <div class="total-badge" id="headerTotal">0.0 MI TOTAL</div>
+  </div>
+</header>
+
+<div class="app">
+  <nav>
+    <div class="nav-section">
+      <div class="nav-section-label">Log</div>
+      <button class="nav-btn active" onclick="showPage('newTrip',this)"><span class="nav-icon">＋</span> New Route</button>
+      <button class="nav-btn" onclick="showPage('history',this)"><span class="nav-icon">◷</span> Trip History</button>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Data</div>
+      <button class="nav-btn" onclick="showPage('locations',this)"><span class="nav-icon">◎</span> Locations</button>
+      <button class="nav-btn" onclick="showPage('matrix',this)"><span class="nav-icon">⊞</span> Distance Matrix</button>
+      <button class="nav-btn" onclick="showPage('refresh',this)"><span class="nav-icon">↺</span> Refresh Distances</button>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Export</div>
+      <button class="nav-btn" onclick="downloadExcel()"><span class="nav-icon">↓</span> Download Excel</button>
+    </div>
+    <div class="nav-divider"></div>
+    <div style="padding:8px 16px;margin-top:8px">
+      <div class="stat-mini"><div class="stat-mini-label">Total Miles</div><div class="stat-mini-value" id="sidebarTotal">0.0</div><div class="stat-mini-unit">miles logged</div></div>
+      <div class="stat-mini"><div class="stat-mini-label">Days Logged</div><div class="stat-mini-value" id="sidebarCount">0</div><div class="stat-mini-unit">route days</div></div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- NEW ROUTE PAGE -->
+    <div class="page active" id="page-newTrip">
+      <div class="page-header">
+        <div class="page-title">NEW ROUTE</div>
+        <div class="page-subtitle">BUILD YOUR DAY'S STOPS — UP TO 6 LOCATIONS</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Route Details</div>
+
+        <!-- Date + Purpose -->
+        <div class="route-meta">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="routeDate"/>
+          </div>
+          <div class="form-group">
+            <label>Purpose</label>
+            <select id="routePurpose">
+              <option>Dealership Visits</option>
+              <option>Customer Meetings</option>
+              <option>Parts Pickup</option>
+              <option>Training</option>
+              <option>Mixed</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- STOP BUILDER -->
+        <div class="stop-list" id="stopList"></div>
+
+        <div class="add-stop-row">
+          <button class="add-stop-btn" id="addStopBtn" onclick="addStop()">
+            <span>＋</span> Add Stop
+          </button>
+          <span id="stopCounter" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;"></span>
+        </div>
+
+        <!-- DAY TOTAL -->
+        <div class="day-total-bar" id="dayTotalBar">
+          <div>
+            <div class="day-total-label">Day Total</div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span class="day-total-value" id="dayTotalValue">0.0</span>
+              <span class="day-total-unit">miles</span>
+            </div>
+          </div>
+          <div class="day-total-breakdown" id="dayBreakdown"></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="clearRoute()">Clear</button>
+          <button class="btn btn-primary" id="saveRouteBtn" onclick="saveRoute()" disabled>Save Route</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div class="page-header">
+        <div class="page-title">TRIP HISTORY</div>
+        <div class="page-subtitle">ALL LOGGED ROUTE DAYS</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Miles</div><div class="stat-value" id="statTotal">0.0</div><div class="stat-unit">miles</div></div>
+        <div class="stat-card"><div class="stat-label">Route Days</div><div class="stat-value" id="statDays">0</div><div class="stat-unit">days</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Per Day</div><div class="stat-value" id="statAvg">0.0</div><div class="stat-unit">miles</div></div>
+        <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="statMonth">0.0</div><div class="stat-unit">miles</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">All Route Days</div>
+        <div class="filter-row" id="monthFilters"><button class="filter-chip active" onclick="filterMonth('all',this)">All</button></div>
+        <table class="trip-table" id="historyTable">
+          <thead><tr><th>Date</th><th>Route</th><th>Stops</th><th>Miles</th><th>Purpose</th><th></th></tr></thead>
+          <tbody id="historyBody">
+            <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No routes logged yet</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOCATIONS PAGE -->
+    <div class="page" id="page-locations">
+      <div class="page-header">
+        <div class="page-title">LOCATIONS</div>
+        <div class="page-subtitle">ALL STORED ALM LOCATIONS &amp; ADDRESSES</div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="trip-table" id="locationsTable">
+          <thead>
+            <tr>
+              <th style="padding:14px 20px;width:24px">#</th>
+              <th style="padding:14px 20px">Name</th>
+              <th style="padding:14px 20px">Address</th>
+              <th style="padding:14px 20px">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="locationsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MATRIX PAGE -->
+    <div class="page" id="page-matrix">
+      <div class="page-header">
+        <div class="page-title">DISTANCE MATRIX</div>
+        <div class="page-subtitle">ALL ROUTE DISTANCES BETWEEN ALM LOCATIONS</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(76,175,80,0.3)"></div> &lt;20 mi</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,193,7,0.2)"></div> 20–35 mi</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,152,0,0.25)"></div> 35–55 mi</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(229,57,53,0.2)"></div> 55+ mi</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(229,57,53,0.1),rgba(229,57,53,0.1) 3px,transparent 3px,transparent 6px)"></div> Not Reimbursed</div>
+        <div class="legend-item" style="margin-left:auto"><div class="source-dot live" style="position:static;width:8px;height:8px;border-radius:50%"></div> Live ORS</div>
+        <div class="legend-item"><div class="source-dot estimated" style="position:static;width:8px;height:8px;border-radius:50%"></div> Estimated</div>
+      </div>
+      <div class="card" style="padding:16px"><div class="matrix-wrapper" id="matrixWrapper"></div></div>
+    </div>
+
+    <!-- REFRESH PAGE -->
+    <div class="page" id="page-refresh">
+      <div class="page-header">
+        <div class="page-title">REFRESH DISTANCES</div>
+        <div class="page-subtitle">PULL LIVE DRIVING DISTANCES FROM OPENROUTESERVICE</div>
+      </div>
+      <div class="card">
+        <div class="card-title">OpenRouteService Sync</div>
+        <div class="refresh-section">
+          <div class="refresh-info">
+            <span id="refreshStatus">Connect your ORS API key to pull real driving distances. Each full refresh uses <strong style="color:var(--amber)">88 API calls</strong> out of your 2,000/day free limit.</span>
+            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+          <button class="btn btn-primary" id="refreshBtn" onclick="refreshAllDistances()">↺ Refresh All</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8;margin-top:8px">
+          <strong style="color:var(--text)">Locations:</strong><br>
+          <span id="locationList" style="color:var(--amber)"></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Excluded Routes</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text-mid);line-height:2">
+          The following routes are <strong style="color:var(--red)">not reimbursable</strong> and excluded from all calculations:<br><br>
+          <span style="color:var(--red)">✗</span> Home → ALM Corporate (Norcross)<br>
+          <span style="color:var(--red)">✗</span> ALM Corporate (Norcross) → Home
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── LOCATIONS ──────────────────────────────────────────────────────────────
+const LOCATIONS = [
+  { name:"Home",              address:"216 Winterbury Drive, Canton, GA 30114",              coords:[-84.5002,34.2365] },
+  { name:"ALM Kennesaw",      address:"2255 Barrett Lakes Blvd NW, Kennesaw, GA 30144",      coords:[-84.6113,34.0234] },
+  { name:"ALM Ford Marietta", address:"869 Cobb Pkwy SE, Marietta, GA 30060",               coords:[-84.5524,33.9346] },
+  { name:"ALM Marietta",      address:"1071 Cobb Pkwy SE, Marietta, GA 30060",              coords:[-84.5502,33.9198] },
+  { name:"ALM Gwinnett",      address:"2520 Pleasant Hill Rd, Duluth, GA 30096",            coords:[-84.1448,33.9756] },
+  { name:"ALM Buford",        address:"4228 Buford Dr, Buford, GA 30518",                   coords:[-84.0163,34.1052] },
+  { name:"ALM Roswell",       address:"891 Mansell Rd, Roswell, GA 30076",                  coords:[-84.3381,34.0428] },
+  { name:"ALM Newnan",        address:"40 International Park, Newnan, GA 30265",            coords:[-84.7997,33.3846] },
+  { name:"ALM McDonough",     address:"980 Jonesboro Rd, McDonough, GA 30253",              coords:[-84.1469,33.4473] },
+  { name:"ALM Corporate",     address:"6625 The Corners Pkwy NW, Norcross, GA 30092",      coords:[-84.2135,33.9408] },
+];
+const EXCLUDED = new Set(["Home|ALM Corporate","ALM Corporate|Home"]);
+const MAX_STOPS = 6; // up to 6 locations = 5 legs
+
+// Haversine estimates
+const ESTIMATES = {};
+function haversine(c1,c2){
+  const R=3958.8,dLat=(c2[1]-c1[1])*Math.PI/180,dLon=(c2[0]-c1[0])*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(c1[1]*Math.PI/180)*Math.cos(c2[1]*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*1.25;
+}
+LOCATIONS.forEach((a,i)=>LOCATIONS.forEach((b,j)=>{
+  if(i!==j){const k=`${a.name}|${b.name}`;if(!EXCLUDED.has(k))ESTIMATES[k]=+haversine(a.coords,b.coords).toFixed(1);}
+}));
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let apiKey = localStorage.getItem('ors_api_key')||'';
+let liveDistances = JSON.parse(localStorage.getItem('ors_distances')||'{}');
+let routeDays = JSON.parse(localStorage.getItem('alm_routes')||'[]');
+let currentFilter = 'all';
+
+// Current route being built: array of location names
+let stops = [null, null]; // start with 2 slots
+let legMiles = {}; // key "0-1" => miles for leg from stop[0] to stop[1]
+let legSources = {}; // key "0-1" => 'live'|'cached'|'estimated'|'excluded'
+let legLoading = {}; // key "0-1" => bool
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('routeDate').value = new Date().toISOString().split('T')[0];
+  updateApiStatus();
+  renderLocations();
+  renderMatrix();
+  renderHistory();
+  updateGlobalStats();
+  document.getElementById('locationList').textContent = LOCATIONS.map(l=>l.name).join(' · ');
+  renderStopList();
+});
+
+// ── STOP BUILDER ──────────────────────────────────────────────────────────
+function renderStopList(){
+  const list = document.getElementById('stopList');
+  list.innerHTML = '';
+
+  stops.forEach((stop, i) => {
+    const isFirst = i === 0;
+    const isLast = i === stops.length - 1;
+    const canDelete = stops.length > 2 && !isFirst; // can't delete first stop or if only 2 stops
+
+    // Connector
+    const row = document.createElement('div');
+    row.className = 'stop-row';
+
+    // Left connector column
+    const conn = document.createElement('div');
+    conn.className = 'stop-connector';
+
+    const dot = document.createElement('div');
+    dot.className = 'stop-dot' + (isFirst?' home-dot':isLast?' end-dot':'');
+    conn.appendChild(dot);
+
+    // Line going down (not for last stop)
+    const line = document.createElement('div');
+    line.className = 'stop-line' + (isLast?' hidden':'');
+    conn.appendChild(line);
+    row.appendChild(conn);
+
+    // Stop body
+    const body = document.createElement('div');
+    body.className = 'stop-body';
+
+    // Stop label
+    const label = document.createElement('div');
+    label.className = 'stop-label';
+    label.textContent = isFirst ? 'Start' : isLast ? `Stop ${i} — End` : `Stop ${i}`;
+    body.appendChild(label);
+
+    // Stop card
+    const card = document.createElement('div');
+    card.className = 'stop-card';
+
+    // Select
+    const wrap = document.createElement('div');
+    wrap.className = 'stop-select-wrap';
+    const sel = document.createElement('select');
+    sel.innerHTML = `<option value="">Choose location...</option>` +
+      LOCATIONS.map(l=>`<option value="${l.name}" ${stop===l.name?'selected':''}>${l.name}</option>`).join('');
+    sel.onchange = () => { stops[i] = sel.value || null; onStopChange(i); };
+    wrap.appendChild(sel);
+    card.appendChild(wrap);
+
+    // Leg badge (between this stop and next) — shown on the card of the FROM stop
+    if (!isLast) {
+      const badge = document.createElement('div');
+      badge.id = `leg-badge-${i}`;
+      badge.className = 'leg-badge loading';
+      badge.textContent = '—';
+      card.appendChild(badge);
+    }
+
+    // Delete button
+    if (canDelete) {
+      const del = document.createElement('button');
+      del.className = 'remove-stop';
+      del.innerHTML = '×';
+      del.title = 'Remove stop';
+      del.onclick = () => removeStop(i);
+      card.appendChild(del);
+    }
+
+    body.appendChild(card);
+    row.appendChild(body);
+    list.appendChild(row);
+  });
+
+  // Recompute all legs
+  recalcAllLegs();
+  updateAddStopBtn();
+}
+
+function updateAddStopBtn(){
+  const btn = document.getElementById('addStopBtn');
+  const counter = document.getElementById('stopCounter');
+  btn.disabled = stops.length >= MAX_STOPS;
+  counter.textContent = `${stops.length} locations · ${stops.length-1} legs`;
+}
+
+function addStop(){
+  if(stops.length >= MAX_STOPS) return;
+  stops.push(null);
+  renderStopList();
+}
+
+function removeStop(i){
+  stops.splice(i,1);
+  // Clear cached leg results since indices shifted
+  legMiles = {}; legSources = {}; legLoading = {};
+  renderStopList();
+}
+
+function clearRoute(){
+  stops = [null, null];
+  legMiles = {}; legSources = {}; legLoading = {};
+  document.getElementById('routeDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('routePurpose').value = 'Dealership Visits';
+  renderStopList();
+  updateDayTotal();
+}
+
+function onStopChange(i){
+  // Invalidate legs involving this stop
+  delete legMiles[`${i-1}-${i}`]; delete legSources[`${i-1}-${i}`];
+  delete legMiles[`${i}-${i+1}`]; delete legSources[`${i}-${i+1}`];
+  recalcAllLegs();
+}
+
+async function recalcAllLegs(){
+  const promises = [];
+  for(let i=0;i<stops.length-1;i++){
+    promises.push(recalcLeg(i, i+1));
+  }
+  await Promise.all(promises);
+  updateDayTotal();
+}
+
+async function recalcLeg(fromIdx, toIdx){
+  const key = `${fromIdx}-${toIdx}`;
+  const from = stops[fromIdx], to = stops[toIdx];
+  const badge = document.getElementById(`leg-badge-${fromIdx}`);
+  if(!badge) return;
+
+  if(!from || !to){
+    badge.className='leg-badge loading'; badge.textContent='—';
+    delete legMiles[key]; delete legSources[key];
+    return;
+  }
+  if(from === to){
+    badge.className='leg-badge loading'; badge.textContent='same';
+    delete legMiles[key]; return;
+  }
+
+  const pairKey = `${from}|${to}`;
+  if(EXCLUDED.has(pairKey)){
+    badge.className='leg-badge excluded'; badge.textContent='N/R';
+    legMiles[key]=0; legSources[key]='excluded'; return;
+  }
+
+  // Show spinner
+  badge.className='leg-badge loading';
+  badge.innerHTML='<span class="miles-spinner"></span>';
+
+  let miles=null, source='estimated';
+
+  if(apiKey){
+    if(liveDistances[pairKey]!==undefined){ miles=liveDistances[pairKey]; source='cached'; }
+    else {
+      miles = await fetchOrsDistance(from,to);
+      if(miles!==null){ liveDistances[pairKey]=miles; localStorage.setItem('ors_distances',JSON.stringify(liveDistances)); source='live'; }
+    }
+  }
+  if(miles===null){ miles=ESTIMATES[pairKey]||null; source='estimated'; }
+
+  if(miles!==null){
+    legMiles[key]=miles; legSources[key]=source;
+    badge.className='leg-badge';
+    badge.textContent=`${miles} mi`;
+    badge.title=`${source==='live'?'Live ORS':source==='cached'?'Cached ORS':'Estimated'}: ${from} → ${to}`;
+  } else {
+    badge.className='leg-badge loading'; badge.textContent='?';
+    delete legMiles[key];
+  }
+}
+
+function updateDayTotal(){
+  let total = 0, validLegs = 0, excludedLegs = 0;
+  const lines = [];
+
+  for(let i=0;i<stops.length-1;i++){
+    const key=`${i}-${i+1}`;
+    const from=stops[i], to=stops[i+1];
+    if(!from||!to) continue;
+
+    const pairKey=`${from}|${to}`;
+    if(EXCLUDED.has(pairKey)){ excludedLegs++; lines.push(`<span style="color:var(--red)">N/R</span>  ${from} → ${to}`); continue; }
+
+    const m=legMiles[key];
+    if(m!==undefined){ total+=m; validLegs++; lines.push(`${m} mi  ${from} → ${to}`); }
+  }
+
+  document.getElementById('dayTotalValue').textContent = total.toFixed(1);
+  document.getElementById('dayBreakdown').innerHTML = lines.join('<br>') || '<span style="color:var(--text-dim)">Add stops to see breakdown</span>';
+
+  // Enable save if at least 1 valid leg
+  document.getElementById('saveRouteBtn').disabled = stops.filter(Boolean).length < 2;
+}
+
+// ── ORS ───────────────────────────────────────────────────────────────────
+async function fetchOrsDistance(from,to){
+  const f=LOCATIONS.find(l=>l.name===from), t=LOCATIONS.find(l=>l.name===to);
+  if(!f||!t) return null;
+  const url=`https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${f.coords[0]},${f.coords[1]}&end=${t.coords[0]},${t.coords[1]}`;
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error(`ORS ${res.status}`);
+    const data=await res.json();
+    return +(data.features[0].properties.segments[0].distance*0.000621371).toFixed(1);
+  }catch(e){ console.error(e); return null; }
+}
+
+// ── SAVE ROUTE ────────────────────────────────────────────────────────────
+function saveRoute(){
+  const date = document.getElementById('routeDate').value;
+  const purpose = document.getElementById('routePurpose').value;
+
+  // Build legs array
+  const legs = [];
+  let totalMiles = 0;
+  for(let i=0;i<stops.length-1;i++){
+    const key=`${i}-${i+1}`;
+    const from=stops[i], to=stops[i+1];
+    if(!from||!to) continue;
+    const pairKey=`${from}|${to}`;
+    if(EXCLUDED.has(pairKey)) continue; // skip excluded
+    const m=legMiles[key];
+    if(m===undefined) continue;
+    legs.push({ from, to, miles:m, source:legSources[key]||'estimated' });
+    totalMiles+=m;
+  }
+
+  if(!date){ toast('Please select a date','error'); return; }
+  if(stops.filter(Boolean).length < 2){ toast('Add at least 2 stops','error'); return; }
+
+  const route = {
+    id: Date.now(),
+    date,
+    purpose,
+    legs,
+    totalMiles: +totalMiles.toFixed(1),
+    stops: stops.filter(Boolean),
+  };
+
+  routeDays.push(route);
+  localStorage.setItem('alm_routes', JSON.stringify(routeDays));
+  const msg = legs.length === 0
+    ? `Day logged — 0 reimbursable miles (Home ↔ Corporate only)`
+    : `Route saved — ${route.totalMiles} mi across ${legs.length} leg${legs.length>1?'s':''}`;
+  toast(msg, 'success');
+  clearRoute();
+  renderHistory();
+  updateGlobalStats();
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────
+function renderHistory(){
+  const body = document.getElementById('historyBody');
+  let filtered = currentFilter==='all' ? routeDays : routeDays.filter(r=>r.date.startsWith(currentFilter));
+
+  if(!filtered.length){
+    body.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No routes logged yet</div></div></td></tr>`;
+    return;
+  }
+
+  const sorted=[...filtered].sort((a,b)=>b.date.localeCompare(a.date));
+  body.innerHTML = sorted.map(r=>{
+    const chain = r.stops.map((s,i)=>
+      i<r.stops.length-1
+        ? `<span class="route-stop">${s}</span><span class="route-arrow">→</span>`
+        : `<span class="route-stop">${s}</span>`
+    ).join('');
+
+    const legRows = r.legs.map(l=>
+      `<div class="leg-detail-row"><span class="leg-detail-mi">${l.miles} mi</span><span>${l.from} → ${l.to}</span></div>`
+    ).join('');
+
+    return `
+      <tr onclick="toggleExpand(${r.id})" style="cursor:pointer">
+        <td style="color:var(--text-dim);white-space:nowrap">${fmtDate(r.date)}</td>
+        <td><div class="route-chain">${chain}</div></td>
+        <td style="color:var(--text-mid)">${r.legs.length === 0 ? '<span style="color:var(--red);font-size:10px">N/R only</span>' : r.legs.length + ' leg' + (r.legs.length>1?'s':'')}</td>
+        <td class="trip-miles">${r.totalMiles}</td>
+        <td><span class="purpose-tag">${r.purpose}</span></td>
+        <td><button class="delete-btn" onclick="event.stopPropagation();deleteRoute(${r.id})">×</button></td>
+      </tr>
+      <tr class="expand-row" id="expand-${r.id}">
+        <td colspan="6">
+          <div class="leg-detail">${legRows}</div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  buildMonthFilters();
+}
+
+function toggleExpand(id){
+  const row = document.getElementById(`expand-${id}`);
+  if(!row) return;
+  row.style.display = row.style.display==='table-row' ? 'none' : 'table-row';
+}
+
+function deleteRoute(id){
+  routeDays = routeDays.filter(r=>r.id!==id);
+  localStorage.setItem('alm_routes',JSON.stringify(routeDays));
+  renderHistory(); updateGlobalStats();
+  toast('Route removed','info');
+}
+
+function buildMonthFilters(){
+  const months=[...new Set(routeDays.map(r=>r.date.slice(0,7)))].sort().reverse();
+  const c=document.getElementById('monthFilters');
+  c.innerHTML=`<button class="filter-chip ${currentFilter==='all'?'active':''}" onclick="filterMonth('all',this)">All</button>`;
+  months.forEach(m=>{ const [y,mo]=m.split('-'); const label=new Date(y,mo-1).toLocaleDateString('en-US',{month:'short',year:'numeric'}); c.innerHTML+=`<button class="filter-chip ${currentFilter===m?'active':''}" onclick="filterMonth('${m}',this)">${label}</button>`; });
+}
+
+function filterMonth(val,btn){
+  currentFilter=val;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+}
+
+function updateGlobalStats(){
+  const total=routeDays.reduce((s,r)=>s+r.totalMiles,0);
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const monthMiles=routeDays.filter(r=>r.date.startsWith(thisMonth)).reduce((s,r)=>s+r.totalMiles,0);
+  const avg=routeDays.length?total/routeDays.length:0;
+  document.getElementById('statTotal').textContent=total.toFixed(1);
+  document.getElementById('statDays').textContent=routeDays.length;
+  document.getElementById('statAvg').textContent=avg.toFixed(1);
+  document.getElementById('statMonth').textContent=monthMiles.toFixed(1);
+  document.getElementById('sidebarTotal').textContent=total.toFixed(1);
+  document.getElementById('sidebarCount').textContent=routeDays.length;
+  document.getElementById('headerTotal').textContent=`${total.toFixed(1)} MI TOTAL`;
+}
+
+// ── LOCATIONS PAGE ────────────────────────────────────────────────────────
+function renderLocations(){
+  const NOTES = {
+    "Home": "Personal — start/end point",
+    "ALM Corporate": "Not reimbursed from Home",
+  };
+  const body = document.getElementById('locationsBody');
+  body.innerHTML = LOCATIONS.map((l, i) => {
+    const isExcluded = l.name === 'ALM Corporate';
+    const note = NOTES[l.name] || '';
+    return `<tr>
+      <td style="padding:14px 20px;color:var(--text-dim);font-family:var(--mono);font-size:11px">${i+1}</td>
+      <td style="padding:14px 20px">
+        <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:${l.name==='Home'?'var(--green)':isExcluded?'var(--red)':'var(--text)'}">${l.name}</span>
+      </td>
+      <td style="padding:14px 20px;font-family:var(--mono);font-size:12px;color:var(--text-mid)">${l.address}</td>
+      <td style="padding:14px 20px">
+        ${note?`<span class="purpose-tag" style="color:${isExcluded?'var(--red)':'var(--text-dim)'};background:${isExcluded?'var(--red-dim)':'var(--surface3)'};border:1px solid ${isExcluded?'rgba(229,57,53,0.3)':'transparent'}">${note}</span>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── MATRIX ────────────────────────────────────────────────────────────────
+function renderMatrix(){
+  const w=document.getElementById('matrixWrapper');
+  let html='<table class="matrix-table"><thead><tr><th class="row-header">FROM \\ TO</th>';
+  LOCATIONS.forEach(l=>{ html+=`<th>${l.name.replace('ALM ','')}</th>`; });
+  html+='</tr></thead><tbody>';
+  LOCATIONS.forEach(from=>{
+    html+=`<tr><th class="row-header">${from.name}</th>`;
+    LOCATIONS.forEach(to=>{
+      const key=`${from.name}|${to.name}`;
+      if(from.name===to.name){ html+=`<td class="self">—</td>`; }
+      else if(EXCLUDED.has(key)){ html+=`<td class="excluded">N/R</td>`; }
+      else {
+        const live=liveDistances[key],est=ESTIMATES[key],miles=live!==undefined?live:est,isLive=live!==undefined;
+        const cls=miles<20?'green':miles<35?'yellow':miles<55?'orange':'red-cell';
+        html+=`<td class="${cls}" title="${from.name} → ${to.name}: ${miles} mi"><div class="source-dot ${isLive?'live':'estimated'}"></div><div class="cell-miles">${miles}</div><div class="cell-unit">mi</div></td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  w.innerHTML=html;
+}
+
+// ── REFRESH ───────────────────────────────────────────────────────────────
+async function refreshAllDistances(){
+  if(!apiKey){ openModal(); toast('Please add your ORS API key first','error'); return; }
+  const btn=document.getElementById('refreshBtn'),status=document.getElementById('refreshStatus');
+  const bar=document.getElementById('progressBar'),fill=document.getElementById('progressFill');
+  btn.disabled=true; bar.style.display='block';
+  const pairs=[];
+  LOCATIONS.forEach(a=>LOCATIONS.forEach(b=>{if(a.name!==b.name&&!EXCLUDED.has(`${a.name}|${b.name}`))pairs.push([a.name,b.name]);}));
+  let done=0; const total=pairs.length;
+  for(const[from,to]of pairs){
+    status.innerHTML=`Fetching: <span style="color:var(--amber)">${from} → ${to}</span> (${done+1}/${total})`;
+    fill.style.width=`${(done/total)*100}%`;
+    const m=await fetchOrsDistance(from,to);
+    if(m!==null) liveDistances[`${from}|${to}`]=m;
+    done++; await new Promise(r=>setTimeout(r,150));
+  }
+  localStorage.setItem('ors_distances',JSON.stringify(liveDistances));
+  fill.style.width='100%';
+  status.innerHTML=`<span style="color:var(--green)">✓ All ${total} routes refreshed!</span>`;
+  btn.disabled=false; renderMatrix();
+  toast(`${total} routes updated`,'success');
+}
+
+// ── EXCEL ─────────────────────────────────────────────────────────────────
+function downloadExcel(){
+  if(!routeDays.length){ toast('No routes to export','error'); return; }
+  const wb=XLSX.utils.book_new();
+
+  // Summary sheet
+  const sumData=[['Date','Total Miles','Legs','Purpose','Route']];
+  routeDays.forEach(r=>sumData.push([r.date,r.totalMiles,r.legs.length,r.purpose,r.stops.join(' → ')]));
+  sumData.push(['','TOTAL',routeDays.reduce((s,r)=>s+r.totalMiles,0).toFixed(1),'','']);
+  const ws1=XLSX.utils.aoa_to_sheet(sumData);
+  ws1['!cols']=[{wch:12},{wch:10},{wch:6},{wch:18},{wch:60}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+
+  // Detailed leg sheet
+  const legData=[['Date','From','To','Miles','Source','Purpose']];
+  routeDays.forEach(r=>r.legs.forEach(l=>legData.push([r.date,l.from,l.to,l.miles,l.source,r.purpose])));
+  const ws2=XLSX.utils.aoa_to_sheet(legData);
+  ws2['!cols']=[{wch:12},{wch:22},{wch:22},{wch:8},{wch:10},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Detailed Legs');
+
+  // Matrix
+  const matData=[['FROM \\ TO',...LOCATIONS.map(l=>l.name)]];
+  LOCATIONS.forEach(from=>{
+    const row=[from.name];
+    LOCATIONS.forEach(to=>{
+      const key=`${from.name}|${to.name}`;
+      if(from.name===to.name) row.push(0);
+      else if(EXCLUDED.has(key)) row.push('N/R');
+      else { const live=liveDistances[key],est=ESTIMATES[key]; row.push(live!==undefined?live:(est||'')); }
+    });
+    matData.push(row);
+  });
+  const ws3=XLSX.utils.aoa_to_sheet(matData);
+  ws3['!cols']=[{wch:22},...LOCATIONS.map(()=>({wch:14}))];
+  XLSX.utils.book_append_sheet(wb,ws3,'Distance Matrix');
+
+  XLSX.writeFile(wb,`ALM_Mileage_Tracker_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Excel downloaded!','success');
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+function openModal(){ document.getElementById('apiModal').classList.add('open'); document.getElementById('apiKeyInput').value=apiKey; }
+function closeModal(){ document.getElementById('apiModal').classList.remove('open'); }
+function saveApiKey(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k){ toast('Please enter an API key','error'); return; }
+  apiKey=k; localStorage.setItem('ors_api_key',k); updateApiStatus(); closeModal();
+  toast('API key saved!','success');
+  recalcAllLegs();
+}
+function updateApiStatus(){
+  const dot=document.getElementById('apiStatus'),label=document.getElementById('apiLabel');
+  if(apiKey){ dot.classList.add('active'); label.textContent='ORS CONNECTED'; }
+  else{ dot.classList.remove('active'); label.textContent='NO API KEY'; }
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='matrix') renderMatrix();
+  if(id==='history') renderHistory();
+  if(id==='locations') renderLocations();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function fmtDate(d){ if(!d) return ''; const[y,m,day]=d.split('-'); return `${m}/${day}/${y}`; }
+function toast(msg,type='info'){
+  const c=document.getElementById('toastContainer'),t=document.createElement('div');
+  t.className=`toast ${type}`;
+  const icons={success:'✓',error:'✗',info:'→'};
+  t.innerHTML=`<span style="color:${type==='success'?'var(--green)':type==='error'?'var(--red)':'var(--amber)'}">${icons[type]}</span> ${msg}`;
+  c.appendChild(t); setTimeout(()=>t.remove(),3500);
+}
+</script>
+</body>
+</html>
