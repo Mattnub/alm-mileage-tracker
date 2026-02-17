@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v12</title>
+    <title>ALM Mileage Tracker v13</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -1094,6 +1094,198 @@
             .route-form[style*="grid-template-columns: repeat(4, 1fr)"] {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .distance-matrix-container {
+                position: relative;
+            }
+            
+            .distance-matrix-container::after {
+                content: 'Scroll horizontally to view all columns →';
+                position: absolute;
+                bottom: -25px;
+                right: 0;
+                color: #666;
+                font-size: 11px;
+                font-style: italic;
+            }
+        }
+
+        /* Distance Matrix Improvements */
+        .distance-matrix-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            max-width: 100%;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #141414;
+        }
+
+        .distance-matrix {
+            min-width: 900px;
+            width: max-content;
+            margin: 0;
+        }
+
+        .distance-matrix th:first-child,
+        .distance-matrix td:first-child {
+            position: sticky;
+            left: 0;
+            background: #252525;
+            z-index: 2;
+            border-right: 2px solid #333;
+        }
+
+        /* Print Styles */
+        @media print {
+            /* Hide navigation and non-essential elements */
+            .sidebar,
+            .top-bar,
+            .modal-overlay,
+            .toast,
+            .draft-banner,
+            .btn,
+            button,
+            .action-buttons,
+            .conflict-actions,
+            .nav-item,
+            .map-preview,
+            .map-container {
+                display: none !important;
+            }
+            
+            /* Adjust main content for print */
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+            
+            .page-content {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            /* Page breaks */
+            .route-card {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            
+            .page-header {
+                page-break-after: avoid;
+                margin-bottom: 20px;
+            }
+            
+            /* Print-friendly colors */
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            
+            .route-card,
+            .route-card-header {
+                background: white !important;
+                border: 1px solid #000 !important;
+                color: black !important;
+            }
+            
+            .data-table {
+                background: white !important;
+                border-collapse: collapse !important;
+            }
+            
+            .data-table th {
+                background: #f0f0f0 !important;
+                color: black !important;
+                border: 1px solid #000 !important;
+            }
+            
+            .data-table td {
+                color: black !important;
+                border: 1px solid #000 !important;
+            }
+            
+            /* Print headers */
+            .page-title {
+                color: black !important;
+                font-size: 24px !important;
+            }
+            
+            .page-subtitle {
+                color: #666 !important;
+            }
+            
+            .section-title {
+                color: black !important;
+            }
+            
+            .section-title::before {
+                background: black !important;
+            }
+            
+            /* Status badges for print */
+            .status-badge {
+                border: 1px solid #000 !important;
+                background: white !important;
+                color: black !important;
+            }
+            
+            /* Stats and numbers */
+            .stat-value,
+            .total-value,
+            .conflict-value {
+                color: black !important;
+            }
+            
+            /* Print page setup */
+            @page {
+                size: A4;
+                margin: 0.75in;
+            }
+            
+            /* Force page title to show */
+            .page-header::before {
+                content: "ALM Mileage Tracker - Printed Report";
+                display: block;
+                font-size: 12px;
+                color: #666;
+                margin-bottom: 10px;
+                text-align: right;
+            }
+            
+            /* Print date */
+            .page-header::after {
+                content: "Generated: " attr(data-print-date);
+                display: block;
+                font-size: 10px;
+                color: #666;
+                text-align: right;
+                margin-top: 5px;
+            }
+        }
+
+        /* Print button styling */
+        .print-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 167, 38, 0.1);
+            border: 1px solid rgba(255, 167, 38, 0.3);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .print-btn {
+            background: #ffa726;
+            color: black;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        .print-btn:hover {
+            background: #ff9800;
         }
     </style>
 </head>
@@ -1103,7 +1295,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v12</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v13</div>
             </div>
             
             <div class="nav-section">
@@ -1333,6 +1525,13 @@
                             <div class="section-title">Route History</div>
                         </div>
                         <div class="route-builder">
+                            <!-- Print Section -->
+                            <div class="print-section">
+                                <h4 style="margin: 0 0 10px 0; color: #ffa726;">Print Reports</h4>
+                                <button class="print-btn" onclick="printCurrentView()">🖨️ Print Current View</button>
+                                <button class="print-btn" onclick="printFilteredData()">📄 Print Filtered Data</button>
+                            </div>
+                            
                             <div id="history-table-container">
                                 <!-- History table will be populated here -->
                             </div>
@@ -1346,6 +1545,59 @@
                         <h1 class="page-title">Locations</h1>
                         <p class="page-subtitle">ALM DEALERSHIP AND OFFICE LOCATIONS</p>
                     </div>
+                    
+                    <!-- Add New Location -->
+                    <div class="route-card" style="margin-bottom: 20px;">
+                        <div class="route-card-header">
+                            <div class="section-title">Add New Location</div>
+                        </div>
+                        <div class="route-builder">
+                            <div class="route-form" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+                                <div class="form-field">
+                                    <label>Location Name</label>
+                                    <input type="text" id="new-location-name" placeholder="e.g., ALM Alpharetta" class="form-control">
+                                </div>
+                                <div class="form-field">
+                                    <label>Full Address</label>
+                                    <input type="text" id="new-location-address" placeholder="Street, City, State ZIP" class="form-control">
+                                </div>
+                                <div class="form-field">
+                                    <label>Location Type</label>
+                                    <select id="new-location-type" class="form-control">
+                                        <option value="dealership">Dealership</option>
+                                        <option value="corporate">Corporate Office</option>
+                                        <option value="home">Home/Personal</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="route-form" style="grid-template-columns: 1fr 1fr 1fr auto; align-items: end;">
+                                <div class="form-field">
+                                    <label>Latitude</label>
+                                    <input type="number" id="new-location-lat" step="0.000001" placeholder="34.123456" class="form-control">
+                                </div>
+                                <div class="form-field">
+                                    <label>Longitude</label>
+                                    <input type="number" id="new-location-lng" step="0.000001" placeholder="-84.123456" class="form-control">
+                                </div>
+                                <div class="form-field">
+                                    <button class="btn btn-secondary" onclick="geocodeAddress()" id="geocode-btn">
+                                        📍 Get Coordinates
+                                    </button>
+                                </div>
+                                <div class="form-field">
+                                    <button class="btn btn-save" onclick="addNewLocation()">
+                                        Add Location
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(255, 167, 38, 0.1); border-radius: 4px; font-size: 13px; color: #ccc;">
+                                💡 <strong>Tip:</strong> Enter the address and click "Get Coordinates" to automatically fill latitude/longitude, or find coordinates manually using Google Maps.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Existing Locations -->
                     <div class="route-card">
                         <div class="route-card-header">
                             <div class="section-title">Location Directory</div>
@@ -1454,6 +1706,13 @@
                             <div class="section-title">Monthly Breakdown</div>
                         </div>
                         <div class="route-builder">
+                            <!-- Print Section -->
+                            <div class="print-section">
+                                <h4 style="margin: 0 0 10px 0; color: #ffa726;">Print Cost Report</h4>
+                                <button class="print-btn" onclick="printCostReport()">🖨️ Print Cost Report</button>
+                                <button class="print-btn" onclick="printMonthlySummary()">📊 Print Monthly Summary</button>
+                            </div>
+                            
                             <div id="monthly-cost-table">
                                 <!-- Monthly cost table will be populated here -->
                             </div>
@@ -1911,6 +2170,9 @@
             // Set today's date
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('trip-date').value = today;
+            
+            // Load custom locations into ALM_LOCATIONS
+            loadCustomLocationsIntoMemory();
 
             // Initialize route with 3 stops: START > STOP 1 > END
             initializeDefaultRoute();
@@ -1926,6 +2188,53 @@
             if (activePage && activePage.dataset.page) {
                 initializePage(activePage.dataset.page);
             }
+        }
+
+        function loadCustomLocationsIntoMemory() {
+            const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
+            Object.assign(ALM_LOCATIONS, customLocations);
+        }
+
+        // Print Functions
+        function printCurrentView() {
+            // Set print date attribute
+            const pageHeader = document.querySelector('.page-header');
+            if (pageHeader) {
+                pageHeader.setAttribute('data-print-date', new Date().toLocaleDateString());
+            }
+            
+            window.print();
+        }
+
+        function printFilteredData() {
+            // For history page, ensure we're showing filtered data
+            if (document.getElementById('history-page').classList.contains('active')) {
+                const hasFilters = document.getElementById('filter-month').value || 
+                                  document.getElementById('filter-purpose').value || 
+                                  document.getElementById('filter-status').value;
+                
+                if (!hasFilters) {
+                    showToast('No filters applied. Use "Print Current View" instead.', 'warning');
+                    return;
+                }
+            }
+            
+            printCurrentView();
+        }
+
+        function printCostReport() {
+            // Switch to cost page if not already there
+            const costPage = document.getElementById('cost-page');
+            if (!costPage.classList.contains('active')) {
+                document.querySelector('.nav-item[data-page="cost"]').click();
+                setTimeout(printCurrentView, 500); // Wait for page to load
+            } else {
+                printCurrentView();
+            }
+        }
+
+        function printMonthlySummary() {
+            printCostReport(); // Same as cost report for now
         }
 
         function initializeDefaultRoute() {
@@ -2131,13 +2440,21 @@
         function loadLocations() {
             const container = document.getElementById('locations-grid');
             
-            const locationCards = Object.entries(ALM_LOCATIONS).map(([key, location]) => {
+            // Get custom locations from localStorage
+            const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
+            
+            // Combine ALM locations with custom locations
+            const allLocations = { ...ALM_LOCATIONS, ...customLocations };
+            
+            const locationCards = Object.entries(allLocations).map(([key, location]) => {
+                const isCustom = !ALM_LOCATIONS[key];
                 return `
                     <div class="location-card">
-                        <div class="location-name">${location.name}</div>
+                        <div class="location-name">${location.name} ${isCustom ? '(Custom)' : ''}</div>
                         <div class="location-type ${location.type}">${location.type}</div>
                         <div class="location-address">${location.address}</div>
                         <div class="location-coords">${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</div>
+                        ${isCustom ? `<button class="conflict-btn skip" onclick="deleteCustomLocation('${key}')" style="margin-top: 10px; padding: 4px 8px; font-size: 10px;">Delete</button>` : ''}
                     </div>
                 `;
             }).join('');
@@ -2145,33 +2462,194 @@
             container.innerHTML = locationCards;
         }
 
+        async function geocodeAddress() {
+            const address = document.getElementById('new-location-address').value.trim();
+            
+            if (!address) {
+                showToast('Please enter an address first', 'warning');
+                return;
+            }
+            
+            const geocodeBtn = document.getElementById('geocode-btn');
+            geocodeBtn.disabled = true;
+            geocodeBtn.textContent = '🔄 Getting...';
+            
+            try {
+                // Use Google Maps Geocoding API
+                const geocoder = new google.maps.Geocoder();
+                
+                const result = await new Promise((resolve, reject) => {
+                    geocoder.geocode({ address: address }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            resolve(results[0]);
+                        } else {
+                            reject(new Error(`Geocoding failed: ${status}`));
+                        }
+                    });
+                });
+                
+                const location = result.geometry.location;
+                document.getElementById('new-location-lat').value = location.lat().toFixed(6);
+                document.getElementById('new-location-lng').value = location.lng().toFixed(6);
+                
+                showToast('Coordinates found successfully', 'success');
+                
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                showToast('Could not find coordinates. Please enter manually.', 'error');
+            } finally {
+                geocodeBtn.disabled = false;
+                geocodeBtn.textContent = '📍 Get Coordinates';
+            }
+        }
+
+        function addNewLocation() {
+            const name = document.getElementById('new-location-name').value.trim();
+            const address = document.getElementById('new-location-address').value.trim();
+            const type = document.getElementById('new-location-type').value;
+            const lat = parseFloat(document.getElementById('new-location-lat').value);
+            const lng = parseFloat(document.getElementById('new-location-lng').value);
+            
+            // Validation
+            if (!name || !address || !type) {
+                showToast('Please fill in all required fields', 'warning');
+                return;
+            }
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                showToast('Please provide valid coordinates', 'warning');
+                return;
+            }
+            
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                showToast('Coordinates are out of valid range', 'error');
+                return;
+            }
+            
+            // Generate unique key
+            const key = 'custom_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20) + '_' + Date.now();
+            
+            // Check if location already exists
+            const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
+            const allLocations = { ...ALM_LOCATIONS, ...customLocations };
+            
+            const existingLocation = Object.values(allLocations).find(loc => 
+                loc.name.toLowerCase() === name.toLowerCase() ||
+                (Math.abs(loc.lat - lat) < 0.001 && Math.abs(loc.lng - lng) < 0.001)
+            );
+            
+            if (existingLocation) {
+                showToast('A location with this name or coordinates already exists', 'warning');
+                return;
+            }
+            
+            // Create new location
+            const newLocation = {
+                name: name,
+                address: address,
+                lat: lat,
+                lng: lng,
+                type: type
+            };
+            
+            // Save to localStorage
+            customLocations[key] = newLocation;
+            localStorage.setItem('alm_custom_locations', JSON.stringify(customLocations));
+            
+            // Update ALM_LOCATIONS for immediate use
+            ALM_LOCATIONS[key] = newLocation;
+            
+            // Clear form
+            document.getElementById('new-location-name').value = '';
+            document.getElementById('new-location-address').value = '';
+            document.getElementById('new-location-lat').value = '';
+            document.getElementById('new-location-lng').value = '';
+            document.getElementById('new-location-type').value = 'dealership';
+            
+            // Refresh locations display
+            loadLocations();
+            
+            // Update route builder dropdowns
+            updateRouteBuilderLocations();
+            
+            showToast(`Location "${name}" added successfully`, 'success');
+        }
+
+        function deleteCustomLocation(key) {
+            if (!key.startsWith('custom_')) {
+                showToast('Cannot delete built-in ALM locations', 'error');
+                return;
+            }
+            
+            const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
+            const locationName = customLocations[key]?.name || 'Unknown';
+            
+            if (!confirm(`Are you sure you want to delete "${locationName}"?`)) {
+                return;
+            }
+            
+            // Remove from storage
+            delete customLocations[key];
+            localStorage.setItem('alm_custom_locations', JSON.stringify(customLocations));
+            
+            // Remove from runtime locations
+            delete ALM_LOCATIONS[key];
+            
+            // Refresh locations display
+            loadLocations();
+            
+            // Update route builder dropdowns
+            updateRouteBuilderLocations();
+            
+            showToast(`Location "${locationName}" deleted`, 'success');
+        }
+
+        function updateRouteBuilderLocations() {
+            // Update all route builder dropdown menus
+            const selects = document.querySelectorAll('.stop-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                const options = Object.entries(ALM_LOCATIONS).map(([key, loc]) => 
+                    `<option value="${key}" ${currentValue === key ? 'selected' : ''}>${loc.name}</option>`
+                ).join('');
+                
+                select.innerHTML = `<option value="">Choose location...</option>${options}`;
+            });
+        }
+
         // Distance Matrix Functions
         function loadDistanceMatrix() {
             const container = document.getElementById('distance-matrix-container');
             const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
             
+            // Use all locations including custom ones
             const locations = Object.entries(ALM_LOCATIONS);
             
-            let tableHTML = '<table class="data-table distance-matrix"><thead><tr><th></th>';
+            let tableHTML = '<table class="data-table distance-matrix"><thead><tr><th style="min-width: 120px;"></th>';
             locations.forEach(([key, loc]) => {
-                tableHTML += `<th class="location-header">${loc.name.replace('ALM ', '')}</th>`;
+                const displayName = loc.name.replace('ALM ', '').replace('Custom ', '');
+                tableHTML += `<th class="location-header" style="min-width: 80px;">${displayName}</th>`;
             });
             tableHTML += '</tr></thead><tbody>';
             
             locations.forEach(([fromKey, fromLoc]) => {
-                tableHTML += `<tr><td class="location-header">${fromLoc.name.replace('ALM ', '')}</td>`;
+                const fromDisplayName = fromLoc.name.replace('ALM ', '').replace('Custom ', '');
+                tableHTML += `<tr><td class="location-header" style="min-width: 120px;">${fromDisplayName}</td>`;
                 
                 locations.forEach(([toKey, toLoc]) => {
                     if (fromKey === toKey) {
                         tableHTML += '<td class="distance-cell">-</td>';
                     } else {
                         const cacheKey = `${fromKey}_${toKey}`;
-                        const distance = cachedDistances[cacheKey];
+                        const reverseKey = `${toKey}_${fromKey}`;
+                        const distance = cachedDistances[cacheKey] || cachedDistances[reverseKey];
                         
                         if (distance) {
                             tableHTML += `<td class="distance-cell">${distance.toFixed(1)} mi</td>`;
                         } else {
-                            tableHTML += '<td class="distance-cell unavailable">N/A</td>';
+                            // Calculate haversine as fallback
+                            const haversineDist = haversineDistance(fromLoc.lat, fromLoc.lng, toLoc.lat, toLoc.lng) * 1.25;
+                            tableHTML += `<td class="distance-cell unavailable" title="Estimated">${haversineDist.toFixed(1)} mi*</td>`;
                         }
                     }
                 });
@@ -2180,6 +2658,10 @@
             });
             
             tableHTML += '</tbody></table>';
+            
+            // Add legend for estimated distances
+            tableHTML += '<div style="margin-top: 10px; font-size: 11px; color: #666;">* Estimated distances (not from Google Maps)</div>';
+            
             container.innerHTML = tableHTML;
         }
 
@@ -2434,6 +2916,17 @@
             
             const changelog = [
                 {
+                    version: 'v13',
+                    date: 'February 2026',
+                    features: [
+                        'Print-Friendly Views - Professional printing for reports and history',
+                        'Add New Locations - Create custom locations with geocoding support',
+                        'Fixed Distance Matrix Scrolling - Improved horizontal scroll on mobile',
+                        'Complete Changelog - All versions from v1-v13 documented',
+                        'Enhanced Print Styles - Clean black/white formatting for expense reports'
+                    ]
+                },
+                {
                     version: 'v12',
                     date: 'February 2026',
                     features: [
@@ -2497,6 +2990,72 @@
                         'Purpose Analysis - Pie chart breakdown',
                         'Chart.js Integration - Interactive visualizations',
                         'Dark Theme Charts - Consistent styling'
+                    ]
+                },
+                {
+                    version: 'v6',
+                    date: 'February 2026',
+                    features: [
+                        'Excel Import - Read previously downloaded files',
+                        'Smart Merge - Only import new routes, check date+miles',
+                        'Parse Summary + Detailed Legs sheets',
+                        'Preserve synced status from file'
+                    ]
+                },
+                {
+                    version: 'v5',
+                    date: 'February 2026',
+                    features: [
+                        'Force Resync - Per-row "Retry" button on unsynced routes',
+                        'Sync All Unsynced - Bulk button at top of history',
+                        'Auto-retry after sign-in - Reprocess failed syncs',
+                        'Error handling improvements'
+                    ]
+                },
+                {
+                    version: 'v4',
+                    date: 'February 2026',
+                    features: [
+                        'Google Sheets Sync Fixes - Fixed URL encoding bugs',
+                        'Error surfacing in toasts for debugging',
+                        'Token expiry handling with re-auth flow',
+                        'Improved sync reliability'
+                    ]
+                },
+                {
+                    version: 'v3',
+                    date: 'February 2026',
+                    features: [
+                        'Google Integration - Switched to Google Maps Distance Matrix API',
+                        'Google Sheets Auto-backup via OAuth 2.0',
+                        'Summary + Detailed Legs tabs sync',
+                        'Header status pills show connection state'
+                    ]
+                },
+                {
+                    version: 'v2',
+                    date: 'February 2026',
+                    features: [
+                        'Multi-Stop Route Builder - Up to 6 stops per route (5 legs)',
+                        'Visual connector UI - Green start, amber middle, red end',
+                        'Live leg-by-leg mileage with badges',
+                        'Zero-mile days supported (N/R only)',
+                        'Expandable leg detail in history',
+                        'Corrected 6 location addresses via web search',
+                        'Added dedicated Locations page'
+                    ]
+                },
+                {
+                    version: 'v1',
+                    date: 'February 2026',
+                    features: [
+                        'Initial Release - Single A→B trip logging',
+                        'OpenRouteService API for driving distances',
+                        '10 ALM locations with haversine estimates as fallback',
+                        'Distance matrix view and trip history',
+                        'Excel export functionality',
+                        'Home ↔ Corporate marked non-reimbursable',
+                        'Dark theme with amber accent colors'
                     ]
                 }
             ];
