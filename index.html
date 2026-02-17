@@ -232,7 +232,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <header>
-  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v8</span></div>
+  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v9</span></div>
   <div class="header-right">
     <!-- Maps status -->
     <div class="status-pill" title="Google Maps Distance API">
@@ -295,12 +295,23 @@
         <div class="page-title">NEW ROUTE</div>
         <div class="page-subtitle">BUILD YOUR DAY'S STOPS — UP TO 6 LOCATIONS</div>
       </div>
+
+      <!-- DRAFT RESUME BANNER -->
+      <div id="draftBanner" style="display:none;background:var(--amber-glow);border:1px solid var(--amber-dim);border-radius:6px;padding:16px 20px;margin-bottom:20px;align-items:center;gap:16px;">
+        <div style="flex:1;">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--amber);font-weight:600;margin-bottom:4px;letter-spacing:1px">DRAFT FOUND</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.5">You have an unsaved route. Resume where you left off or start fresh.</div>
+        </div>
+        <button class="btn btn-primary" style="font-size:11px;padding:8px 16px" onclick="loadDraft()">Resume Draft</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:8px 16px" onclick="clearDraft()">Discard</button>
+      </div>
+
       <div class="card">
         <div class="card-title">Route Details</div>
         <div class="route-meta">
-          <div class="form-group"><label>Date</label><input type="date" id="routeDate"/></div>
+          <div class="form-group"><label>Date</label><input type="date" id="routeDate" onchange="saveDraft()"/></div>
           <div class="form-group"><label>Purpose</label>
-            <select id="routePurpose">
+            <select id="routePurpose" onchange="saveDraft()">
               <option>Dealership Visits</option><option>Customer Meetings</option>
               <option>Parts Pickup</option><option>Training</option>
               <option>Mixed</option><option>Other</option>
@@ -547,6 +558,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('locationList').textContent = LOCATIONS.map(l=>l.name).join(' · ');
   updateSheetsStatus();
   initGoogleSignIn();
+  checkDraft(); // Check for saved draft on load
 });
 
 // ── GOOGLE SIGN-IN ────────────────────────────────────────────────────────
@@ -637,6 +649,53 @@ async function fetchMapsDistance(from, to){
   }
 }
 
+// ── DRAFT AUTO-SAVE ───────────────────────────────────────────────────────
+function saveDraft(){
+  const draft = {
+    date: document.getElementById('routeDate').value,
+    purpose: document.getElementById('routePurpose').value,
+    stops,
+    legMiles,
+    legSources,
+  };
+  localStorage.setItem('alm_draft_route', JSON.stringify(draft));
+}
+
+function loadDraft(){
+  const saved = localStorage.getItem('alm_draft_route');
+  if(!saved) return;
+  try {
+    const draft = JSON.parse(saved);
+    document.getElementById('routeDate').value = draft.date || new Date().toISOString().split('T')[0];
+    document.getElementById('routePurpose').value = draft.purpose || 'Dealership Visits';
+    stops = draft.stops || [null, null];
+    legMiles = draft.legMiles || {};
+    legSources = draft.legSources || {};
+    renderStopList();
+    updateDayTotal();
+    hideDraftBanner();
+    toast('Draft restored!','info');
+  } catch(e) {
+    console.error('Failed to load draft:', e);
+    clearDraft();
+  }
+}
+
+function clearDraft(){
+  localStorage.removeItem('alm_draft_route');
+  hideDraftBanner();
+}
+
+function checkDraft(){
+  if(localStorage.getItem('alm_draft_route')){
+    document.getElementById('draftBanner').style.display='flex';
+  }
+}
+
+function hideDraftBanner(){
+  document.getElementById('draftBanner').style.display='none';
+}
+
 // ── STOP BUILDER ──────────────────────────────────────────────────────────
 function renderStopList(){
   const list = document.getElementById('stopList');
@@ -693,6 +752,7 @@ function onStopChange(i){
   delete legMiles[`${i-1}-${i}`]; delete legSources[`${i-1}-${i}`];
   delete legMiles[`${i}-${i+1}`]; delete legSources[`${i}-${i+1}`];
   recalcAllLegs();
+  saveDraft(); // Auto-save draft on every change
 }
 async function recalcAllLegs(){
   const promises=[];
@@ -766,6 +826,7 @@ async function saveRoute(){
     ?`Day logged — 0 reimbursable miles (Home ↔ Corporate only)`
     :`Route saved — ${route.totalMiles} mi across ${legs.length} leg${legs.length>1?'s':''}`;
   toast(msg,'success');
+  clearDraft(); // Clear the auto-saved draft
   clearRoute(); renderHistory(); updateGlobalStats();
   // Auto-sync to Sheets
   await syncRouteToSheets(route);
@@ -1116,6 +1177,19 @@ async function importExcel(event){
 // ── CHANGELOG ─────────────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: 9,
+    title: 'Auto-save Drafts',
+    date: 'Feb 2026',
+    changes: [
+      'Routes automatically save as drafts while you build them — never lose work',
+      'Draft saves every time you change date, purpose, or any stop',
+      'On page reload, a banner appears if you have an unsaved draft',
+      'Click "Resume Draft" to restore exactly where you left off',
+      'Draft automatically clears when you successfully save the route',
+      'Useful if browser crashes or you accidentally close the tab',
+    ]
+  },
+  {
     version: 8,
     title: 'Cost Calculator',
     date: 'Feb 2026',
@@ -1222,7 +1296,7 @@ const CHANGELOG = [
   },
 ];
 
-const CURRENT_VERSION = 8;
+const CURRENT_VERSION = 9;
 
 function renderChangelog(){
   const container = document.getElementById('changelogList');
