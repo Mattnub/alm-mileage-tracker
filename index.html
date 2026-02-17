@@ -120,6 +120,8 @@
   .delete-btn:hover{color:var(--red);background:var(--red-dim);}
   .purpose-tag{display:inline-block;background:var(--surface3);border-radius:3px;padding:2px 6px;font-size:10px;color:var(--text-dim);letter-spacing:0.5px;}
   .sheets-badge{display:inline-flex;align-items:center;gap:4px;background:var(--blue-dim);border:1px solid rgba(33,150,243,0.3);border-radius:3px;padding:2px 6px;font-size:9px;color:var(--blue);letter-spacing:0.5px;}
+  .resync-btn{background:none;border:1px solid rgba(229,57,53,0.4);border-radius:3px;color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 8px;cursor:pointer;letter-spacing:0.5px;transition:all 0.15s;}
+  .resync-btn:hover{background:var(--red-dim);border-color:var(--red);}
 
   .route-chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
   .route-stop{color:var(--text);}
@@ -229,7 +231,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <header>
-  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v4</span></div>
+  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v5</span></div>
   <div class="header-right">
     <!-- Maps status -->
     <div class="status-pill" title="Google Maps Distance API">
@@ -331,10 +333,13 @@
         <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="statMonth">0.0</div><div class="stat-unit">miles</div></div>
       </div>
       <div class="card">
-        <div class="card-title">All Route Days</div>
+        <div class="card-title" style="justify-content:space-between">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:3px;height:14px;background:var(--amber);border-radius:2px;display:inline-block"></span>All Route Days</span>
+          <button class="btn btn-sheets" id="syncAllBtn" onclick="syncAllUnsynced()" style="font-size:10px;padding:6px 12px;letter-spacing:1px">⬆ Sync All Unsynced</button>
+        </div>
         <div class="filter-row" id="monthFilters"><button class="filter-chip active" onclick="filterMonth('all',this)">All</button></div>
         <table class="trip-table">
-          <thead><tr><th>Date</th><th>Route</th><th>Legs</th><th>Miles</th><th>Purpose</th><th>Synced</th><th></th></tr></thead>
+          <thead><tr><th>Date</th><th>Route</th><th>Legs</th><th>Miles</th><th>Purpose</th><th>Sheets</th><th></th></tr></thead>
           <tbody id="historyBody"></tbody>
         </table>
       </div>
@@ -804,6 +809,13 @@ async function syncAllUnsynced(){
   toast(`Sync complete!`,'sheets');
 }
 
+async function resyncRoute(id){
+  if(!isTokenValid()){ openSheetsModal(); return; }
+  const route = routeDays.find(r=>r.id===id);
+  if(!route){ toast('Route not found','error'); return; }
+  await syncRouteToSheets(route);
+}
+
 // ── HISTORY ───────────────────────────────────────────────────────────────
 function renderHistory(){
   const body=document.getElementById('historyBody');
@@ -819,7 +831,9 @@ function renderHistory(){
       :`<span class="route-stop">${s}</span>`).join('');
     const legRows=r.legs.map(l=>`<div class="leg-detail-row"><span class="leg-detail-mi">${l.miles} mi</span><span>${l.from} → ${l.to}</span></div>`).join('');
     const legsCell=r.legs.length===0?'<span style="color:var(--red);font-size:10px">N/R only</span>':r.legs.length+' leg'+(r.legs.length>1?'s':'');
-    const syncedCell=r.synced?'<span class="sheets-badge">⬆ Sheets</span>':'<span style="color:var(--text-dim);font-size:10px">local</span>';
+    const syncedCell=r.synced
+      ?'<span class="sheets-badge">⬆ Sheets</span>'
+      :`<button class="resync-btn" onclick="event.stopPropagation();resyncRoute(${r.id})" title="Retry sync to Google Sheets">↻ Retry</button>`;
     return `
       <tr onclick="toggleExpand(${r.id})" style="cursor:pointer">
         <td style="color:var(--text-dim);white-space:nowrap">${fmtDate(r.date)}</td>
@@ -967,6 +981,17 @@ function downloadExcel(){
 // ── CHANGELOG ─────────────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: 5,
+    title: 'Force Resync',
+    date: 'Feb 2026',
+    changes: [
+      'Unsynced routes in Trip History now show a red "↻ Retry" button instead of plain "local"',
+      'Clicking Retry re-attempts the Sheets sync for that specific route',
+      'Added "⬆ Sync All Unsynced" button at the top of Trip History for bulk retry',
+      'Both retry paths prompt Google sign-in if the token has expired',
+    ]
+  },
+  {
     version: 4,
     title: 'Sheets Sync Fixes',
     date: 'Feb 2026',
@@ -1025,7 +1050,7 @@ const CHANGELOG = [
   },
 ];
 
-const CURRENT_VERSION = 4;
+const CURRENT_VERSION = 5;
 
 function renderChangelog(){
   const container = document.getElementById('changelogList');
