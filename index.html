@@ -232,7 +232,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <header>
-  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v7</span></div>
+  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v8</span></div>
   <div class="header-right">
     <!-- Maps status -->
     <div class="status-pill" title="Google Maps Distance API">
@@ -266,6 +266,7 @@
     <div class="nav-section">
       <div class="nav-section-label">Analysis</div>
       <button class="nav-btn" onclick="showPage('charts',this)"><span class="nav-icon">◐</span> Charts</button>
+      <button class="nav-btn" onclick="showPage('cost',this)"><span class="nav-icon">$</span> Cost Report</button>
     </div>
     <div class="nav-divider"></div>
     <div class="nav-section">
@@ -435,6 +436,46 @@
       <div class="card">
         <div class="card-title">Miles by Purpose</div>
         <canvas id="purposeChart" style="max-height:300px"></canvas>
+      </div>
+    </div>
+
+    <!-- COST REPORT PAGE -->
+    <div class="page" id="page-cost">
+      <div class="page-header">
+        <div class="page-title">COST REPORT</div>
+        <div class="page-subtitle">REIMBURSEMENT CALCULATOR @ IRS RATE</div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card">
+          <div class="stat-label">Total Miles</div>
+          <div class="stat-value" id="costTotalMiles">0.0</div>
+          <div class="stat-unit">miles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">IRS Rate (2025)</div>
+          <div class="stat-value" style="color:var(--green)">$0.70</div>
+          <div class="stat-unit">per mile</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Reimbursement</div>
+          <div class="stat-value" style="color:var(--amber)" id="costTotal">$0.00</div>
+          <div class="stat-unit">estimated</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Monthly Breakdown</div>
+        <table class="trip-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Miles</th>
+              <th>Reimbursement</th>
+            </tr>
+          </thead>
+          <tbody id="costBreakdownBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1075,6 +1116,18 @@ async function importExcel(event){
 // ── CHANGELOG ─────────────────────────────────────────────────────────────
 const CHANGELOG = [
   {
+    version: 8,
+    title: 'Cost Calculator',
+    date: 'Feb 2026',
+    changes: [
+      'New Cost Report page under Analysis section',
+      'Calculates total reimbursement at IRS standard mileage rate ($0.70/mile for 2025)',
+      'Monthly breakdown table showing miles and dollar amounts per month',
+      'Three summary cards: total miles, IRS rate, total reimbursement',
+      'Useful for expense reporting and tax deductions',
+    ]
+  },
+  {
     version: 7,
     title: 'Charts & Analytics',
     date: 'Feb 2026',
@@ -1169,7 +1222,7 @@ const CHANGELOG = [
   },
 ];
 
-const CURRENT_VERSION = 7;
+const CURRENT_VERSION = 8;
 
 function renderChangelog(){
   const container = document.getElementById('changelogList');
@@ -1190,6 +1243,52 @@ function renderChangelog(){
         </div>
       </div>`;
   }).join('');
+}
+
+// ── COST REPORT ───────────────────────────────────────────────────────────
+const IRS_RATE = 0.70; // 2025 standard mileage rate
+
+function renderCostReport(){
+  const totalMiles = routeDays.reduce((s,r)=>s+r.totalMiles,0);
+  const totalCost = totalMiles * IRS_RATE;
+  
+  document.getElementById('costTotalMiles').textContent = totalMiles.toFixed(1);
+  document.getElementById('costTotal').textContent = `$${totalCost.toFixed(2)}`;
+
+  // Monthly breakdown
+  const monthlyData = {};
+  routeDays.forEach(r=>{
+    const month = r.date.slice(0,7);
+    if(!monthlyData[month]) monthlyData[month]=0;
+    monthlyData[month]+=r.totalMiles;
+  });
+
+  const sorted = Object.keys(monthlyData).sort().reverse();
+  const body = document.getElementById('costBreakdownBody');
+  
+  if(!sorted.length){
+    body.innerHTML='<tr><td colspan="3"><div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No routes logged yet</div></div></td></tr>';
+    return;
+  }
+
+  body.innerHTML = sorted.map(m=>{
+    const miles = monthlyData[m];
+    const cost = miles * IRS_RATE;
+    const [y,mo] = m.split('-');
+    const label = new Date(y,mo-1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    return `<tr>
+      <td style="color:var(--text);font-weight:500">${label}</td>
+      <td style="color:var(--text-mid)">${miles.toFixed(1)} mi</td>
+      <td style="color:var(--amber);font-weight:600;font-size:14px">$${cost.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  // Add total row
+  body.innerHTML += `<tr style="border-top:2px solid var(--border)">
+    <td style="color:var(--text);font-weight:600">TOTAL</td>
+    <td style="color:var(--amber);font-weight:600">${totalMiles.toFixed(1)} mi</td>
+    <td style="color:var(--amber);font-weight:600;font-size:16px">$${totalCost.toFixed(2)}</td>
+  </tr>`;
 }
 
 // ── CHARTS ────────────────────────────────────────────────────────────────
@@ -1314,6 +1413,7 @@ function showPage(id,btn){
   if(id==='locations') renderLocations();
   if(id==='changelog') renderChangelog();
   if(id==='charts') renderCharts();
+  if(id==='cost') renderCostReport();
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
