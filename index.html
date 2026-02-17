@@ -427,7 +427,8 @@ LOCATIONS.forEach((a,i)=>LOCATIONS.forEach((b,j)=>{
 }));
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-let liveDistances = JSON.parse(localStorage.getItem('maps_distances')||'{}');
+// Cache key for Google Maps Distance Matrix distances
+let liveDistances = JSON.parse(localStorage.getItem('maps_distances_v2')||'{}');
 let routeDays     = JSON.parse(localStorage.getItem('alm_routes')||'[]');
 let currentFilter = 'all';
 let stops         = [null, null];
@@ -516,16 +517,16 @@ async function fetchMapsDistance(from, to){
   const f = LOCATIONS.find(l=>l.name===from);
   const t = LOCATIONS.find(l=>l.name===to);
   if(!f||!t) return null;
+  // Distance Matrix API — supports browser CORS, returns actual driving road miles
   const origin = `${f.coords[1]},${f.coords[0]}`;
   const dest   = `${t.coords[1]},${t.coords[0]}`;
-  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${dest}&units=imperial&key=${MAPS_API_KEY}`;
+  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${dest}&units=imperial&mode=driving&key=${MAPS_API_KEY}`;
   try {
     const res  = await fetch(url);
     const data = await res.json();
     if(data.status !== 'OK') throw new Error(data.status);
     const el = data.rows[0].elements[0];
     if(el.status !== 'OK') throw new Error(el.status);
-    // distance.value is in meters; convert to miles
     return +(el.distance.value * 0.000621371).toFixed(1);
   } catch(e) {
     console.error('Maps API error:', e);
@@ -612,7 +613,7 @@ async function recalcLeg(fromIdx, toIdx){
   else {
     // Fetch from Google Maps
     miles = await fetchMapsDistance(from, to);
-    if(miles!==null){ liveDistances[pairKey]=miles; localStorage.setItem('maps_distances',JSON.stringify(liveDistances)); source='live'; }
+    if(miles!==null){ liveDistances[pairKey]=miles; localStorage.setItem('maps_distances_v2',JSON.stringify(liveDistances)); source='live'; }
   }
   if(miles===null){ miles=ESTIMATES[pairKey]||null; source='estimated'; }
   if(miles!==null){
@@ -882,7 +883,7 @@ async function refreshAllDistances(){
     if(m!==null) liveDistances[`${from}|${to}`]=m;
     done++; await new Promise(r=>setTimeout(r,100));
   }
-  localStorage.setItem('maps_distances',JSON.stringify(liveDistances));
+  localStorage.setItem('maps_distances_v2',JSON.stringify(liveDistances));
   fill.style.width='100%';
   status.innerHTML=`<span style="color:var(--green)">✓ All ${total} routes refreshed from Google Maps!</span>`;
   btn.disabled=false; renderMatrix();
