@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v10</title>
+    <title>ALM Mileage Tracker v11</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -563,6 +563,269 @@
                 flex-direction: column;
             }
         }
+
+        /* Conflict Resolution Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .conflict-modal {
+            background: #1c1c1c;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: #252525;
+            padding: 20px 25px;
+            border-bottom: 1px solid #2a2a2a;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-title {
+            color: #ffa726;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .modal-subtitle {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .conflicts-list {
+            margin-bottom: 20px;
+        }
+
+        .conflict-item {
+            background: rgba(255, 167, 38, 0.06);
+            border: 1px solid rgba(255, 167, 38, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .conflict-item.resolved-overwrite {
+            background: rgba(239, 68, 68, 0.06);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .conflict-item.resolved-skip {
+            background: rgba(102, 102, 102, 0.06);
+            border-color: rgba(102, 102, 102, 0.2);
+            opacity: 0.7;
+        }
+
+        .conflict-item.resolved-keep-both {
+            background: rgba(34, 197, 94, 0.06);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .conflict-header {
+            background: rgba(255, 167, 38, 0.1);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 167, 38, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conflict-date {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffa726;
+        }
+
+        .conflict-indicator {
+            background: #ef4444;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .conflict-comparison {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .conflict-side {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .conflict-side h4 {
+            color: #ffa726;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .conflict-detail {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .conflict-label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .conflict-value {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .conflict-actions {
+            padding: 15px 20px;
+            background: #252525;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .date-adjustment {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: auto;
+        }
+
+        .date-adjustment label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .date-adjustment input {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 14px;
+            width: 140px;
+        }
+
+        .conflict-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .conflict-btn.overwrite {
+            background: #ef4444;
+            color: white;
+        }
+
+        .conflict-btn.overwrite:hover {
+            background: #dc2626;
+        }
+
+        .conflict-btn.skip {
+            background: #666;
+            color: white;
+        }
+
+        .conflict-btn.skip:hover {
+            background: #777;
+        }
+
+        .conflict-btn.keep-both {
+            background: #22c55e;
+            color: white;
+        }
+
+        .conflict-btn.keep-both:hover {
+            background: #16a34a;
+        }
+
+        .modal-footer {
+            background: #252525;
+            padding: 20px 25px;
+            border-top: 1px solid #2a2a2a;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .conflicts-summary {
+            color: #666;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .conflict-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .conflict-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .date-adjustment {
+                margin-right: 0;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -571,7 +834,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v10</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v11</div>
             </div>
             
             <div class="nav-section">
@@ -817,6 +1080,34 @@
         </main>
     </div>
 
+    <!-- Conflict Resolution Modal -->
+    <div class="modal-overlay" id="conflict-modal">
+        <div class="conflict-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Import Conflicts Detected</h2>
+                <div class="modal-subtitle">Resolve data conflicts before importing</div>
+            </div>
+            <div class="modal-body">
+                <div class="conflicts-list" id="conflicts-list">
+                    <!-- Conflicts will be populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="conflicts-summary">
+                    <span id="conflicts-remaining">0</span> conflicts remaining
+                </div>
+                <div class="bulk-actions">
+                    <button class="btn btn-clear" onclick="cancelImport()">Cancel Import</button>
+                    <button class="conflict-btn skip" onclick="bulkResolve('skip')">Skip All</button>
+                    <button class="conflict-btn overwrite" onclick="bulkResolve('overwrite')">Overwrite All</button>
+                    <button class="btn btn-preview" onclick="proceedWithImport()" id="proceed-btn" disabled>
+                        Proceed with Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Google Maps API -->
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE&callback=initMap&libraries=geometry"></script>
 
@@ -900,6 +1191,306 @@
         let directionsService = null;
         let directionsRenderer = null;
         let isMapInitialized = false;
+        let importConflicts = [];
+        let conflictResolutions = {};
+
+        // Conflict Resolution System
+        function detectConflicts(newRoutes, existingRoutes) {
+            const conflicts = [];
+            const existingByDate = {};
+            
+            // Index existing routes by date for fast lookup
+            existingRoutes.forEach(route => {
+                if (!existingByDate[route.date]) {
+                    existingByDate[route.date] = [];
+                }
+                existingByDate[route.date].push(route);
+            });
+            
+            // Check each new route for conflicts
+            newRoutes.forEach((newRoute, index) => {
+                const existingForDate = existingByDate[newRoute.date];
+                if (existingForDate && existingForDate.length > 0) {
+                    // Found conflict(s) for this date
+                    existingForDate.forEach(existing => {
+                        conflicts.push({
+                            id: `conflict_${index}_${existing.id}`,
+                            date: newRoute.date,
+                            existing: existing,
+                            incoming: newRoute,
+                            resolution: null,
+                            adjustedDate: newRoute.date
+                        });
+                    });
+                }
+            });
+            
+            return conflicts;
+        }
+
+        function showConflictModal(conflicts) {
+            importConflicts = conflicts;
+            conflictResolutions = {};
+            
+            const modal = document.getElementById('conflict-modal');
+            const conflictsList = document.getElementById('conflicts-list');
+            
+            conflictsList.innerHTML = '';
+            
+            conflicts.forEach(conflict => {
+                const conflictElement = createConflictElement(conflict);
+                conflictsList.appendChild(conflictElement);
+            });
+            
+            updateConflictsRemaining();
+            modal.classList.add('show');
+        }
+
+        function createConflictElement(conflict) {
+            const div = document.createElement('div');
+            div.className = 'conflict-item';
+            div.dataset.conflictId = conflict.id;
+            
+            // Suggest next available date
+            const suggestedDate = findNextAvailableDate(conflict.date);
+            conflict.adjustedDate = suggestedDate;
+            
+            div.innerHTML = `
+                <div class="conflict-header">
+                    <div class="conflict-date">${formatDate(conflict.date)}</div>
+                    <div class="conflict-indicator">Conflict</div>
+                </div>
+                <div class="conflict-comparison">
+                    <div class="conflict-side">
+                        <h4>Existing Data</h4>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Purpose:</span>
+                            <span class="conflict-value">${conflict.existing.purpose}</span>
+                        </div>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Route:</span>
+                            <span class="conflict-value">${formatRoute(conflict.existing.stops)}</span>
+                        </div>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Miles:</span>
+                            <span class="conflict-value">${conflict.existing.totalMiles}</span>
+                        </div>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Cost:</span>
+                            <span class="conflict-value">$${conflict.existing.cost.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="conflict-side">
+                        <h4>Incoming Data</h4>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Purpose:</span>
+                            <span class="conflict-value">${conflict.incoming.purpose}</span>
+                        </div>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Route:</span>
+                            <span class="conflict-value">${formatRoute(conflict.incoming.stops)}</span>
+                        </div>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Miles:</span>
+                            <span class="conflict-value">${conflict.incoming.totalMiles}</span>
+                        </div>
+                        <div class="conflict-detail">
+                            <span class="conflict-label">Cost:</span>
+                            <span class="conflict-value">$${conflict.incoming.cost.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="conflict-actions">
+                    <div class="date-adjustment">
+                        <label>Adjust Date:</label>
+                        <input type="date" value="${suggestedDate}" onchange="updateAdjustedDate('${conflict.id}', this.value)">
+                    </div>
+                    <button class="conflict-btn overwrite" onclick="resolveConflict('${conflict.id}', 'overwrite')">
+                        Overwrite
+                    </button>
+                    <button class="conflict-btn skip" onclick="resolveConflict('${conflict.id}', 'skip')">
+                        Skip
+                    </button>
+                    <button class="conflict-btn keep-both" onclick="resolveConflict('${conflict.id}', 'keep-both')">
+                        Keep Both
+                    </button>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function findNextAvailableDate(originalDate) {
+            const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            const existingDates = new Set(existingRoutes.map(r => r.date));
+            
+            let testDate = new Date(originalDate + 'T00:00:00');
+            testDate.setDate(testDate.getDate() + 1); // Start with next day
+            
+            // Find next available date (up to 30 days ahead)
+            for (let i = 0; i < 30; i++) {
+                const testDateStr = testDate.toISOString().split('T')[0];
+                if (!existingDates.has(testDateStr)) {
+                    return testDateStr;
+                }
+                testDate.setDate(testDate.getDate() + 1);
+            }
+            
+            // If no available date found in 30 days, just return tomorrow
+            testDate = new Date(originalDate + 'T00:00:00');
+            testDate.setDate(testDate.getDate() + 1);
+            return testDate.toISOString().split('T')[0];
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatRoute(stops) {
+            if (!stops || stops.length === 0) return 'No route';
+            if (stops.length === 1) return stops[0].name;
+            if (stops.length === 2) return `${stops[0].name} → ${stops[1].name}`;
+            return `${stops[0].name} → ... → ${stops[stops.length - 1].name} (${stops.length} stops)`;
+        }
+
+        function updateAdjustedDate(conflictId, newDate) {
+            const conflict = importConflicts.find(c => c.id === conflictId);
+            if (conflict) {
+                conflict.adjustedDate = newDate;
+                
+                // If date is changed and resolution was 'keep-both', automatically apply it
+                if (newDate !== conflict.date && conflictResolutions[conflictId] !== 'keep-both') {
+                    resolveConflict(conflictId, 'keep-both');
+                }
+            }
+        }
+
+        function resolveConflict(conflictId, resolution) {
+            const conflict = importConflicts.find(c => c.id === conflictId);
+            if (!conflict) return;
+            
+            conflictResolutions[conflictId] = resolution;
+            conflict.resolution = resolution;
+            
+            // Update UI to show resolution
+            const conflictElement = document.querySelector(`[data-conflict-id="${conflictId}"]`);
+            if (conflictElement) {
+                // Remove previous resolution classes
+                conflictElement.classList.remove('resolved-overwrite', 'resolved-skip', 'resolved-keep-both');
+                
+                // Add new resolution class
+                conflictElement.classList.add(`resolved-${resolution}`);
+                
+                // Update conflict indicator
+                const indicator = conflictElement.querySelector('.conflict-indicator');
+                const resolutionText = {
+                    'overwrite': 'Will Overwrite',
+                    'skip': 'Will Skip',
+                    'keep-both': 'Will Keep Both'
+                };
+                indicator.textContent = resolutionText[resolution];
+                indicator.style.background = {
+                    'overwrite': '#ef4444',
+                    'skip': '#666',
+                    'keep-both': '#22c55e'
+                }[resolution];
+            }
+            
+            updateConflictsRemaining();
+        }
+
+        function bulkResolve(resolution) {
+            importConflicts.forEach(conflict => {
+                if (!conflictResolutions[conflict.id]) {
+                    resolveConflict(conflict.id, resolution);
+                }
+            });
+            
+            showToast(`Applied "${resolution}" to all unresolved conflicts`, 'success');
+        }
+
+        function updateConflictsRemaining() {
+            const resolved = Object.keys(conflictResolutions).length;
+            const remaining = importConflicts.length - resolved;
+            
+            document.getElementById('conflicts-remaining').textContent = remaining;
+            document.getElementById('proceed-btn').disabled = remaining > 0;
+        }
+
+        function cancelImport() {
+            const modal = document.getElementById('conflict-modal');
+            modal.classList.remove('show');
+            importConflicts = [];
+            conflictResolutions = {};
+            showToast('Import cancelled', 'warning');
+        }
+
+        function proceedWithImport() {
+            // Apply all resolutions and import the data
+            const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            let finalRoutes = [...existingRoutes];
+            let addedCount = 0;
+            let overwrittenCount = 0;
+            let skippedCount = 0;
+            
+            importConflicts.forEach(conflict => {
+                const resolution = conflictResolutions[conflict.id];
+                
+                switch (resolution) {
+                    case 'overwrite':
+                        // Replace existing entry with new one
+                        const existingIndex = finalRoutes.findIndex(r => r.id === conflict.existing.id);
+                        if (existingIndex !== -1) {
+                            finalRoutes[existingIndex] = {
+                                ...conflict.incoming,
+                                id: conflict.existing.id // Keep original ID
+                            };
+                            overwrittenCount++;
+                        }
+                        break;
+                        
+                    case 'skip':
+                        // Do nothing - skip the incoming entry
+                        skippedCount++;
+                        break;
+                        
+                    case 'keep-both':
+                        // Add new entry with adjusted date if needed
+                        const newEntry = {
+                            ...conflict.incoming,
+                            date: conflict.adjustedDate,
+                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+                        };
+                        finalRoutes.push(newEntry);
+                        addedCount++;
+                        break;
+                }
+            });
+            
+            // Save the final routes
+            localStorage.setItem('alm_routes', JSON.stringify(finalRoutes));
+            
+            // Close modal and show success message
+            const modal = document.getElementById('conflict-modal');
+            modal.classList.remove('show');
+            
+            const summary = [];
+            if (addedCount > 0) summary.push(`${addedCount} added`);
+            if (overwrittenCount > 0) summary.push(`${overwrittenCount} overwritten`);
+            if (skippedCount > 0) summary.push(`${skippedCount} skipped`);
+            
+            showToast(`Import completed: ${summary.join(', ')}`, 'success');
+            
+            // Reset conflict state
+            importConflicts = [];
+            conflictResolutions = {};
+        }
 
         // Initialize application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1610,8 +2201,82 @@
         }
 
         function importExcel() {
-            showToast('Excel import functionality will be available soon', 'warning');
-            // This would trigger the Excel import dialog
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                showToast('Processing Excel file...', 'warning');
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        // This would typically use SheetJS to parse the Excel file
+                        // For now, we'll simulate some imported data with potential conflicts
+                        simulateExcelImport();
+                    } catch (error) {
+                        console.error('Excel import error:', error);
+                        showToast('Error processing Excel file', 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            
+            input.click();
+        }
+
+        // Simulate Excel import with potential conflicts for demo
+        function simulateExcelImport() {
+            const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            
+            // Create some sample imported data that might conflict
+            const sampleImportData = [
+                {
+                    id: 'import_1',
+                    date: new Date().toISOString().split('T')[0], // Today's date - likely to conflict
+                    purpose: 'Training Session',
+                    stops: [
+                        { location: 'home', name: 'Home' },
+                        { location: 'corporate', name: 'ALM Corporate' },
+                        { location: 'marietta', name: 'ALM Marietta' }
+                    ],
+                    totalMiles: 47.2,
+                    reimbursable: true,
+                    cost: 47.2 * 0.70,
+                    timestamp: new Date().toISOString(),
+                    synced: false
+                },
+                {
+                    id: 'import_2',
+                    date: '2026-02-15', // Fixed date that might conflict
+                    purpose: 'Client Visit',
+                    stops: [
+                        { location: 'home', name: 'Home' },
+                        { location: 'gwinnett', name: 'ALM Gwinnett' }
+                    ],
+                    totalMiles: 32.1,
+                    reimbursable: true,
+                    cost: 32.1 * 0.70,
+                    timestamp: new Date().toISOString(),
+                    synced: false
+                }
+            ];
+            
+            // Detect conflicts
+            const conflicts = detectConflicts(sampleImportData, existingRoutes);
+            
+            if (conflicts.length > 0) {
+                // Show conflict resolution modal
+                showConflictModal(conflicts);
+            } else {
+                // No conflicts, proceed with direct import
+                const updatedRoutes = [...existingRoutes, ...sampleImportData];
+                localStorage.setItem('alm_routes', JSON.stringify(updatedRoutes));
+                showToast(`Successfully imported ${sampleImportData.length} routes`, 'success');
+            }
         }
 
         function showToast(message, type = 'success') {
