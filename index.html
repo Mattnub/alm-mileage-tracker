@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v13</title>
+    <title>ALM Mileage Tracker v13.1</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -1295,7 +1295,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v13</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v13.1</div>
             </div>
             
             <div class="nav-section">
@@ -2475,6 +2475,11 @@
             geocodeBtn.textContent = '🔄 Getting...';
             
             try {
+                // Check if Google Maps and Geocoder are available
+                if (typeof google === 'undefined' || !google.maps || !google.maps.Geocoder) {
+                    throw new Error('Google Maps Geocoding API not available');
+                }
+                
                 // Use Google Maps Geocoding API
                 const geocoder = new google.maps.Geocoder();
                 
@@ -2496,7 +2501,20 @@
                 
             } catch (error) {
                 console.error('Geocoding error:', error);
-                showToast('Could not find coordinates. Please enter manually.', 'error');
+                
+                // Provide helpful guidance based on error type
+                if (error.message.includes('not available')) {
+                    showToast('Geocoding API not enabled. Please enter coordinates manually or enable Geocoding API in Google Cloud Console.', 'warning');
+                } else if (error.message.includes('ZERO_RESULTS')) {
+                    showToast('Address not found. Please check the address and try again.', 'warning');
+                } else if (error.message.includes('OVER_QUERY_LIMIT')) {
+                    showToast('API quota exceeded. Please try again later or enter coordinates manually.', 'error');
+                } else {
+                    showToast('Could not find coordinates. Please enter manually.', 'error');
+                }
+                
+                // Show manual entry tip
+                showToast('Tip: You can find coordinates by searching the address on Google Maps and right-clicking the location.', 'warning');
             } finally {
                 geocodeBtn.disabled = false;
                 geocodeBtn.textContent = '📍 Get Coordinates';
@@ -2916,6 +2934,16 @@
             
             const changelog = [
                 {
+                    version: 'v13.1',
+                    date: 'February 2026',
+                    features: [
+                        'Fixed Google Maps API Error Handling - Better error messages and graceful degradation',
+                        'Enhanced Geocoding Fallback - App works with or without Geocoding API',
+                        'Improved API Troubleshooting - Console logs guide users through API setup',
+                        'Better Status Detection - More accurate Maps API connection status'
+                    ]
+                },
+                {
                     version: 'v13',
                     date: 'February 2026',
                     features: [
@@ -3334,40 +3362,54 @@
 
         // Google Maps Integration
         function initMap() {
-            isMapInitialized = true;
-            
-            // Initialize map (hidden by default)
-            map = new google.maps.Map(document.createElement('div'), {
-                zoom: 10,
-                center: { lat: 33.9490, lng: -84.3880 }, // Atlanta center
-                styles: [
-                    {
-                        "elementType": "geometry",
-                        "stylers": [{"color": "#1d2c4d"}]
-                    },
-                    {
-                        "elementType": "labels.text.fill",
-                        "stylers": [{"color": "#8ec3b9"}]
-                    },
-                    {
-                        "elementType": "labels.text.stroke",
-                        "stylers": [{"color": "#1a3646"}]
-                    }
-                    // Add more dark theme styles here...
-                ]
-            });
-
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map,
-                polylineOptions: {
-                    strokeColor: '#ffa726',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 4
+            try {
+                isMapInitialized = true;
+                
+                // Check if Google Maps is properly loaded
+                if (typeof google === 'undefined' || !google.maps) {
+                    throw new Error('Google Maps JavaScript API not loaded');
                 }
-            });
+                
+                // Initialize map (hidden by default)
+                map = new google.maps.Map(document.createElement('div'), {
+                    zoom: 10,
+                    center: { lat: 33.9490, lng: -84.3880 }, // Atlanta center
+                    styles: [
+                        {
+                            "elementType": "geometry",
+                            "stylers": [{"color": "#1d2c4d"}]
+                        },
+                        {
+                            "elementType": "labels.text.fill",
+                            "stylers": [{"color": "#8ec3b9"}]
+                        },
+                        {
+                            "elementType": "labels.text.stroke",
+                            "stylers": [{"color": "#1a3646"}]
+                        }
+                        // Add more dark theme styles here...
+                    ]
+                });
 
-            updateMapsStatus('connected');
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: map,
+                    polylineOptions: {
+                        strokeColor: '#ffa726',
+                        strokeOpacity: 1.0,
+                        strokeWeight: 4
+                    }
+                });
+
+                updateMapsStatus('connected');
+                console.log('Google Maps initialized successfully');
+                
+            } catch (error) {
+                console.error('Maps initialization error:', error);
+                isMapInitialized = false;
+                updateMapsStatus('disconnected');
+                showToast('Maps initialization failed: ' + error.message, 'error');
+            }
         }
 
         function previewRoute() {
@@ -3994,8 +4036,35 @@
         // Handle Google Maps API load error
         window.gm_authFailure = function() {
             updateMapsStatus('disconnected');
-            showToast('Google Maps authentication failed', 'error');
+            showToast('Google Maps authentication failed - Check API key restrictions', 'error');
+            console.error('Google Maps authentication failed. Check API key and restrictions in Google Cloud Console.');
         };
+
+        // Handle other potential Google Maps errors
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('Google Maps')) {
+                console.error('Google Maps error:', e.message);
+                updateMapsStatus('disconnected');
+            }
+        });
+
+        // Add a fallback check for Maps API availability
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (typeof google === 'undefined' || !isMapInitialized) {
+                    updateMapsStatus('disconnected');
+                    console.warn('Google Maps failed to initialize. Check console for errors.');
+                    
+                    // Provide helpful guidance
+                    console.log('Troubleshooting steps:');
+                    console.log('1. Check API key in Google Cloud Console');
+                    console.log('2. Verify Maps JavaScript API is enabled'); 
+                    console.log('3. For v13 location features, also enable Geocoding API');
+                    console.log('4. Check API key restrictions (HTTP referrers)');
+                    console.log('5. Verify billing is set up and quotas not exceeded');
+                }
+            }, 5000);
+        });
     </script>
 </body>
 </html>
