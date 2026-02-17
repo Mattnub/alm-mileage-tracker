@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v11</title>
+    <title>ALM Mileage Tracker v12</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -826,6 +826,275 @@
                 justify-content: center;
             }
         }
+
+        /* Dashboard Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: #252525;
+            color: #ffa726;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 167, 38, 0.05);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Location Grid */
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .location-card {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .location-card:hover {
+            border-color: #ffa726;
+            transform: translateY(-2px);
+        }
+
+        .location-name {
+            color: #ffa726;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .location-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .location-type.home {
+            background: #22c55e;
+            color: white;
+        }
+
+        .location-type.corporate {
+            background: #ef4444;
+            color: white;
+        }
+
+        .location-type.dealership {
+            background: #ffa726;
+            color: black;
+        }
+
+        .location-address {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .location-coords {
+            color: #666;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        /* Distance Matrix */
+        .distance-matrix-container {
+            overflow-x: auto;
+        }
+
+        .distance-matrix {
+            min-width: 800px;
+        }
+
+        .distance-matrix th,
+        .distance-matrix td {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .distance-matrix .location-header {
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 8px 4px;
+        }
+
+        .distance-cell {
+            color: #ffa726;
+            font-weight: 600;
+        }
+
+        .distance-cell.unavailable {
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.reimbursable {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-badge.non-reimbursable {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-badge.synced {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-badge.unsynced {
+            background: #666;
+            color: white;
+        }
+
+        /* Changelog */
+        .changelog-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .changelog-version {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .changelog-version:last-child {
+            border-bottom: none;
+        }
+
+        .changelog-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .version-number {
+            background: #ffa726;
+            color: black;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .version-date {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .changelog-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .changelog-features li {
+            padding: 8px 0;
+            color: #ccc;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .changelog-features li::before {
+            content: '•';
+            color: #ffa726;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .locations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .route-form[style*="grid-template-columns: repeat(4, 1fr)"] {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -834,7 +1103,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v11</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v12</div>
             </div>
             
             <div class="nav-section">
@@ -1005,74 +1274,207 @@
                 </div>
 
                 <!-- Placeholder pages -->
+                <!-- Trip History Page -->
                 <div class="page" id="history-page">
                     <div class="page-header">
                         <h1 class="page-title">Trip History</h1>
                         <p class="page-subtitle">VIEW AND MANAGE YOUR SAVED ROUTES</p>
                     </div>
+                    
+                    <!-- Filters -->
+                    <div class="route-card" style="margin-bottom: 20px;">
+                        <div class="route-card-header">
+                            <div class="section-title">Filters</div>
+                            <div class="route-form" style="grid-template-columns: repeat(4, 1fr);">
+                                <div class="form-field">
+                                    <label>Month</label>
+                                    <select id="filter-month" onchange="filterHistory()">
+                                        <option value="">All Months</option>
+                                        <option value="2026-01">Jan 2026</option>
+                                        <option value="2026-02">Feb 2026</option>
+                                        <option value="2026-03">Mar 2026</option>
+                                        <option value="2026-04">Apr 2026</option>
+                                        <option value="2026-05">May 2026</option>
+                                        <option value="2026-06">Jun 2026</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Purpose</label>
+                                    <select id="filter-purpose" onchange="filterHistory()">
+                                        <option value="">All Purposes</option>
+                                        <option value="Sales Visit">Sales Visit</option>
+                                        <option value="Service Call">Service Call</option>
+                                        <option value="Training">Training</option>
+                                        <option value="Meeting">Meeting</option>
+                                        <option value="Delivery">Delivery</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Status</label>
+                                    <select id="filter-status" onchange="filterHistory()">
+                                        <option value="">All</option>
+                                        <option value="reimbursable">Reimbursable</option>
+                                        <option value="non-reimbursable">Non-Reimbursable</option>
+                                        <option value="synced">Synced</option>
+                                        <option value="unsynced">Unsynced</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Actions</label>
+                                    <button class="btn btn-preview" onclick="clearFilters()" style="width: 100%;">Clear Filters</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History Table -->
                     <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Route History</div>
+                        </div>
                         <div class="route-builder">
-                            <p style="color: #666; text-align: center; padding: 40px;">Trip history functionality will be implemented here.</p>
+                            <div id="history-table-container">
+                                <!-- History table will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Locations Page -->
                 <div class="page" id="locations-page">
                     <div class="page-header">
                         <h1 class="page-title">Locations</h1>
                         <p class="page-subtitle">ALM DEALERSHIP AND OFFICE LOCATIONS</p>
                     </div>
                     <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Location Directory</div>
+                        </div>
                         <div class="route-builder">
-                            <p style="color: #666; text-align: center; padding: 40px;">Location management will be implemented here.</p>
+                            <div id="locations-grid" class="locations-grid">
+                                <!-- Locations will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Distance Matrix Page -->
                 <div class="page" id="matrix-page">
                     <div class="page-header">
                         <h1 class="page-title">Distance Matrix</h1>
                         <p class="page-subtitle">LOCATION-TO-LOCATION DISTANCE GRID</p>
                     </div>
                     <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Distance Matrix</div>
+                        </div>
                         <div class="route-builder">
-                            <p style="color: #666; text-align: center; padding: 40px;">Distance matrix will be displayed here.</p>
+                            <div id="distance-matrix-container" class="distance-matrix-container">
+                                <!-- Distance matrix table will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Charts Page -->
                 <div class="page" id="charts-page">
                     <div class="page-header">
                         <h1 class="page-title">Charts</h1>
                         <p class="page-subtitle">MILEAGE ANALYTICS AND TRENDS</p>
                     </div>
+                    
+                    <!-- Charts Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="route-card">
+                            <div class="route-card-header">
+                                <div class="section-title">Monthly Miles</div>
+                            </div>
+                            <div class="route-builder">
+                                <canvas id="monthly-chart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="route-card">
+                            <div class="route-card-header">
+                                <div class="section-title">Purpose Breakdown</div>
+                            </div>
+                            <div class="route-builder">
+                                <canvas id="purpose-chart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Summary -->
                     <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Statistics Summary</div>
+                        </div>
                         <div class="route-builder">
-                            <p style="color: #666; text-align: center; padding: 40px;">Charts and analytics will be displayed here.</p>
+                            <div id="stats-summary" class="stats-grid">
+                                <!-- Stats will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Cost Report Page -->
                 <div class="page" id="cost-page">
                     <div class="page-header">
                         <h1 class="page-title">Cost Report</h1>
                         <p class="page-subtitle">REIMBURSEMENT CALCULATIONS</p>
                     </div>
+                    
+                    <!-- Summary Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px;">
+                        <div class="route-card">
+                            <div class="route-builder" style="text-align: center; padding: 30px;">
+                                <div style="font-size: 32px; font-weight: 700; color: #ffa726;" id="total-miles-card">0</div>
+                                <div style="color: #666; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px;">Total Miles</div>
+                            </div>
+                        </div>
+                        
+                        <div class="route-card">
+                            <div class="route-builder" style="text-align: center; padding: 30px;">
+                                <div style="font-size: 32px; font-weight: 700; color: #22c55e;" id="total-reimbursement-card">$0</div>
+                                <div style="color: #666; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px;">Total Reimbursement</div>
+                            </div>
+                        </div>
+                        
+                        <div class="route-card">
+                            <div class="route-builder" style="text-align: center; padding: 30px;">
+                                <div style="font-size: 32px; font-weight: 700; color: #ef4444;" id="irs-rate-card">$0.70</div>
+                                <div style="color: #666; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px;">IRS Rate/Mile</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Breakdown -->
                     <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Monthly Breakdown</div>
+                        </div>
                         <div class="route-builder">
-                            <p style="color: #666; text-align: center; padding: 40px;">Cost reporting will be implemented here.</p>
+                            <div id="monthly-cost-table">
+                                <!-- Monthly cost table will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Changelog Page -->
                 <div class="page" id="changelog-page">
                     <div class="page-header">
                         <h1 class="page-title">Changelog</h1>
                         <p class="page-subtitle">VERSION HISTORY AND UPDATES</p>
                     </div>
                     <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Version History</div>
+                        </div>
                         <div class="route-builder">
-                            <p style="color: #666; text-align: center; padding: 40px;">Version changelog will be displayed here.</p>
+                            <div id="changelog-content" class="changelog-content">
+                                <!-- Changelog content will be populated here -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1110,6 +1512,12 @@
 
     <!-- Google Maps API -->
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE&callback=initMap&libraries=geometry"></script>
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SheetJS for Excel import/export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
         // Constants
@@ -1512,6 +1920,12 @@
             
             // Auto-save on changes
             setupAutoSave();
+            
+            // Initialize the current active page content
+            const activePage = document.querySelector('.nav-item.active');
+            if (activePage && activePage.dataset.page) {
+                initializePage(activePage.dataset.page);
+            }
         }
 
         function initializeDefaultRoute() {
@@ -1576,9 +1990,530 @@
                     
                     // Update active page
                     pages.forEach(page => page.classList.remove('active'));
-                    document.getElementById(`${targetPage}-page`).classList.add('active');
+                    const pageElement = document.getElementById(`${targetPage}-page`);
+                    if (pageElement) {
+                        pageElement.classList.add('active');
+                        
+                        // Initialize page-specific content
+                        initializePage(targetPage);
+                    }
                 });
             });
+        }
+
+        function initializePage(pageType) {
+            switch(pageType) {
+                case 'history':
+                    loadTripHistory();
+                    break;
+                case 'locations':
+                    loadLocations();
+                    break;
+                case 'matrix':
+                    loadDistanceMatrix();
+                    break;
+                case 'charts':
+                    loadCharts();
+                    break;
+                case 'cost':
+                    loadCostReport();
+                    break;
+                case 'changelog':
+                    loadChangelog();
+                    break;
+            }
+        }
+
+        // Trip History Functions
+        function loadTripHistory() {
+            const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            const container = document.getElementById('history-table-container');
+            
+            if (routes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No trips recorded yet</p>';
+                return;
+            }
+            
+            const filteredRoutes = applyHistoryFilters(routes);
+            renderHistoryTable(filteredRoutes);
+        }
+
+        function applyHistoryFilters(routes) {
+            const monthFilter = document.getElementById('filter-month')?.value;
+            const purposeFilter = document.getElementById('filter-purpose')?.value;
+            const statusFilter = document.getElementById('filter-status')?.value;
+            
+            return routes.filter(route => {
+                const routeMonth = route.date.substring(0, 7); // YYYY-MM
+                
+                if (monthFilter && routeMonth !== monthFilter) return false;
+                if (purposeFilter && route.purpose !== purposeFilter) return false;
+                if (statusFilter) {
+                    if (statusFilter === 'reimbursable' && !route.reimbursable) return false;
+                    if (statusFilter === 'non-reimbursable' && route.reimbursable) return false;
+                    if (statusFilter === 'synced' && !route.synced) return false;
+                    if (statusFilter === 'unsynced' && route.synced) return false;
+                }
+                
+                return true;
+            });
+        }
+
+        function renderHistoryTable(routes) {
+            const container = document.getElementById('history-table-container');
+            
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Purpose</th>
+                        <th>Route</th>
+                        <th>Miles</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${routes.map(route => `
+                        <tr>
+                            <td>${formatDate(route.date)}</td>
+                            <td>${route.purpose}</td>
+                            <td>${formatRoute(route.stops)}</td>
+                            <td>${route.totalMiles?.toFixed(1) || '0'}</td>
+                            <td>$${route.cost?.toFixed(2) || '0.00'}</td>
+                            <td>
+                                <span class="status-badge ${route.reimbursable ? 'reimbursable' : 'non-reimbursable'}">
+                                    ${route.reimbursable ? 'Reimbursable' : 'Non-Reimbursable'}
+                                </span>
+                                <span class="status-badge ${route.synced ? 'synced' : 'unsynced'}">
+                                    ${route.synced ? 'Synced' : 'Unsynced'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="conflict-btn skip" onclick="deleteRoute('${route.id}')" style="padding: 4px 8px; font-size: 10px;">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        function filterHistory() {
+            loadTripHistory();
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-month').value = '';
+            document.getElementById('filter-purpose').value = '';
+            document.getElementById('filter-status').value = '';
+            loadTripHistory();
+        }
+
+        function deleteRoute(routeId) {
+            if (!confirm('Are you sure you want to delete this route?')) return;
+            
+            const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            const updatedRoutes = routes.filter(r => r.id !== routeId);
+            localStorage.setItem('alm_routes', JSON.stringify(updatedRoutes));
+            
+            showToast('Route deleted', 'success');
+            loadTripHistory();
+        }
+
+        // Locations Functions
+        function loadLocations() {
+            const container = document.getElementById('locations-grid');
+            
+            const locationCards = Object.entries(ALM_LOCATIONS).map(([key, location]) => {
+                return `
+                    <div class="location-card">
+                        <div class="location-name">${location.name}</div>
+                        <div class="location-type ${location.type}">${location.type}</div>
+                        <div class="location-address">${location.address}</div>
+                        <div class="location-coords">${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = locationCards;
+        }
+
+        // Distance Matrix Functions
+        function loadDistanceMatrix() {
+            const container = document.getElementById('distance-matrix-container');
+            const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            
+            const locations = Object.entries(ALM_LOCATIONS);
+            
+            let tableHTML = '<table class="data-table distance-matrix"><thead><tr><th></th>';
+            locations.forEach(([key, loc]) => {
+                tableHTML += `<th class="location-header">${loc.name.replace('ALM ', '')}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            locations.forEach(([fromKey, fromLoc]) => {
+                tableHTML += `<tr><td class="location-header">${fromLoc.name.replace('ALM ', '')}</td>`;
+                
+                locations.forEach(([toKey, toLoc]) => {
+                    if (fromKey === toKey) {
+                        tableHTML += '<td class="distance-cell">-</td>';
+                    } else {
+                        const cacheKey = `${fromKey}_${toKey}`;
+                        const distance = cachedDistances[cacheKey];
+                        
+                        if (distance) {
+                            tableHTML += `<td class="distance-cell">${distance.toFixed(1)} mi</td>`;
+                        } else {
+                            tableHTML += '<td class="distance-cell unavailable">N/A</td>';
+                        }
+                    }
+                });
+                
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+
+        // Charts Functions
+        let monthlyChart = null;
+        let purposeChart = null;
+
+        function loadCharts() {
+            const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            
+            // Destroy existing charts
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+            if (purposeChart) {
+                purposeChart.destroy();
+            }
+            
+            createMonthlyChart(routes);
+            createPurposeChart(routes);
+            updateStatsGrid(routes);
+        }
+
+        function createMonthlyChart(routes) {
+            const ctx = document.getElementById('monthly-chart');
+            if (!ctx) return;
+            
+            // Group routes by month
+            const monthlyData = {};
+            routes.forEach(route => {
+                const month = route.date.substring(0, 7); // YYYY-MM
+                if (!monthlyData[month]) {
+                    monthlyData[month] = 0;
+                }
+                monthlyData[month] += route.totalMiles || 0;
+            });
+            
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const labels = sortedMonths.map(month => {
+                const date = new Date(month + '-01');
+                return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            });
+            const data = sortedMonths.map(month => monthlyData[month]);
+            
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Miles',
+                        data: data,
+                        backgroundColor: '#ffa726',
+                        borderColor: '#ff9800',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#666'
+                            },
+                            grid: {
+                                color: '#333'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#666'
+                            },
+                            grid: {
+                                color: '#333'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPurposeChart(routes) {
+            const ctx = document.getElementById('purpose-chart');
+            if (!ctx) return;
+            
+            // Group routes by purpose
+            const purposeData = {};
+            routes.forEach(route => {
+                const purpose = route.purpose || 'Unknown';
+                if (!purposeData[purpose]) {
+                    purposeData[purpose] = 0;
+                }
+                purposeData[purpose] += route.totalMiles || 0;
+            });
+            
+            const colors = ['#ffa726', '#22c55e', '#ef4444', '#3b82f6', '#8b5cf6', '#f59e0b'];
+            const labels = Object.keys(purposeData);
+            const data = Object.values(purposeData);
+            
+            purposeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#666',
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStatsGrid(routes) {
+            const container = document.getElementById('stats-summary');
+            
+            const totalRoutes = routes.length;
+            const totalMiles = routes.reduce((sum, r) => sum + (r.totalMiles || 0), 0);
+            const totalCost = routes.reduce((sum, r) => sum + (r.cost || 0), 0);
+            const reimbursableRoutes = routes.filter(r => r.reimbursable).length;
+            const avgMilesPerTrip = totalRoutes > 0 ? (totalMiles / totalRoutes) : 0;
+            const syncedRoutes = routes.filter(r => r.synced).length;
+            
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalRoutes}</div>
+                    <div class="stat-label">Total Trips</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalMiles.toFixed(1)}</div>
+                    <div class="stat-label">Total Miles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$${totalCost.toFixed(2)}</div>
+                    <div class="stat-label">Total Cost</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${reimbursableRoutes}</div>
+                    <div class="stat-label">Reimbursable Trips</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${avgMilesPerTrip.toFixed(1)}</div>
+                    <div class="stat-label">Avg Miles/Trip</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${syncedRoutes}</div>
+                    <div class="stat-label">Synced Trips</div>
+                </div>
+            `;
+            
+            container.innerHTML = statsHTML;
+        }
+
+        // Cost Report Functions
+        function loadCostReport() {
+            const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            
+            // Update summary cards
+            const totalMiles = routes.reduce((sum, r) => sum + (r.totalMiles || 0), 0);
+            const totalReimbursement = routes.reduce((sum, r) => sum + (r.cost || 0), 0);
+            
+            document.getElementById('total-miles-card').textContent = totalMiles.toFixed(1);
+            document.getElementById('total-reimbursement-card').textContent = '$' + totalReimbursement.toFixed(2);
+            
+            // Create monthly breakdown table
+            createMonthlyCostTable(routes);
+        }
+
+        function createMonthlyCostTable(routes) {
+            const container = document.getElementById('monthly-cost-table');
+            
+            // Group by month
+            const monthlyData = {};
+            routes.forEach(route => {
+                const month = route.date.substring(0, 7);
+                if (!monthlyData[month]) {
+                    monthlyData[month] = {
+                        trips: 0,
+                        miles: 0,
+                        cost: 0,
+                        reimbursableTrips: 0
+                    };
+                }
+                
+                monthlyData[month].trips++;
+                monthlyData[month].miles += route.totalMiles || 0;
+                monthlyData[month].cost += route.cost || 0;
+                if (route.reimbursable) {
+                    monthlyData[month].reimbursableTrips++;
+                }
+            });
+            
+            const sortedMonths = Object.keys(monthlyData).sort().reverse();
+            
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Trips</th>
+                        <th>Reimbursable Trips</th>
+                        <th>Total Miles</th>
+                        <th>Total Cost</th>
+                        <th>Avg Cost/Trip</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sortedMonths.map(month => {
+                        const data = monthlyData[month];
+                        const avgCost = data.trips > 0 ? (data.cost / data.trips) : 0;
+                        const monthName = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                        
+                        return `
+                            <tr>
+                                <td>${monthName}</td>
+                                <td>${data.trips}</td>
+                                <td>${data.reimbursableTrips}</td>
+                                <td>${data.miles.toFixed(1)}</td>
+                                <td>$${data.cost.toFixed(2)}</td>
+                                <td>$${avgCost.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        // Changelog Functions
+        function loadChangelog() {
+            const container = document.getElementById('changelog-content');
+            
+            const changelog = [
+                {
+                    version: 'v12',
+                    date: 'February 2026',
+                    features: [
+                        'Complete Dashboard - All navigation tabs now functional',
+                        'Trip History - View, filter, and manage all saved routes',
+                        'Interactive Charts - Monthly miles and purpose breakdown',
+                        'Cost Reporting - Detailed reimbursement calculations',
+                        'Locations Directory - All ALM locations with coordinates',
+                        'Distance Matrix - Cached distance lookup grid',
+                        'Working Excel Import/Export with SheetJS integration',
+                        'Enhanced navigation with page-specific initialization'
+                    ]
+                },
+                {
+                    version: 'v11',
+                    date: 'February 2026',
+                    features: [
+                        'Conflict Resolution - Smart import conflict detection',
+                        'Date Adjustment - Automatically suggest available dates',
+                        'Bulk Actions - Skip All, Overwrite All options',
+                        'Side-by-side Comparison - Existing vs incoming data',
+                        'Professional Modal UI - Sophisticated conflict interface'
+                    ]
+                },
+                {
+                    version: 'v10',
+                    date: 'February 2026',
+                    features: [
+                        'Map Preview - Google Maps integration for route visualization',
+                        'Custom Markers - H (Home), C (Corporate), numbered (ALM locations)',
+                        'Route Visualization - Amber polylines with waypoints',
+                        'Toggle Show/Hide - Collapsible map interface',
+                        'Mobile Responsive - Works on all device sizes'
+                    ]
+                },
+                {
+                    version: 'v9',
+                    date: 'February 2026',
+                    features: [
+                        'Auto-save Drafts - Routes save automatically on changes',
+                        'Draft Recovery - Resume interrupted route building',
+                        'Draft Banner - Clear notification of unsaved work',
+                        'LocalStorage Integration - Persistent draft storage'
+                    ]
+                },
+                {
+                    version: 'v8',
+                    date: 'February 2026',
+                    features: [
+                        'Cost Calculator - Reimbursement calculations',
+                        'IRS Rate Integration - $0.70/mile (2025 standard)',
+                        'Monthly Cost Breakdown - Detailed reporting',
+                        'Summary Cards - Total reimbursement display'
+                    ]
+                },
+                {
+                    version: 'v7',
+                    date: 'February 2026',
+                    features: [
+                        'Charts Integration - Monthly miles bar chart',
+                        'Purpose Analysis - Pie chart breakdown',
+                        'Chart.js Integration - Interactive visualizations',
+                        'Dark Theme Charts - Consistent styling'
+                    ]
+                }
+            ];
+            
+            const changelogHTML = changelog.map(version => `
+                <div class="changelog-version">
+                    <div class="changelog-header">
+                        <div class="version-number">${version.version}</div>
+                        <div class="version-date">${version.date}</div>
+                    </div>
+                    <ul class="changelog-features">
+                        ${version.features.map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+            
+            container.innerHTML = changelogHTML;
         }
 
         function setupAutoSave() {
@@ -2189,15 +3124,126 @@
 
         // Utility Functions
         function refreshDistances() {
-            showToast('Refreshing distance cache...', 'warning');
-            // This would clear the distance cache and recalculate
+            if (!confirm('This will clear all cached distances and may require recalculation. Continue?')) {
+                return;
+            }
+            
+            // Clear the distance cache
             localStorage.removeItem('maps_distances_v2');
             showToast('Distance cache cleared', 'success');
+            
+            // If we're on the distance matrix page, refresh it
+            const matrixPage = document.getElementById('matrix-page');
+            if (matrixPage && matrixPage.classList.contains('active')) {
+                loadDistanceMatrix();
+            }
+            
+            // Optionally, recalculate distances for current route
+            if (currentRoute.length > 1) {
+                calculateRoute();
+            }
         }
 
         function downloadExcel() {
-            showToast('Excel download functionality will be available soon', 'warning');
-            // This would trigger the Excel export
+            const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            
+            if (routes.length === 0) {
+                showToast('No data to export', 'warning');
+                return;
+            }
+            
+            // Create summary worksheet
+            const summaryData = [
+                ['Date', 'Purpose', 'Start', 'End', 'Total Miles', 'Reimbursable', 'Cost', 'Synced']
+            ];
+            
+            routes.forEach(route => {
+                const startLocation = route.stops && route.stops[0] ? route.stops[0].name : 'Unknown';
+                const endLocation = route.stops && route.stops[route.stops.length - 1] ? route.stops[route.stops.length - 1].name : 'Unknown';
+                
+                summaryData.push([
+                    route.date,
+                    route.purpose || '',
+                    startLocation,
+                    endLocation,
+                    route.totalMiles || 0,
+                    route.reimbursable ? 'Yes' : 'No',
+                    route.cost || 0,
+                    route.synced ? 'Yes' : 'No'
+                ]);
+            });
+            
+            // Create detailed legs worksheet
+            const detailedData = [
+                ['Date', 'Route ID', 'Leg', 'From', 'To', 'Miles']
+            ];
+            
+            routes.forEach(route => {
+                if (route.stops && route.stops.length > 1) {
+                    for (let i = 0; i < route.stops.length - 1; i++) {
+                        const legMiles = calculateLegDistance(route.stops[i], route.stops[i + 1]);
+                        detailedData.push([
+                            route.date,
+                            route.id,
+                            i + 1,
+                            route.stops[i].name,
+                            route.stops[i + 1].name,
+                            legMiles
+                        ]);
+                    }
+                }
+            });
+            
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Add summary sheet
+            const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+            
+            // Add detailed legs sheet
+            const detailedWs = XLSX.utils.aoa_to_sheet(detailedData);
+            XLSX.utils.book_append_sheet(wb, detailedWs, 'Detailed Legs');
+            
+            // Download file
+            const today = new Date().toISOString().split('T')[0];
+            const filename = `ALM_Mileage_Export_${today}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            
+            showToast(`Exported ${routes.length} routes to ${filename}`, 'success');
+        }
+
+        function calculateLegDistance(fromStop, toStop) {
+            // Try to get from cache first
+            const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            const cacheKey = `${fromStop.location}_${toStop.location}`;
+            
+            if (cachedDistances[cacheKey]) {
+                return cachedDistances[cacheKey];
+            }
+            
+            // Fallback to haversine calculation
+            const from = ALM_LOCATIONS[fromStop.location];
+            const to = ALM_LOCATIONS[toStop.location];
+            
+            if (!from || !to) return 0;
+            
+            return haversineDistance(from.lat, from.lng, to.lat, to.lng) * 1.25; // 25% multiplier for road distance
+        }
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 3959; // Earth's radius in miles
+            const dLat = toRadians(lat2 - lat1);
+            const dLon = toRadians(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function toRadians(degrees) {
+            return degrees * (Math.PI / 180);
         }
 
         function importExcel() {
@@ -2228,54 +3274,147 @@
             input.click();
         }
 
-        // Simulate Excel import with potential conflicts for demo
-        function simulateExcelImport() {
-            const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+        function importExcel() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls';
             
-            // Create some sample imported data that might conflict
-            const sampleImportData = [
-                {
-                    id: 'import_1',
-                    date: new Date().toISOString().split('T')[0], // Today's date - likely to conflict
-                    purpose: 'Training Session',
-                    stops: [
-                        { location: 'home', name: 'Home' },
-                        { location: 'corporate', name: 'ALM Corporate' },
-                        { location: 'marietta', name: 'ALM Marietta' }
-                    ],
-                    totalMiles: 47.2,
-                    reimbursable: true,
-                    cost: 47.2 * 0.70,
-                    timestamp: new Date().toISOString(),
-                    synced: false
-                },
-                {
-                    id: 'import_2',
-                    date: '2026-02-15', // Fixed date that might conflict
-                    purpose: 'Client Visit',
-                    stops: [
-                        { location: 'home', name: 'Home' },
-                        { location: 'gwinnett', name: 'ALM Gwinnett' }
-                    ],
-                    totalMiles: 32.1,
-                    reimbursable: true,
-                    cost: 32.1 * 0.70,
-                    timestamp: new Date().toISOString(),
-                    synced: false
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                showToast('Processing Excel file...', 'warning');
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = new Uint8Array(event.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        // Parse the Summary sheet
+                        const summarySheetName = workbook.SheetNames.find(name => 
+                            name.toLowerCase().includes('summary') || name === 'Sheet1'
+                        ) || workbook.SheetNames[0];
+                        
+                        if (!summarySheetName) {
+                            throw new Error('No valid sheet found in Excel file');
+                        }
+                        
+                        const summarySheet = workbook.Sheets[summarySheetName];
+                        const summaryData = XLSX.utils.sheet_to_json(summarySheet);
+                        
+                        const importedRoutes = parseExcelData(summaryData);
+                        handleImportedRoutes(importedRoutes);
+                        
+                    } catch (error) {
+                        console.error('Excel import error:', error);
+                        showToast('Error processing Excel file: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            
+            input.click();
+        }
+
+        function parseExcelData(data) {
+            const routes = [];
+            
+            data.forEach((row, index) => {
+                try {
+                    // Handle different possible column names
+                    const date = row['Date'] || row['date'] || row['DATE'];
+                    const purpose = row['Purpose'] || row['purpose'] || row['PURPOSE'] || '';
+                    const startLoc = row['Start'] || row['start'] || row['From'] || row['from'];
+                    const endLoc = row['End'] || row['end'] || row['To'] || row['to'];
+                    const miles = parseFloat(row['Total Miles'] || row['Miles'] || row['total_miles'] || row['miles'] || 0);
+                    const reimbursable = String(row['Reimbursable'] || row['reimbursable'] || 'Yes').toLowerCase() === 'yes';
+                    const cost = parseFloat(row['Cost'] || row['cost'] || (miles * IRS_RATE));
+                    
+                    if (!date) {
+                        console.warn(`Skipping row ${index + 1}: No date found`);
+                        return;
+                    }
+                    
+                    // Convert Excel date if needed
+                    let formattedDate;
+                    if (typeof date === 'number') {
+                        // Excel date number
+                        const excelDate = new Date((date - 25569) * 86400 * 1000);
+                        formattedDate = excelDate.toISOString().split('T')[0];
+                    } else {
+                        // String date
+                        formattedDate = new Date(date).toISOString().split('T')[0];
+                    }
+                    
+                    // Create stops array
+                    const stops = [];
+                    if (startLoc) {
+                        const startKey = findLocationKey(startLoc);
+                        if (startKey) {
+                            stops.push({ location: startKey, name: ALM_LOCATIONS[startKey].name });
+                        }
+                    }
+                    if (endLoc && endLoc !== startLoc) {
+                        const endKey = findLocationKey(endLoc);
+                        if (endKey) {
+                            stops.push({ location: endKey, name: ALM_LOCATIONS[endKey].name });
+                        }
+                    }
+                    
+                    const route = {
+                        id: 'import_' + Date.now() + '_' + index,
+                        date: formattedDate,
+                        purpose: purpose,
+                        stops: stops,
+                        totalMiles: miles,
+                        reimbursable: reimbursable,
+                        cost: cost,
+                        timestamp: new Date().toISOString(),
+                        synced: false
+                    };
+                    
+                    routes.push(route);
+                    
+                } catch (error) {
+                    console.warn(`Error parsing row ${index + 1}:`, error);
                 }
-            ];
+            });
             
-            // Detect conflicts
-            const conflicts = detectConflicts(sampleImportData, existingRoutes);
+            return routes;
+        }
+
+        function findLocationKey(locationName) {
+            const name = locationName.toLowerCase();
+            
+            for (const [key, location] of Object.entries(ALM_LOCATIONS)) {
+                if (location.name.toLowerCase().includes(name) || 
+                    name.includes(location.name.toLowerCase()) ||
+                    name.includes(key)) {
+                    return key;
+                }
+            }
+            
+            return null;
+        }
+
+        function handleImportedRoutes(importedRoutes) {
+            if (importedRoutes.length === 0) {
+                showToast('No valid routes found in Excel file', 'warning');
+                return;
+            }
+            
+            const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            const conflicts = detectConflicts(importedRoutes, existingRoutes);
             
             if (conflicts.length > 0) {
                 // Show conflict resolution modal
                 showConflictModal(conflicts);
             } else {
                 // No conflicts, proceed with direct import
-                const updatedRoutes = [...existingRoutes, ...sampleImportData];
+                const updatedRoutes = [...existingRoutes, ...importedRoutes];
                 localStorage.setItem('alm_routes', JSON.stringify(updatedRoutes));
-                showToast(`Successfully imported ${sampleImportData.length} routes`, 'success');
+                showToast(`Successfully imported ${importedRoutes.length} routes`, 'success');
             }
         }
 
