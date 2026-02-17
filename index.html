@@ -231,7 +231,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <header>
-  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v5</span></div>
+  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v6</span></div>
   <div class="header-right">
     <!-- Maps status -->
     <div class="status-pill" title="Google Maps Distance API">
@@ -265,6 +265,8 @@
     <div class="nav-section">
       <div class="nav-section-label">Export</div>
       <button class="nav-btn" onclick="downloadExcel()"><span class="nav-icon">↓</span> Download Excel</button>
+      <button class="nav-btn" onclick="document.getElementById('importFileInput').click()"><span class="nav-icon">↑</span> Import Excel</button>
+      <input type="file" id="importFileInput" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
     </div>
     <div class="nav-divider"></div>
     <div class="nav-section">
@@ -978,8 +980,89 @@ function downloadExcel(){
   toast('Excel downloaded!','success');
 }
 
+async function importExcel(event){
+  const file = event.target.files[0];
+  if(!file){ return; }
+  
+  try {
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data, {type:'array'});
+    
+    // Read Summary sheet (has: Date, Total Miles, Legs, Purpose, Route, Synced to Sheets)
+    const summarySheet = wb.Sheets['Summary'];
+    if(!summarySheet){ toast('Invalid file: missing Summary sheet','error'); return; }
+    const summaryData = XLSX.utils.sheet_to_json(summarySheet, {header:1});
+    
+    // Read Detailed Legs sheet (has: Date, From, To, Miles, Source, Purpose)
+    const legsSheet = wb.Sheets['Detailed Legs'];
+    if(!legsSheet){ toast('Invalid file: missing Detailed Legs sheet','error'); return; }
+    const legsData = XLSX.utils.sheet_to_json(legsSheet, {header:1});
+    
+    // Skip header rows and TOTAL row
+    const summaryRows = summaryData.slice(1).filter(row=>row[0] && row[0]!=='TOTAL' && row[1]!=='TOTAL');
+    const legRows = legsData.slice(1).filter(row=>row[0]);
+    
+    // Build route objects from Summary + Detailed Legs
+    const importedRoutes = summaryRows.map(sumRow => {
+      const [date, totalMiles, legCount, purpose, routeStr, synced] = sumRow;
+      
+      // Parse stops from route string (e.g. "Home → ALM Kennesaw → Home")
+      const stops = routeStr.split(' → ').map(s=>s.trim());
+      
+      // Find matching legs for this date
+      const matchingLegs = legRows.filter(legRow=>legRow[0]===date).map(legRow=>{
+        const [_, from, to, miles, source, legPurpose] = legRow;
+        return { from, to, miles: parseFloat(miles)||0, source: source||'estimated' };
+      });
+      
+      return {
+        id: Date.now() + Math.random(), // Generate new unique ID
+        date,
+        purpose,
+        legs: matchingLegs,
+        totalMiles: parseFloat(totalMiles)||0,
+        stops,
+        synced: synced==='Yes',
+      };
+    });
+    
+    // Merge: only add routes that don't already exist (check by date + totalMiles)
+    const existing = new Set(routeDays.map(r=>`${r.date}:${r.totalMiles}`));
+    const newRoutes = importedRoutes.filter(r=>!existing.has(`${r.date}:${r.totalMiles}`));
+    
+    if(!newRoutes.length){ toast('No new routes to import — all already exist','info'); return; }
+    
+    routeDays.push(...newRoutes);
+    routeDays.sort((a,b)=>a.date.localeCompare(b.date)); // Sort by date
+    localStorage.setItem('alm_routes', JSON.stringify(routeDays));
+    
+    renderHistory();
+    updateGlobalStats();
+    toast(`Imported ${newRoutes.length} route${newRoutes.length>1?'s':''} from Excel!`,'success');
+    
+    // Reset file input so same file can be re-imported if needed
+    event.target.value = '';
+  } catch(e) {
+    console.error('Import error:', e);
+    toast('Failed to import Excel file: ' + e.message, 'error');
+  }
+}
+
 // ── CHANGELOG ─────────────────────────────────────────────────────────────
 const CHANGELOG = [
+  {
+    version: 6,
+    title: 'Excel Import',
+    date: 'Feb 2026',
+    changes: [
+      'Added "↑ Import Excel" button in Export section',
+      'Reads previously downloaded Excel files and restores trip history',
+      'Parses both Summary and Detailed Legs sheets to rebuild full route objects',
+      'Smart merge — only imports routes that don\'t already exist (checks date + miles)',
+      'Preserves synced status from the Excel file',
+      'Useful for recovering data if browser storage clears or moving between devices',
+    ]
+  },
   {
     version: 5,
     title: 'Force Resync',
@@ -1050,7 +1133,7 @@ const CHANGELOG = [
   },
 ];
 
-const CURRENT_VERSION = 5;
+const CURRENT_VERSION = 6;
 
 function renderChangelog(){
   const container = document.getElementById('changelogList');
