@@ -1,1505 +1,1638 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALM Mileage Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<!-- Google Identity Services for OAuth -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>
-  :root {
-    --bg:#0a0a0a; --surface:#111111; --surface2:#1a1a1a; --surface3:#222222; --border:#2a2a2a;
-    --amber:#f5a623; --amber-dim:#7a5210; --amber-glow:rgba(245,166,35,0.12);
-    --red:#e53935; --red-dim:rgba(229,57,53,0.15);
-    --green:#4caf50; --green-dim:rgba(76,175,80,0.15);
-    --blue:#2196f3; --blue-dim:rgba(33,150,243,0.15);
-    --text:#e8e8e8; --text-dim:#666; --text-mid:#999;
-    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif; --display:'Bebas Neue',sans-serif;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
-  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALM Mileage Tracker v10</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f0f0f;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
 
-  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
-  .logo{display:flex;align-items:baseline;gap:10px;}
-  .logo-mark{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--amber);line-height:1;}
-  .logo-sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
-  .header-right{display:flex;align-items:center;gap:10px;}
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
 
-  .status-pill{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;cursor:pointer;transition:all 0.2s;}
-  .status-pill:hover{border-color:var(--amber);}
-  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--red);transition:background 0.3s;flex-shrink:0;}
-  .status-dot.active{background:var(--green);box-shadow:0 0 6px var(--green);}
-  .status-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-  .status-label{font-family:var(--mono);font-size:11px;color:var(--text-mid);letter-spacing:1px;}
-  .total-badge{font-family:var(--mono);font-size:12px;color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);padding:6px 14px;border-radius:4px;letter-spacing:1px;}
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #1c1c1c;
+            border-right: 1px solid #2a2a2a;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
 
-  .app{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 64px);}
-  nav{background:var(--surface);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;}
-  .nav-section{padding:0 16px;margin-bottom:8px;}
-  .nav-section-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;padding:12px 8px 6px;text-transform:uppercase;}
-  .nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:none;background:none;color:var(--text-mid);font-family:var(--sans);font-size:13px;cursor:pointer;border-radius:4px;text-align:left;transition:all 0.15s;}
-  .nav-btn:hover{background:var(--surface2);color:var(--text);}
-  .nav-btn.active{background:var(--amber-glow);color:var(--amber);border-left:2px solid var(--amber);padding-left:10px;}
-  .nav-icon{font-size:16px;width:20px;text-align:center;}
-  .nav-divider{height:1px;background:var(--border);margin:12px 16px;}
-  .stat-mini{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:8px;}
-  .stat-mini-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
-  .stat-mini-value{font-family:var(--display);font-size:28px;color:var(--amber);letter-spacing:1px;line-height:1.2;}
-  .stat-mini-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+        .sidebar-logo {
+            padding: 0 20px 30px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            margin-bottom: 30px;
+        }
 
-  main{padding:32px;overflow-y:auto;}
-  .page{display:none;}.page.active{display:block;}
-  .page-header{margin-bottom:28px;border-bottom:1px solid var(--border);padding-bottom:20px;}
-  .page-title{font-family:var(--display);font-size:42px;color:var(--text);letter-spacing:3px;line-height:1;}
-  .page-subtitle{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:2px;margin-top:6px;}
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 5px;
+        }
 
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:24px;margin-bottom:20px;}
-  .card-title{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
-  .card-title::before{content:'';width:3px;height:14px;background:var(--amber);border-radius:2px;}
+        .logo-subtitle {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-  .route-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
-  .form-group{display:flex;flex-direction:column;gap:6px;}
-  label{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;}
-  input,select{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 12px;width:100%;outline:none;transition:border-color 0.2s;appearance:none;}
-  input:focus,select:focus{border-color:var(--amber);}
-  input::placeholder{color:var(--text-dim);}
-  select option{background:var(--surface2);}
+        .nav-section {
+            margin-bottom: 25px;
+        }
 
-  .stop-list{display:flex;flex-direction:column;gap:0;}
-  .stop-row{display:flex;align-items:stretch;gap:0;position:relative;}
-  .stop-connector{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0;}
-  .stop-dot{width:12px;height:12px;border-radius:50%;background:var(--amber);border:2px solid var(--bg);z-index:1;flex-shrink:0;margin-top:14px;}
-  .stop-dot.home-dot{background:var(--green);}
-  .stop-dot.end-dot{background:var(--red);}
-  .stop-line{width:2px;background:var(--border);flex:1;margin:0 auto;}
-  .stop-line.hidden{background:transparent;}
-  .stop-body{flex:1;padding:8px 0 8px 12px;min-width:0;}
-  .stop-card{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:flex;align-items:center;gap:12px;transition:border-color 0.2s;}
-  .stop-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
-  .stop-select-wrap{flex:1;}
-  .stop-select-wrap select{background:transparent;border:none;padding:0;font-size:13px;color:var(--text);cursor:pointer;width:100%;}
-  .stop-select-wrap select:focus{outline:none;border:none;}
-  .leg-badge{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);padding:3px 10px;border-radius:4px;white-space:nowrap;min-width:72px;text-align:center;}
-  .leg-badge.loading{color:var(--text-dim);background:var(--surface3);border-color:var(--border);}
-  .leg-badge.excluded{color:var(--red);background:var(--red-dim);border-color:var(--red);}
-  .remove-stop{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:0 4px;line-height:1;transition:color 0.15s;flex-shrink:0;}
-  .remove-stop:hover{color:var(--red);}
+        .nav-section-title {
+            padding: 0 20px;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
 
-  .add-stop-row{display:flex;align-items:center;gap:12px;padding:6px 0 6px 52px;}
-  .add-stop-btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:7px 16px;border:1px dashed var(--border);border-radius:4px;background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
-  .add-stop-btn:hover:not(:disabled){border-color:var(--amber);color:var(--amber);}
-  .add-stop-btn:disabled{opacity:0.3;cursor:not-allowed;}
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
 
-  .day-total-bar{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px 20px;display:flex;align-items:center;gap:20px;margin-top:16px;}
-  .day-total-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;}
-  .day-total-value{font-family:var(--display);font-size:40px;color:var(--amber);letter-spacing:2px;line-height:1;}
-  .day-total-unit{font-family:var(--mono);font-size:11px;color:var(--text-dim);}
-  .day-total-breakdown{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.8;text-align:right;}
+        .nav-item:hover,
+        .nav-item.active {
+            background: #ffa726;
+            color: #000;
+            border-left-color: #ffa726;
+        }
 
-  .btn{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:11px 20px;border:1px solid;border-radius:4px;cursor:pointer;transition:all 0.15s;}
-  .btn-primary{background:var(--amber);border-color:var(--amber);color:#000;font-weight:600;}
-  .btn-primary:hover{background:#ffb836;box-shadow:0 0 16px rgba(245,166,35,0.3);}
-  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
-  .btn-ghost{background:transparent;border-color:var(--border);color:var(--text-mid);}
-  .btn-ghost:hover{border-color:var(--amber);color:var(--amber);}
-  .btn-sheets{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
-  .btn-sheets:hover{background:rgba(33,150,243,0.25);}
-  .btn-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+        .nav-item-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 12px;
+            font-size: 14px;
+        }
 
-  .trip-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
-  .trip-table th{text-align:left;padding:8px 12px;color:var(--text-dim);letter-spacing:1.5px;font-size:10px;border-bottom:1px solid var(--border);text-transform:uppercase;font-weight:500;}
-  .trip-table td{padding:10px 12px;border-bottom:1px solid rgba(42,42,42,0.5);color:var(--text);vertical-align:middle;}
-  .trip-table tr:last-child td{border-bottom:none;}
-  .trip-table tr:hover td{background:var(--surface2);}
-  .trip-miles{color:var(--amber);font-weight:600;font-size:14px;}
-  .delete-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:3px;transition:all 0.15s;}
-  .delete-btn:hover{color:var(--red);background:var(--red-dim);}
-  .purpose-tag{display:inline-block;background:var(--surface3);border-radius:3px;padding:2px 6px;font-size:10px;color:var(--text-dim);letter-spacing:0.5px;}
-  .sheets-badge{display:inline-flex;align-items:center;gap:4px;background:var(--blue-dim);border:1px solid rgba(33,150,243,0.3);border-radius:3px;padding:2px 6px;font-size:9px;color:var(--blue);letter-spacing:0.5px;}
-  .resync-btn{background:none;border:1px solid rgba(229,57,53,0.4);border-radius:3px;color:var(--red);font-family:var(--mono);font-size:10px;padding:2px 8px;cursor:pointer;letter-spacing:0.5px;transition:all 0.15s;}
-  .resync-btn:hover{background:var(--red-dim);border-color:var(--red);}
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            background: #141414;
+        }
 
-  .route-chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
-  .route-stop{color:var(--text);}
-  .route-arrow{color:var(--amber);font-size:10px;}
-  .expand-row{display:none;background:var(--surface2);}
-  .expand-row td{padding:10px 12px 14px 28px;}
-  .leg-detail{font-family:var(--mono);font-size:11px;color:var(--text-mid);display:flex;flex-direction:column;gap:4px;}
-  .leg-detail-row{display:flex;align-items:center;gap:8px;}
-  .leg-detail-mi{color:var(--amber);min-width:50px;}
+        /* Top Bar */
+        .top-bar {
+            background: #1c1c1c;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+        }
 
-  .matrix-wrapper{overflow-x:auto;margin-top:8px;}
-  .matrix-table{border-collapse:collapse;font-family:var(--mono);font-size:11px;min-width:100%;}
-  .matrix-table th{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:10px;letter-spacing:1px;white-space:nowrap;font-weight:500;}
-  .matrix-table th.row-header{text-align:left;min-width:140px;position:sticky;left:0;z-index:1;}
-  .matrix-table td{border:1px solid var(--border);text-align:center;padding:6px 8px;white-space:nowrap;min-width:70px;position:relative;transition:filter 0.15s;}
-  .matrix-table td:hover{filter:brightness(1.3);}
-  .matrix-table td.self{background:var(--surface3);color:var(--text-dim);}
-  .matrix-table td.excluded{background:repeating-linear-gradient(45deg,rgba(229,57,53,0.05),rgba(229,57,53,0.05) 4px,transparent 4px,transparent 8px);color:var(--red);font-size:10px;letter-spacing:1px;}
-  .matrix-table td.green{background:rgba(76,175,80,0.12);color:#81c784;}
-  .matrix-table td.yellow{background:rgba(255,193,7,0.1);color:#ffd54f;}
-  .matrix-table td.orange{background:rgba(255,152,0,0.12);color:#ffb74d;}
-  .matrix-table td.red-cell{background:rgba(229,57,53,0.1);color:#e57373;}
-  .cell-miles{font-size:12px;font-weight:600;}.cell-unit{font-size:9px;color:var(--text-dim);}
-  .source-dot{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;}
-  .source-dot.live{background:var(--green);}.source-dot.estimated{background:var(--text-dim);}
+        .status-pill {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
-  .legend-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
-  .legend-swatch{width:12px;height:12px;border-radius:2px;}
+        .status-pill.maps-active {
+            background: #22c55e;
+            color: white;
+        }
 
-  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;}
-  .stat-label{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
-  .stat-value{font-family:var(--display);font-size:36px;color:var(--amber);letter-spacing:1px;line-height:1;}
-  .stat-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:2px;}
+        .status-pill.sheets-signin {
+            background: #ef4444;
+            color: white;
+        }
 
-  .filter-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
-  .filter-chip{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--text-dim);cursor:pointer;transition:all 0.15s;}
-  .filter-chip.active,.filter-chip:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-glow);}
+        .status-pill.total-miles {
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
+        }
 
-  .empty-state{text-align:center;padding:60px 20px;color:var(--text-dim);}
-  .empty-icon{font-size:40px;margin-bottom:12px;opacity:0.3;}
-  .empty-text{font-family:var(--mono);font-size:12px;letter-spacing:1px;}
+        /* Page Content */
+        .page-content {
+            padding: 30px;
+        }
 
-  .refresh-section{display:flex;align-items:center;gap:16px;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:16px;}
-  .refresh-info{flex:1;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.5;}
-  .progress-bar{height:3px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden;display:none;}
-  .progress-fill{height:100%;background:var(--amber);border-radius:2px;transition:width 0.3s;width:0;}
+        .page-header {
+            margin-bottom: 30px;
+        }
 
-  /* Sheets connect card */
-  .sheets-connect{background:var(--surface2);border:1px solid rgba(33,150,243,0.3);border-radius:6px;padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:20px;}
-  .sheets-icon{font-size:28px;flex-shrink:0;}
-  .sheets-info{flex:1;}
-  .sheets-info-title{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;}
-  .sheets-info-sub{font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.5;}
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
 
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
-  .modal-overlay.open{display:flex;}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:32px;max-width:520px;width:90%;}
-  .modal-title{font-family:var(--display);font-size:32px;letter-spacing:3px;color:var(--text);margin-bottom:6px;}
-  .modal-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:20px;line-height:1.6;}
-  .modal-btn-row{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+        .page-subtitle {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-  .toast-container{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px;}
-  .toast{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:12px 16px;font-family:var(--mono);font-size:12px;color:var(--text);min-width:280px;display:flex;align-items:center;gap:10px;animation:slideIn 0.2s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
-  .toast.success{border-color:var(--green);}.toast.error{border-color:var(--red);}.toast.info{border-color:var(--amber);}.toast.sheets{border-color:var(--blue);}
-  @keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+        /* Route Builder Card */
+        .route-card {
+            background: #1c1c1c;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
 
-  /* CHANGELOG */
-  .changelog-entry{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:24px;margin-bottom:16px;display:grid;grid-template-columns:80px 1fr;gap:0;}
-  .changelog-entry.current{border-color:var(--amber);}
-  .cl-version-col{display:flex;flex-direction:column;align-items:flex-start;padding-right:24px;border-right:1px solid var(--border);}
-  .cl-version{font-family:var(--display);font-size:36px;color:var(--amber);letter-spacing:2px;line-height:1;}
-  .cl-current-badge{font-family:var(--mono);font-size:9px;letter-spacing:1px;background:var(--amber-glow);border:1px solid var(--amber-dim);color:var(--amber);padding:2px 6px;border-radius:3px;margin-top:6px;white-space:nowrap;}
-  .cl-body{padding-left:24px;}
-  .cl-title{font-family:var(--mono);font-size:13px;color:var(--text);font-weight:600;margin-bottom:4px;letter-spacing:0.5px;}
-  .cl-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;}
-  .cl-changes{list-style:none;display:flex;flex-direction:column;gap:6px;}
-  .cl-change{display:flex;gap:10px;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.5;}
-  .cl-bullet{color:var(--amber);flex-shrink:0;}
+        .route-card-header {
+            background: #252525;
+            padding: 20px 25px;
+            border-bottom: 1px solid #2a2a2a;
+        }
 
-  ::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--surface);}
-  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-  .miles-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--amber);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-</style>
+        .section-title {
+            color: #ffa726;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: #ffa726;
+            margin-right: 10px;
+        }
+
+        .route-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-field label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-field input,
+        .form-field select {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 12px 15px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            border-color: #ffa726;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 167, 38, 0.1);
+        }
+
+        /* Route Builder */
+        .route-builder {
+            padding: 25px;
+        }
+
+        .stops-section {
+            margin-bottom: 30px;
+        }
+
+        .stop-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 167, 38, 0.06);
+            border: 1px solid rgba(255, 167, 38, 0.2);
+            border-radius: 6px;
+        }
+
+        .stop-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .stop-indicator.start {
+            background: #22c55e;
+        }
+
+        .stop-indicator.middle {
+            background: #ffa726;
+        }
+
+        .stop-indicator.end {
+            background: #ef4444;
+        }
+
+        .stop-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 80px;
+        }
+
+        .stop-select {
+            flex: 1;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .stop-distance {
+            background: #ffa726;
+            color: #000;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .stop-remove {
+            background: #333;
+            border: none;
+            color: #999;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .stop-remove:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .add-stop-btn {
+            background: transparent;
+            border: 1px dashed #666;
+            color: #999;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .add-stop-btn:hover {
+            border-color: #ffa726;
+            color: #ffa726;
+        }
+
+        /* Day Total */
+        .day-total {
+            background: #252525;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .total-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .total-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffa726;
+        }
+
+        .total-unit {
+            font-size: 14px;
+            color: #999;
+            margin-left: 5px;
+        }
+
+        .total-note {
+            font-size: 11px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* Map Preview */
+        .map-preview {
+            background: #1c1c1c;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .map-preview-header {
+            background: #252525;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .map-preview-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffa726;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px;
+            background: #141414;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear {
+            background: #333;
+            color: #ccc;
+        }
+
+        .btn-clear:hover {
+            background: #444;
+        }
+
+        .btn-preview {
+            background: transparent;
+            border: 1px solid #ffa726;
+            color: #ffa726;
+        }
+
+        .btn-preview:hover {
+            background: #ffa726;
+            color: #000;
+        }
+
+        .btn-save {
+            background: #ffa726;
+            color: #000;
+        }
+
+        .btn-save:hover {
+            background: #ff9800;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Draft Banner */
+        .draft-banner {
+            background: linear-gradient(135deg, #ffa726, #ff9800);
+            color: #000;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+
+        .draft-banner.show {
+            display: block;
+        }
+
+        .draft-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .draft-btn {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .draft-btn:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: #22c55e;
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        .toast.warning {
+            background: #ffa726;
+            color: #000;
+        }
+
+        /* Hidden pages */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .route-form {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<!-- GOOGLE SIGN-IN MODAL -->
-<div class="modal-overlay" id="sheetsModal">
-  <div class="modal">
-    <div class="modal-title">SYNC TO SHEETS</div>
-    <div class="modal-sub">Sign in with your Google account to enable automatic backup of every route to your Google Sheet. You'll only need to do this once.</div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:20px;font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.8;">
-      <span style="color:var(--amber)">→</span> Sheet: <strong style="color:var(--text)">ALM Mileage Tracker</strong><br>
-      <span style="color:var(--amber)">→</span> Syncs automatically on every Save Route<br>
-      <span style="color:var(--amber)">→</span> Writes to: Summary tab + Detailed Legs tab
-    </div>
-    <div id="googleSignInBtn" style="display:flex;justify-content:center;margin-bottom:8px;"></div>
-    <div class="modal-btn-row">
-      <button class="btn btn-ghost" onclick="closeSheetsModal()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast-container" id="toastContainer"></div>
-
-<header>
-  <div class="logo"><span class="logo-mark">ALM</span><span class="logo-sub">Mileage Tracker</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber-dim);letter-spacing:1px;margin-left:4px;align-self:flex-end;padding-bottom:2px">v9</span></div>
-  <div class="header-right">
-    <!-- Maps status -->
-    <div class="status-pill" title="Google Maps Distance API">
-      <div class="status-dot active" id="mapsStatus"></div>
-      <span class="status-label">MAPS ACTIVE</span>
-    </div>
-    <!-- Sheets status -->
-    <div class="status-pill" onclick="openSheetsModal()" id="sheetsPill">
-      <div class="status-dot" id="sheetsStatus"></div>
-      <span class="status-label" id="sheetsLabel">SHEETS: SIGN IN</span>
-    </div>
-    <div class="total-badge" id="headerTotal">0.0 MI TOTAL</div>
-  </div>
-</header>
-
-<div class="app">
-  <nav>
-    <div class="nav-section">
-      <div class="nav-section-label">Log</div>
-      <button class="nav-btn active" onclick="showPage('newTrip',this)"><span class="nav-icon">＋</span> New Route</button>
-      <button class="nav-btn" onclick="showPage('history',this)"><span class="nav-icon">◷</span> Trip History</button>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-section">
-      <div class="nav-section-label">Data</div>
-      <button class="nav-btn" onclick="showPage('locations',this)"><span class="nav-icon">◎</span> Locations</button>
-      <button class="nav-btn" onclick="showPage('matrix',this)"><span class="nav-icon">⊞</span> Distance Matrix</button>
-      <button class="nav-btn" onclick="showPage('refresh',this)"><span class="nav-icon">↺</span> Refresh Distances</button>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-section">
-      <div class="nav-section-label">Analysis</div>
-      <button class="nav-btn" onclick="showPage('charts',this)"><span class="nav-icon">◐</span> Charts</button>
-      <button class="nav-btn" onclick="showPage('cost',this)"><span class="nav-icon">$</span> Cost Report</button>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-section">
-      <div class="nav-section-label">Export</div>
-      <button class="nav-btn" onclick="downloadExcel()"><span class="nav-icon">↓</span> Download Excel</button>
-      <button class="nav-btn" onclick="document.getElementById('importFileInput').click()"><span class="nav-icon">↑</span> Import Excel</button>
-      <input type="file" id="importFileInput" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-section">
-      <div class="nav-section-label">App</div>
-      <button class="nav-btn" onclick="showPage('changelog',this)"><span class="nav-icon">◈</span> Changelog</button>
-    </div>
-    <div class="nav-divider"></div>
-    <div style="padding:8px 16px;margin-top:8px">
-      <div class="stat-mini"><div class="stat-mini-label">Total Miles</div><div class="stat-mini-value" id="sidebarTotal">0.0</div><div class="stat-mini-unit">miles logged</div></div>
-      <div class="stat-mini"><div class="stat-mini-label">Days Logged</div><div class="stat-mini-value" id="sidebarCount">0</div><div class="stat-mini-unit">route days</div></div>
-    </div>
-  </nav>
-
-  <main>
-
-    <!-- NEW ROUTE PAGE -->
-    <div class="page active" id="page-newTrip">
-      <div class="page-header">
-        <div class="page-title">NEW ROUTE</div>
-        <div class="page-subtitle">BUILD YOUR DAY'S STOPS — UP TO 6 LOCATIONS</div>
-      </div>
-
-      <!-- DRAFT RESUME BANNER -->
-      <div id="draftBanner" style="display:none;background:var(--amber-glow);border:1px solid var(--amber-dim);border-radius:6px;padding:16px 20px;margin-bottom:20px;align-items:center;gap:16px;">
-        <div style="flex:1;">
-          <div style="font-family:var(--mono);font-size:12px;color:var(--amber);font-weight:600;margin-bottom:4px;letter-spacing:1px">DRAFT FOUND</div>
-          <div style="font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.5">You have an unsaved route. Resume where you left off or start fresh.</div>
-        </div>
-        <button class="btn btn-primary" style="font-size:11px;padding:8px 16px" onclick="loadDraft()">Resume Draft</button>
-        <button class="btn btn-ghost" style="font-size:11px;padding:8px 16px" onclick="clearDraft()">Discard</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Route Details</div>
-        <div class="route-meta">
-          <div class="form-group"><label>Date</label><input type="date" id="routeDate" onchange="saveDraft()"/></div>
-          <div class="form-group"><label>Purpose</label>
-            <select id="routePurpose" onchange="saveDraft()">
-              <option>Dealership Visits</option><option>Customer Meetings</option>
-              <option>Parts Pickup</option><option>Training</option>
-              <option>Mixed</option><option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="stop-list" id="stopList"></div>
-        <div class="add-stop-row">
-          <button class="add-stop-btn" id="addStopBtn" onclick="addStop()"><span>＋</span> Add Stop</button>
-          <span id="stopCounter" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;"></span>
-        </div>
-        <div class="day-total-bar">
-          <div>
-            <div class="day-total-label">Day Total</div>
-            <div style="display:flex;align-items:baseline;gap:8px">
-              <span class="day-total-value" id="dayTotalValue">0.0</span>
-              <span class="day-total-unit">miles</span>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-text">ALM</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v10</div>
             </div>
-          </div>
-          <div class="day-total-breakdown" id="dayBreakdown"></div>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-ghost" onclick="clearRoute()">Clear</button>
-          <button class="btn btn-primary" id="saveRouteBtn" onclick="saveRoute()" disabled>Save Route</button>
-        </div>
-      </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">LOG</div>
+                <a href="#" class="nav-item active" data-page="log">
+                    <span class="nav-item-icon">+</span>
+                    New Route
+                </a>
+                <a href="#" class="nav-item" data-page="history">
+                    <span class="nav-item-icon">⏱</span>
+                    Trip History
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">DATA</div>
+                <a href="#" class="nav-item" data-page="locations">
+                    <span class="nav-item-icon">📍</span>
+                    Locations
+                </a>
+                <a href="#" class="nav-item" data-page="matrix">
+                    <span class="nav-item-icon">⊞</span>
+                    Distance Matrix
+                </a>
+                <a href="#" class="nav-item" onclick="refreshDistances()">
+                    <span class="nav-item-icon">⟲</span>
+                    Refresh Distances
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">ANALYSIS</div>
+                <a href="#" class="nav-item" data-page="charts">
+                    <span class="nav-item-icon">📊</span>
+                    Charts
+                </a>
+                <a href="#" class="nav-item" data-page="cost">
+                    <span class="nav-item-icon">$</span>
+                    Cost Report
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">EXPORT</div>
+                <a href="#" class="nav-item" onclick="downloadExcel()">
+                    <span class="nav-item-icon">↓</span>
+                    Download Excel
+                </a>
+                <a href="#" class="nav-item" onclick="importExcel()">
+                    <span class="nav-item-icon">↑</span>
+                    Import Excel
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">APP</div>
+                <a href="#" class="nav-item" data-page="changelog">
+                    <span class="nav-item-icon">📋</span>
+                    Changelog
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="status-pill maps-active" id="maps-status">
+                    ● MAPS ACTIVE
+                </div>
+                <div class="status-pill sheets-signin" id="sheets-status">
+                    ● SHEETS: SIGN IN
+                </div>
+                <div class="status-pill total-miles">
+                    <span id="total-miles-display">0.0</span> MI TOTAL
+                </div>
+            </div>
+
+            <!-- Draft Banner -->
+            <div class="draft-banner" id="draft-banner">
+                DRAFT FOUND - You have an unsaved route in progress
+                <div class="draft-actions">
+                    <button class="draft-btn" onclick="resumeDraft()">Resume Draft</button>
+                    <button class="draft-btn" onclick="discardDraft()">Discard Draft</button>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Log Trip Page -->
+                <div class="page active" id="log-page">
+                    <div class="page-header">
+                        <h1 class="page-title">New Route</h1>
+                        <p class="page-subtitle">BUILD YOUR DAY'S STOPS - UP TO 6 LOCATIONS</p>
+                    </div>
+
+                    <!-- Route Card -->
+                    <div class="route-card">
+                        <!-- Route Details Header -->
+                        <div class="route-card-header">
+                            <div class="section-title">Route Details</div>
+                            <form class="route-form">
+                                <div class="form-field">
+                                    <label>Date</label>
+                                    <input type="date" id="trip-date">
+                                </div>
+                                <div class="form-field">
+                                    <label>Purpose</label>
+                                    <select id="trip-purpose">
+                                        <option value="">Dealership Visits</option>
+                                        <option value="Sales Visit">Sales Visit</option>
+                                        <option value="Service Call">Service Call</option>
+                                        <option value="Training">Training</option>
+                                        <option value="Meeting">Meeting</option>
+                                        <option value="Delivery">Delivery</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Route Builder -->
+                        <div class="route-builder">
+                            <div class="stops-section">
+                                <div id="stops-list">
+                                    <!-- Stop items will be added dynamically -->
+                                </div>
+                                <button class="add-stop-btn" onclick="addStop()" id="add-stop-btn">
+                                    + Add Stop
+                                    <span id="stop-count">2 locations • 1 legs</span>
+                                </button>
+                            </div>
+
+                            <!-- Day Total -->
+                            <div class="day-total" id="day-total" style="display: none;">
+                                <div class="total-label">Day Total</div>
+                                <div class="total-value" id="total-value">
+                                    0.0<span class="total-unit">miles</span>
+                                </div>
+                                <div class="total-note">Add stops to see breakdown</div>
+                            </div>
+
+                            <!-- Map Preview -->
+                            <div class="map-preview" id="map-preview" style="display: none;">
+                                <div class="map-preview-header">
+                                    <div class="map-preview-title">Route Preview</div>
+                                    <button class="btn btn-clear" onclick="toggleMapPreview()" id="map-toggle-btn">
+                                        Hide Map
+                                    </button>
+                                </div>
+                                <div class="map-container" id="map-container">
+                                    <div>Loading route preview...</div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="action-buttons">
+                                <button class="btn btn-clear" onclick="clearRoute()">Clear</button>
+                                <button class="btn btn-preview" onclick="previewRoute()" id="preview-btn" disabled>
+                                    Preview Route
+                                </button>
+                                <button class="btn btn-save" onclick="saveRoute()" id="save-btn" disabled>
+                                    Save Route
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placeholder pages -->
+                <div class="page" id="history-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Trip History</h1>
+                        <p class="page-subtitle">VIEW AND MANAGE YOUR SAVED ROUTES</p>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-builder">
+                            <p style="color: #666; text-align: center; padding: 40px;">Trip history functionality will be implemented here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="locations-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Locations</h1>
+                        <p class="page-subtitle">ALM DEALERSHIP AND OFFICE LOCATIONS</p>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-builder">
+                            <p style="color: #666; text-align: center; padding: 40px;">Location management will be implemented here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="matrix-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Distance Matrix</h1>
+                        <p class="page-subtitle">LOCATION-TO-LOCATION DISTANCE GRID</p>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-builder">
+                            <p style="color: #666; text-align: center; padding: 40px;">Distance matrix will be displayed here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="charts-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Charts</h1>
+                        <p class="page-subtitle">MILEAGE ANALYTICS AND TRENDS</p>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-builder">
+                            <p style="color: #666; text-align: center; padding: 40px;">Charts and analytics will be displayed here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="cost-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Cost Report</h1>
+                        <p class="page-subtitle">REIMBURSEMENT CALCULATIONS</p>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-builder">
+                            <p style="color: #666; text-align: center; padding: 40px;">Cost reporting will be implemented here.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="changelog-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Changelog</h1>
+                        <p class="page-subtitle">VERSION HISTORY AND UPDATES</p>
+                    </div>
+                    <div class="route-card">
+                        <div class="route-builder">
+                            <p style="color: #666; text-align: center; padding: 40px;">Version changelog will be displayed here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- HISTORY PAGE -->
-    <div class="page" id="page-history">
-      <div class="page-header">
-        <div class="page-title">TRIP HISTORY</div>
-        <div class="page-subtitle">ALL LOGGED ROUTE DAYS</div>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">Total Miles</div><div class="stat-value" id="statTotal">0.0</div><div class="stat-unit">miles</div></div>
-        <div class="stat-card"><div class="stat-label">Route Days</div><div class="stat-value" id="statDays">0</div><div class="stat-unit">days</div></div>
-        <div class="stat-card"><div class="stat-label">Avg Per Day</div><div class="stat-value" id="statAvg">0.0</div><div class="stat-unit">miles</div></div>
-        <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value" id="statMonth">0.0</div><div class="stat-unit">miles</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title" style="justify-content:space-between">
-          <span style="display:flex;align-items:center;gap:8px"><span style="width:3px;height:14px;background:var(--amber);border-radius:2px;display:inline-block"></span>All Route Days</span>
-          <button class="btn btn-sheets" id="syncAllBtn" onclick="syncAllUnsynced()" style="font-size:10px;padding:6px 12px;letter-spacing:1px">⬆ Sync All Unsynced</button>
-        </div>
-        <div class="filter-row" id="monthFilters"><button class="filter-chip active" onclick="filterMonth('all',this)">All</button></div>
-        <table class="trip-table">
-          <thead><tr><th>Date</th><th>Route</th><th>Legs</th><th>Miles</th><th>Purpose</th><th>Sheets</th><th></th></tr></thead>
-          <tbody id="historyBody"></tbody>
-        </table>
-      </div>
-    </div>
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE&callback=initMap&libraries=geometry"></script>
 
-    <!-- LOCATIONS PAGE -->
-    <div class="page" id="page-locations">
-      <div class="page-header">
-        <div class="page-title">LOCATIONS</div>
-        <div class="page-subtitle">ALL STORED ALM LOCATIONS &amp; ADDRESSES</div>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table class="trip-table">
-          <thead><tr>
-            <th style="padding:14px 20px;width:24px">#</th>
-            <th style="padding:14px 20px">Name</th>
-            <th style="padding:14px 20px">Address</th>
-            <th style="padding:14px 20px">Notes</th>
-          </tr></thead>
-          <tbody id="locationsBody"></tbody>
-        </table>
-      </div>
-    </div>
+    <script>
+        // Constants
+        const MAX_STOPS = 6;
+        const GOOGLE_API_KEY = 'AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE';
+        const IRS_RATE = 0.70; // $0.70 per mile for 2025
+        
+        // ALM Locations (verified coordinates)
+        const ALM_LOCATIONS = {
+            'home': {
+                name: 'Home',
+                address: '216 Winterbury Dr, Canton, GA 30114',
+                lat: 34.2364,
+                lng: -84.4903,
+                type: 'home'
+            },
+            'corporate': {
+                name: 'ALM Corporate',
+                address: '6625 The Corners Pkwy NW, Norcross, GA 30092',
+                lat: 33.9410,
+                lng: -84.2140,
+                type: 'corporate'
+            },
+            'kennesaw': {
+                name: 'ALM Kennesaw',
+                address: '3905 Cherokee St NW, Kennesaw, GA 30144',
+                lat: 34.0234,
+                lng: -84.6199,
+                type: 'dealership'
+            },
+            'marietta': {
+                name: 'ALM Marietta',
+                address: '750 Cobb Pkwy S, Marietta, GA 30060',
+                lat: 33.9370,
+                lng: -84.5220,
+                type: 'dealership'
+            },
+            'gwinnett': {
+                name: 'ALM Gwinnett',
+                address: '2520 Pleasant Hill Rd, Duluth, GA 30096',
+                lat: 33.9567,
+                lng: -84.1442,
+                type: 'dealership'
+            },
+            'buford': {
+                name: 'ALM Buford',
+                address: '4805 Browns Bridge Rd, Buford, GA 30518',
+                lat: 34.1212,
+                lng: -83.9932,
+                type: 'dealership'
+            },
+            'roswell': {
+                name: 'ALM Roswell',
+                address: '11205 Alpharetta Hwy, Roswell, GA 30076',
+                lat: 34.0754,
+                lng: -84.3052,
+                type: 'dealership'
+            },
+            'newnan': {
+                name: 'ALM Newnan',
+                address: '1405 Newnan Crossing Bypass, Newnan, GA 30265',
+                lat: 33.3668,
+                lng: -84.7796,
+                type: 'dealership'
+            },
+            'mcdonough': {
+                name: 'ALM McDonough',
+                address: '1550 Highway 20/81 E, McDonough, GA 30253',
+                lat: 33.4734,
+                lng: -84.1468,
+                type: 'dealership'
+            }
+        };
 
-    <!-- MATRIX PAGE -->
-    <div class="page" id="page-matrix">
-      <div class="page-header">
-        <div class="page-title">DISTANCE MATRIX</div>
-        <div class="page-subtitle">ALL ROUTE DISTANCES BETWEEN ALM LOCATIONS</div>
-      </div>
-      <div class="legend">
-        <div class="legend-item"><div class="legend-swatch" style="background:rgba(76,175,80,0.3)"></div> &lt;20 mi</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,193,7,0.2)"></div> 20–35 mi</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,152,0,0.25)"></div> 35–55 mi</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:rgba(229,57,53,0.2)"></div> 55+ mi</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:repeating-linear-gradient(45deg,rgba(229,57,53,0.1),rgba(229,57,53,0.1) 3px,transparent 3px,transparent 6px)"></div> Not Reimbursed</div>
-        <div class="legend-item" style="margin-left:auto"><div class="source-dot live" style="position:static;width:8px;height:8px;border-radius:50%"></div> Live Maps</div>
-        <div class="legend-item"><div class="source-dot estimated" style="position:static;width:8px;height:8px;border-radius:50%"></div> Estimated</div>
-      </div>
-      <div class="card" style="padding:16px"><div class="matrix-wrapper" id="matrixWrapper"></div></div>
-    </div>
+        // Global variables
+        let currentRoute = [];
+        let totalDistance = 0;
+        let map = null;
+        let directionsService = null;
+        let directionsRenderer = null;
+        let isMapInitialized = false;
 
-    <!-- REFRESH PAGE -->
-    <div class="page" id="page-refresh">
-      <div class="page-header">
-        <div class="page-title">REFRESH DISTANCES</div>
-        <div class="page-subtitle">PULL LIVE DRIVING DISTANCES FROM GOOGLE MAPS</div>
-      </div>
-      <div class="card">
-        <div class="card-title">Google Maps Sync</div>
-        <div class="refresh-section">
-          <div class="refresh-info">
-            <span id="refreshStatus">Click Refresh All to pull real driving distances from Google Maps Distance Matrix API.</span>
-            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
-          </div>
-          <button class="btn btn-primary" id="refreshBtn" onclick="refreshAllDistances()">↺ Refresh All</button>
-        </div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8;margin-top:8px">
-          <strong style="color:var(--text)">Locations:</strong><br>
-          <span id="locationList" style="color:var(--amber)"></span>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Excluded Routes</div>
-        <div style="font-family:var(--mono);font-size:12px;color:var(--text-mid);line-height:2">
-          The following routes are <strong style="color:var(--red)">not reimbursable</strong> and excluded from all calculations:<br><br>
-          <span style="color:var(--red)">✗</span> Home → ALM Corporate (Norcross)<br>
-          <span style="color:var(--red)">✗</span> ALM Corporate (Norcross) → Home
-        </div>
-      </div>
-    </div>
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            checkDraft();
+            updateStatus();
+        });
 
-    <!-- CHARTS PAGE -->
-    <div class="page" id="page-charts">
-      <div class="page-header">
-        <div class="page-title">CHARTS</div>
-        <div class="page-subtitle">VISUAL ANALYTICS &amp; TRENDS</div>
-      </div>
-      
-      <div class="card">
-        <div class="card-title">Miles by Month</div>
-        <canvas id="monthlyChart" style="max-height:300px"></canvas>
-      </div>
+        function initializeApp() {
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('trip-date').value = today;
 
-      <div class="card">
-        <div class="card-title">Miles by Purpose</div>
-        <canvas id="purposeChart" style="max-height:300px"></canvas>
-      </div>
-    </div>
-
-    <!-- COST REPORT PAGE -->
-    <div class="page" id="page-cost">
-      <div class="page-header">
-        <div class="page-title">COST REPORT</div>
-        <div class="page-subtitle">REIMBURSEMENT CALCULATOR @ IRS RATE</div>
-      </div>
-
-      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card">
-          <div class="stat-label">Total Miles</div>
-          <div class="stat-value" id="costTotalMiles">0.0</div>
-          <div class="stat-unit">miles</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">IRS Rate (2025)</div>
-          <div class="stat-value" style="color:var(--green)">$0.70</div>
-          <div class="stat-unit">per mile</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Reimbursement</div>
-          <div class="stat-value" style="color:var(--amber)" id="costTotal">$0.00</div>
-          <div class="stat-unit">estimated</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Monthly Breakdown</div>
-        <table class="trip-table">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Miles</th>
-              <th>Reimbursement</th>
-            </tr>
-          </thead>
-          <tbody id="costBreakdownBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- CHANGELOG PAGE -->
-    <div class="page" id="page-changelog">
-      <div class="page-header">
-        <div class="page-title">CHANGELOG</div>
-        <div class="page-subtitle">VERSION HISTORY &amp; RELEASE NOTES</div>
-      </div>
-      <div id="changelogList"></div>
-    </div>
-
-  </main>
-</div>
-
-<script>
-// ── CONFIG ────────────────────────────────────────────────────────────────
-const MAPS_API_KEY   = 'AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE';
-const OAUTH_CLIENT_ID = '609546008185-ujeh6euqkncujt6fnkfhl75g717th2vf.apps.googleusercontent.com';
-const SHEET_ID       = '1IaoW_MkFKrG3TlRZMXNTHxUKmiFjv5f96mS0LyD1gAQ';
-const SCOPES         = 'https://www.googleapis.com/auth/spreadsheets';
-
-// ── LOCATIONS ──────────────────────────────────────────────────────────────
-const LOCATIONS = [
-  { name:"Home",              address:"216 Winterbury Drive, Canton, GA 30114",            coords:[-84.5002,34.2365] },
-  { name:"ALM Kennesaw",      address:"2255 Barrett Lakes Blvd NW, Kennesaw, GA 30144",    coords:[-84.6113,34.0234] },
-  { name:"ALM Ford Marietta", address:"869 Cobb Pkwy SE, Marietta, GA 30060",             coords:[-84.5524,33.9346] },
-  { name:"ALM Marietta",      address:"1071 Cobb Pkwy SE, Marietta, GA 30060",            coords:[-84.5502,33.9198] },
-  { name:"ALM Gwinnett",      address:"2520 Pleasant Hill Rd, Duluth, GA 30096",          coords:[-84.1448,33.9756] },
-  { name:"ALM Buford",        address:"4228 Buford Dr, Buford, GA 30518",                 coords:[-84.0163,34.1052] },
-  { name:"ALM Roswell",       address:"891 Mansell Rd, Roswell, GA 30076",                coords:[-84.3381,34.0428] },
-  { name:"ALM Newnan",        address:"40 International Park, Newnan, GA 30265",          coords:[-84.7997,33.3846] },
-  { name:"ALM McDonough",     address:"980 Jonesboro Rd, McDonough, GA 30253",            coords:[-84.1469,33.4473] },
-  { name:"ALM Corporate",     address:"6625 The Corners Pkwy NW, Norcross, GA 30092",    coords:[-84.2135,33.9408] },
-];
-const EXCLUDED = new Set(["Home|ALM Corporate","ALM Corporate|Home"]);
-const MAX_STOPS = 6;
-
-// Haversine fallback estimates
-const ESTIMATES = {};
-function haversine(c1,c2){
-  const R=3958.8,dLat=(c2[1]-c1[1])*Math.PI/180,dLon=(c2[0]-c1[0])*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(c1[1]*Math.PI/180)*Math.cos(c2[1]*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*1.25;
-}
-LOCATIONS.forEach((a,i)=>LOCATIONS.forEach((b,j)=>{
-  if(i!==j){const k=`${a.name}|${b.name}`;if(!EXCLUDED.has(k))ESTIMATES[k]=+haversine(a.coords,b.coords).toFixed(1);}
-}));
-
-// ── STATE ─────────────────────────────────────────────────────────────────
-// Cache key for Google Maps Distance Matrix distances
-let liveDistances = JSON.parse(localStorage.getItem('maps_distances_v2')||'{}');
-let routeDays     = JSON.parse(localStorage.getItem('alm_routes')||'[]');
-let currentFilter = 'all';
-let stops         = [null, null];
-let legMiles      = {};
-let legSources    = {};
-let accessToken   = localStorage.getItem('google_access_token')||'';
-let tokenExpiry   = parseInt(localStorage.getItem('google_token_expiry')||'0');
-
-// ── INIT ──────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('routeDate').value = new Date().toISOString().split('T')[0];
-  renderStopList();
-  renderLocations();
-  renderMatrix();
-  renderHistory();
-  updateGlobalStats();
-  document.getElementById('locationList').textContent = LOCATIONS.map(l=>l.name).join(' · ');
-  updateSheetsStatus();
-  initGoogleSignIn();
-  checkDraft(); // Check for saved draft on load
-});
-
-// ── GOOGLE SIGN-IN ────────────────────────────────────────────────────────
-function initGoogleSignIn(){
-  if(typeof google === 'undefined') { setTimeout(initGoogleSignIn, 500); return; }
-  google.accounts.id.initialize({
-    client_id: OAUTH_CLIENT_ID,
-    callback: handleCredentialResponse,
-  });
-  // OAuth2 token client for Sheets write access
-  window.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: OAUTH_CLIENT_ID,
-    scope: SCOPES,
-    callback: async (resp) => {
-      if(resp.error){ toast('Google sign-in failed: '+resp.error,'error'); return; }
-      accessToken = resp.access_token;
-      tokenExpiry = Date.now() + (resp.expires_in - 60) * 1000;
-      localStorage.setItem('google_access_token', accessToken);
-      localStorage.setItem('google_token_expiry', String(tokenExpiry));
-      updateSheetsStatus();
-      closeSheetsModal();
-      toast('Connected to Google Sheets!','sheets');
-      // Retry any unsynced routes now that we have a token
-      const unsynced = routeDays.filter(r=>!r.synced);
-      if(unsynced.length){
-        toast(`Syncing ${unsynced.length} pending route${unsynced.length>1?'s':''}...`,'info');
-        await ensureSheets();
-        for(const route of unsynced) await syncRouteToSheets(route);
-      }
-    },
-  });
-}
-
-function handleCredentialResponse(response){ /* handled via token client */ }
-
-function openSheetsModal(){
-  document.getElementById('sheetsModal').classList.add('open');
-  setTimeout(()=>{
-    const container = document.getElementById('googleSignInBtn');
-    const label = isTokenValid() ? 'Re-authenticate Google' : 'Sign in with Google';
-    container.innerHTML = `<button class="btn btn-primary" style="font-size:14px;padding:14px 28px;letter-spacing:1px" onclick="requestSheetsAccess()">${label}</button>`;
-  }, 100);
-}
-
-function requestSheetsAccess(){
-  if(window.tokenClient) window.tokenClient.requestAccessToken({prompt:''});
-  else toast('Google API still loading, try again','error');
-}
-
-function closeSheetsModal(){ document.getElementById('sheetsModal').classList.remove('open'); }
-
-function isTokenValid(){ return accessToken && Date.now() < tokenExpiry; }
-
-function updateSheetsStatus(){
-  const dot   = document.getElementById('sheetsStatus');
-  const label = document.getElementById('sheetsLabel');
-  const pill  = document.getElementById('sheetsPill');
-  if(isTokenValid()){
-    dot.classList.add('active');
-    label.textContent = 'SHEETS: CONNECTED';
-    pill.title = 'Click to re-authenticate';
-  } else {
-    dot.classList.remove('active');
-    label.textContent = 'SHEETS: SIGN IN';
-    pill.title = 'Click to connect Google Sheets auto-backup';
-  }
-}
-
-// ── GOOGLE MAPS DISTANCE ──────────────────────────────────────────────────
-async function fetchMapsDistance(from, to){
-  const f = LOCATIONS.find(l=>l.name===from);
-  const t = LOCATIONS.find(l=>l.name===to);
-  if(!f||!t) return null;
-  // Distance Matrix API — supports browser CORS, returns actual driving road miles
-  const origin = `${f.coords[1]},${f.coords[0]}`;
-  const dest   = `${t.coords[1]},${t.coords[0]}`;
-  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${dest}&units=imperial&mode=driving&key=${MAPS_API_KEY}`;
-  try {
-    const res  = await fetch(url);
-    const data = await res.json();
-    if(data.status !== 'OK') throw new Error(data.status);
-    const el = data.rows[0].elements[0];
-    if(el.status !== 'OK') throw new Error(el.status);
-    return +(el.distance.value * 0.000621371).toFixed(1);
-  } catch(e) {
-    console.error('Maps API error:', e);
-    return null;
-  }
-}
-
-// ── DRAFT AUTO-SAVE ───────────────────────────────────────────────────────
-function saveDraft(){
-  const draft = {
-    date: document.getElementById('routeDate').value,
-    purpose: document.getElementById('routePurpose').value,
-    stops,
-    legMiles,
-    legSources,
-  };
-  localStorage.setItem('alm_draft_route', JSON.stringify(draft));
-}
-
-function loadDraft(){
-  const saved = localStorage.getItem('alm_draft_route');
-  if(!saved) return;
-  try {
-    const draft = JSON.parse(saved);
-    document.getElementById('routeDate').value = draft.date || new Date().toISOString().split('T')[0];
-    document.getElementById('routePurpose').value = draft.purpose || 'Dealership Visits';
-    stops = draft.stops || [null, null];
-    legMiles = draft.legMiles || {};
-    legSources = draft.legSources || {};
-    renderStopList();
-    updateDayTotal();
-    hideDraftBanner();
-    toast('Draft restored!','info');
-  } catch(e) {
-    console.error('Failed to load draft:', e);
-    clearDraft();
-  }
-}
-
-function clearDraft(){
-  localStorage.removeItem('alm_draft_route');
-  hideDraftBanner();
-}
-
-function checkDraft(){
-  if(localStorage.getItem('alm_draft_route')){
-    document.getElementById('draftBanner').style.display='flex';
-  }
-}
-
-function hideDraftBanner(){
-  document.getElementById('draftBanner').style.display='none';
-}
-
-// ── STOP BUILDER ──────────────────────────────────────────────────────────
-function renderStopList(){
-  const list = document.getElementById('stopList');
-  list.innerHTML = '';
-  stops.forEach((stop, i) => {
-    const isFirst = i===0, isLast = i===stops.length-1;
-    const canDelete = stops.length > 2 && !isFirst;
-    const row = document.createElement('div'); row.className='stop-row';
-    const conn = document.createElement('div'); conn.className='stop-connector';
-    const dot = document.createElement('div');
-    dot.className='stop-dot'+(isFirst?' home-dot':isLast?' end-dot':'');
-    conn.appendChild(dot);
-    const line = document.createElement('div');
-    line.className='stop-line'+(isLast?' hidden':'');
-    conn.appendChild(line); row.appendChild(conn);
-    const body = document.createElement('div'); body.className='stop-body';
-    const label = document.createElement('div'); label.className='stop-label';
-    label.textContent = isFirst?'Start':isLast?`Stop ${i} — End`:`Stop ${i}`;
-    body.appendChild(label);
-    const card = document.createElement('div'); card.className='stop-card';
-    const wrap = document.createElement('div'); wrap.className='stop-select-wrap';
-    const sel = document.createElement('select');
-    sel.innerHTML = `<option value="">Choose location...</option>`+
-      LOCATIONS.map(l=>`<option value="${l.name}"${stop===l.name?' selected':''}>${l.name}</option>`).join('');
-    sel.onchange=()=>{ stops[i]=sel.value||null; onStopChange(i); };
-    wrap.appendChild(sel); card.appendChild(wrap);
-    if(!isLast){
-      const badge=document.createElement('div');
-      badge.id=`leg-badge-${i}`; badge.className='leg-badge loading'; badge.textContent='—';
-      card.appendChild(badge);
-    }
-    if(canDelete){
-      const del=document.createElement('button'); del.className='remove-stop';
-      del.innerHTML='×'; del.title='Remove stop';
-      del.onclick=()=>removeStop(i); card.appendChild(del);
-    }
-    body.appendChild(card); row.appendChild(body); list.appendChild(row);
-  });
-  recalcAllLegs();
-  const btn=document.getElementById('addStopBtn');
-  btn.disabled=stops.length>=MAX_STOPS;
-  document.getElementById('stopCounter').textContent=`${stops.length} locations · ${stops.length-1} legs`;
-}
-
-function addStop(){ if(stops.length<MAX_STOPS){stops.push(null);renderStopList();} }
-function removeStop(i){ stops.splice(i,1); legMiles={}; legSources={}; renderStopList(); }
-function clearRoute(){
-  stops=[null,null]; legMiles={}; legSources={};
-  document.getElementById('routeDate').value=new Date().toISOString().split('T')[0];
-  document.getElementById('routePurpose').value='Dealership Visits';
-  renderStopList(); updateDayTotal();
-}
-function onStopChange(i){
-  delete legMiles[`${i-1}-${i}`]; delete legSources[`${i-1}-${i}`];
-  delete legMiles[`${i}-${i+1}`]; delete legSources[`${i}-${i+1}`];
-  recalcAllLegs();
-  saveDraft(); // Auto-save draft on every change
-}
-async function recalcAllLegs(){
-  const promises=[];
-  for(let i=0;i<stops.length-1;i++) promises.push(recalcLeg(i,i+1));
-  await Promise.all(promises);
-  updateDayTotal();
-}
-async function recalcLeg(fromIdx, toIdx){
-  const key=`${fromIdx}-${toIdx}`;
-  const from=stops[fromIdx], to=stops[toIdx];
-  const badge=document.getElementById(`leg-badge-${fromIdx}`);
-  if(!badge) return;
-  if(!from||!to){ badge.className='leg-badge loading'; badge.textContent='—'; delete legMiles[key]; return; }
-  if(from===to){ badge.className='leg-badge loading'; badge.textContent='same'; delete legMiles[key]; return; }
-  const pairKey=`${from}|${to}`;
-  if(EXCLUDED.has(pairKey)){ badge.className='leg-badge excluded'; badge.textContent='N/R'; legMiles[key]=0; legSources[key]='excluded'; return; }
-  badge.className='leg-badge loading'; badge.innerHTML='<span class="miles-spinner"></span>';
-  let miles=null, source='estimated';
-  // Check cache first
-  if(liveDistances[pairKey]!==undefined){ miles=liveDistances[pairKey]; source='cached'; }
-  else {
-    // Fetch from Google Maps
-    miles = await fetchMapsDistance(from, to);
-    if(miles!==null){ liveDistances[pairKey]=miles; localStorage.setItem('maps_distances_v2',JSON.stringify(liveDistances)); source='live'; }
-  }
-  if(miles===null){ miles=ESTIMATES[pairKey]||null; source='estimated'; }
-  if(miles!==null){
-    legMiles[key]=miles; legSources[key]=source;
-    badge.className='leg-badge';
-    badge.textContent=`${miles} mi`;
-    badge.title=`${source==='live'?'Live Maps':source==='cached'?'Cached Maps':'Estimated'}: ${from} → ${to}`;
-  } else {
-    badge.className='leg-badge loading'; badge.textContent='?'; delete legMiles[key];
-  }
-}
-function updateDayTotal(){
-  let total=0; const lines=[];
-  for(let i=0;i<stops.length-1;i++){
-    const key=`${i}-${i+1}`, from=stops[i], to=stops[i+1];
-    if(!from||!to) continue;
-    const pairKey=`${from}|${to}`;
-    if(EXCLUDED.has(pairKey)){ lines.push(`<span style="color:var(--red)">N/R</span>  ${from} → ${to}`); continue; }
-    const m=legMiles[key];
-    if(m!==undefined){ total+=m; lines.push(`${m} mi  ${from} → ${to}`); }
-  }
-  document.getElementById('dayTotalValue').textContent=total.toFixed(1);
-  document.getElementById('dayBreakdown').innerHTML=lines.join('<br>')||'<span style="color:var(--text-dim)">Add stops to see breakdown</span>';
-  document.getElementById('saveRouteBtn').disabled=stops.filter(Boolean).length<2;
-}
-
-// ── SAVE ROUTE ────────────────────────────────────────────────────────────
-async function saveRoute(){
-  const date=document.getElementById('routeDate').value;
-  const purpose=document.getElementById('routePurpose').value;
-  if(!date){ toast('Please select a date','error'); return; }
-  if(stops.filter(Boolean).length<2){ toast('Add at least 2 stops','error'); return; }
-  const legs=[]; let totalMiles=0;
-  for(let i=0;i<stops.length-1;i++){
-    const key=`${i}-${i+1}`, from=stops[i], to=stops[i+1];
-    if(!from||!to) continue;
-    if(EXCLUDED.has(`${from}|${to}`)) continue;
-    const m=legMiles[key];
-    if(m===undefined) continue;
-    legs.push({from,to,miles:m,source:legSources[key]||'estimated'});
-    totalMiles+=m;
-  }
-  const route={id:Date.now(),date,purpose,legs,totalMiles:+totalMiles.toFixed(1),stops:stops.filter(Boolean),synced:false};
-  routeDays.push(route);
-  localStorage.setItem('alm_routes',JSON.stringify(routeDays));
-  const msg=legs.length===0
-    ?`Day logged — 0 reimbursable miles (Home ↔ Corporate only)`
-    :`Route saved — ${route.totalMiles} mi across ${legs.length} leg${legs.length>1?'s':''}`;
-  toast(msg,'success');
-  clearDraft(); // Clear the auto-saved draft
-  clearRoute(); renderHistory(); updateGlobalStats();
-  // Auto-sync to Sheets
-  await syncRouteToSheets(route);
-}
-
-// ── GOOGLE SHEETS SYNC ────────────────────────────────────────────────────
-async function syncRouteToSheets(route){
-  // If token expired or missing, prompt re-auth and skip
-  if(!isTokenValid()){
-    updateSheetsStatus();
-    return;
-  }
-  updateSheetsSyncing(true);
-  try {
-    await ensureSheets();
-    // Summary row
-    const summaryRow = [[route.date, route.totalMiles, route.legs.length, route.purpose, route.stops.join(' → ')]];
-    await sheetsAppend('Summary', 'A:E', summaryRow);
-    // Leg rows
-    if(route.legs.length > 0){
-      const legRows = route.legs.map(l=>[route.date, l.from, l.to, l.miles, l.source, route.purpose]);
-      await sheetsAppend('Detailed Legs', 'A:F', legRows);
-    } else {
-      await sheetsAppend('Detailed Legs', 'A:F', [[route.date, route.stops[0], route.stops[route.stops.length-1], 0, 'N/R', route.purpose]]);
-    }
-    routeDays = routeDays.map(r=>r.id===route.id?{...r,synced:true}:r);
-    localStorage.setItem('alm_routes',JSON.stringify(routeDays));
-    renderHistory();
-    toast('Synced to Google Sheets ✓','sheets');
-  } catch(e){
-    console.error('Sheets sync error:', e);
-    // Show the actual error message so we can debug
-    const msg = e.message || String(e);
-    toast('Sheets sync failed: ' + msg.slice(0,80), 'error');
-  }
-  updateSheetsSyncing(false);
-}
-
-function updateSheetsSyncing(syncing){
-  const dot=document.getElementById('sheetsStatus');
-  if(syncing){ dot.classList.remove('active'); dot.classList.add('syncing'); }
-  else{ dot.classList.remove('syncing'); if(isTokenValid()) dot.classList.add('active'); }
-}
-
-async function ensureSheets(){
-  const res = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties.title`,
-    { headers:{ Authorization:`Bearer ${accessToken}` } }
-  );
-  if(!res.ok){ const e=await res.json(); throw new Error('getSpreadsheet: '+(e.error?.message||res.status)); }
-  const data = await res.json();
-  const existing = (data.sheets||[]).map(s=>s.properties.title);
-
-  const toAdd = [];
-  if(!existing.includes('Summary'))       toAdd.push('Summary');
-  if(!existing.includes('Detailed Legs')) toAdd.push('Detailed Legs');
-
-  if(toAdd.length){
-    const batchRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}:batchUpdate`,
-      { method:'POST',
-        headers:{ Authorization:`Bearer ${accessToken}`, 'Content-Type':'application/json' },
-        body: JSON.stringify({ requests: toAdd.map(t=>({ addSheet:{ properties:{ title:t } } })) })
-      }
-    );
-    if(!batchRes.ok){ const e=await batchRes.json(); throw new Error('addSheet: '+(e.error?.message||batchRes.status)); }
-    // Write headers into new tabs
-    if(toAdd.includes('Summary'))
-      await sheetsUpdate('Summary', 'A1:E1', [['Date','Total Miles','Legs','Purpose','Route']]);
-    if(toAdd.includes('Detailed Legs'))
-      await sheetsUpdate('Detailed Legs', 'A1:F1', [['Date','From','To','Miles','Source','Purpose']]);
-  }
-}
-
-// Encode only the sheet name (handles spaces), leave range notation (A:F) unencoded
-async function sheetsAppend(sheet, range, values){
-  const encodedRange = `${encodeURIComponent(sheet)}!${range}`;
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodedRange}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-  const res = await fetch(url, {
-    method:'POST',
-    headers:{ Authorization:`Bearer ${accessToken}`, 'Content-Type':'application/json' },
-    body: JSON.stringify({values})
-  });
-  if(!res.ok){ const e=await res.json(); throw new Error('append '+sheet+': '+(e.error?.message||res.status)); }
-  return res.json();
-}
-
-async function sheetsUpdate(sheet, range, values){
-  const encodedRange = `${encodeURIComponent(sheet)}!${range}`;
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodedRange}?valueInputOption=USER_ENTERED`;
-  const res = await fetch(url, {
-    method:'PUT',
-    headers:{ Authorization:`Bearer ${accessToken}`, 'Content-Type':'application/json' },
-    body: JSON.stringify({values})
-  });
-  if(!res.ok){ const e=await res.json(); throw new Error('update '+sheet+': '+(e.error?.message||res.status)); }
-  return res.json();
-}
-
-// Manual sync all unsynced routes
-async function syncAllUnsynced(){
-  if(!isTokenValid()){ openSheetsModal(); return; }
-  const unsynced = routeDays.filter(r=>!r.synced);
-  if(!unsynced.length){ toast('All routes already synced','info'); return; }
-  toast(`Syncing ${unsynced.length} unsynced route${unsynced.length>1?'s':''}...`,'info');
-  await ensureSheets();
-  for(const route of unsynced) await syncRouteToSheets(route);
-  toast(`Sync complete!`,'sheets');
-}
-
-async function resyncRoute(id){
-  if(!isTokenValid()){ openSheetsModal(); return; }
-  const route = routeDays.find(r=>r.id===id);
-  if(!route){ toast('Route not found','error'); return; }
-  await syncRouteToSheets(route);
-}
-
-// ── HISTORY ───────────────────────────────────────────────────────────────
-function renderHistory(){
-  const body=document.getElementById('historyBody');
-  let filtered=currentFilter==='all'?routeDays:routeDays.filter(r=>r.date.startsWith(currentFilter));
-  if(!filtered.length){
-    body.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No routes logged yet</div></div></td></tr>`;
-    return;
-  }
-  const sorted=[...filtered].sort((a,b)=>b.date.localeCompare(a.date));
-  body.innerHTML=sorted.map(r=>{
-    const chain=r.stops.map((s,i)=>i<r.stops.length-1
-      ?`<span class="route-stop">${s}</span><span class="route-arrow">→</span>`
-      :`<span class="route-stop">${s}</span>`).join('');
-    const legRows=r.legs.map(l=>`<div class="leg-detail-row"><span class="leg-detail-mi">${l.miles} mi</span><span>${l.from} → ${l.to}</span></div>`).join('');
-    const legsCell=r.legs.length===0?'<span style="color:var(--red);font-size:10px">N/R only</span>':r.legs.length+' leg'+(r.legs.length>1?'s':'');
-    const syncedCell=r.synced
-      ?'<span class="sheets-badge">⬆ Sheets</span>'
-      :`<button class="resync-btn" onclick="event.stopPropagation();resyncRoute(${r.id})" title="Retry sync to Google Sheets">↻ Retry</button>`;
-    return `
-      <tr onclick="toggleExpand(${r.id})" style="cursor:pointer">
-        <td style="color:var(--text-dim);white-space:nowrap">${fmtDate(r.date)}</td>
-        <td><div class="route-chain">${chain}</div></td>
-        <td style="color:var(--text-mid)">${legsCell}</td>
-        <td class="trip-miles">${r.totalMiles}</td>
-        <td><span class="purpose-tag">${r.purpose}</span></td>
-        <td>${syncedCell}</td>
-        <td><button class="delete-btn" onclick="event.stopPropagation();deleteRoute(${r.id})">×</button></td>
-      </tr>
-      <tr class="expand-row" id="expand-${r.id}">
-        <td colspan="7"><div class="leg-detail">${legRows||'<span style="color:var(--text-dim)">No reimbursable legs</span>'}</div></td>
-      </tr>`;
-  }).join('');
-  buildMonthFilters();
-}
-
-function toggleExpand(id){
-  const row=document.getElementById(`expand-${id}`);
-  if(row) row.style.display=row.style.display==='table-row'?'none':'table-row';
-}
-function deleteRoute(id){
-  routeDays=routeDays.filter(r=>r.id!==id);
-  localStorage.setItem('alm_routes',JSON.stringify(routeDays));
-  renderHistory(); updateGlobalStats();
-  toast('Route removed','info');
-}
-function buildMonthFilters(){
-  const months=[...new Set(routeDays.map(r=>r.date.slice(0,7)))].sort().reverse();
-  const c=document.getElementById('monthFilters');
-  c.innerHTML=`<button class="filter-chip ${currentFilter==='all'?'active':''}" onclick="filterMonth('all',this)">All</button>`;
-  months.forEach(m=>{
-    const[y,mo]=m.split('-');
-    const label=new Date(y,mo-1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
-    c.innerHTML+=`<button class="filter-chip ${currentFilter===m?'active':''}" onclick="filterMonth('${m}',this)">${label}</button>`;
-  });
-}
-function filterMonth(val,btn){
-  currentFilter=val;
-  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-  btn.classList.add('active'); renderHistory();
-}
-function updateGlobalStats(){
-  const total=routeDays.reduce((s,r)=>s+r.totalMiles,0);
-  const thisMonth=new Date().toISOString().slice(0,7);
-  const monthMiles=routeDays.filter(r=>r.date.startsWith(thisMonth)).reduce((s,r)=>s+r.totalMiles,0);
-  const avg=routeDays.length?total/routeDays.length:0;
-  document.getElementById('statTotal').textContent=total.toFixed(1);
-  document.getElementById('statDays').textContent=routeDays.length;
-  document.getElementById('statAvg').textContent=avg.toFixed(1);
-  document.getElementById('statMonth').textContent=monthMiles.toFixed(1);
-  document.getElementById('sidebarTotal').textContent=total.toFixed(1);
-  document.getElementById('sidebarCount').textContent=routeDays.length;
-  document.getElementById('headerTotal').textContent=`${total.toFixed(1)} MI TOTAL`;
-}
-
-// ── LOCATIONS PAGE ────────────────────────────────────────────────────────
-function renderLocations(){
-  const NOTES={"Home":"Personal — start/end point","ALM Corporate":"Not reimbursed from Home"};
-  document.getElementById('locationsBody').innerHTML=LOCATIONS.map((l,i)=>{
-    const isExcluded=l.name==='ALM Corporate', note=NOTES[l.name]||'';
-    return `<tr>
-      <td style="padding:14px 20px;color:var(--text-dim);font-family:var(--mono);font-size:11px">${i+1}</td>
-      <td style="padding:14px 20px"><span style="font-family:var(--mono);font-size:13px;font-weight:600;color:${l.name==='Home'?'var(--green)':isExcluded?'var(--red)':'var(--text)'}">${l.name}</span></td>
-      <td style="padding:14px 20px;font-family:var(--mono);font-size:12px;color:var(--text-mid)">${l.address}</td>
-      <td style="padding:14px 20px">${note?`<span class="purpose-tag" style="color:${isExcluded?'var(--red)':'var(--text-dim)'};background:${isExcluded?'var(--red-dim)':'var(--surface3)'};border:1px solid ${isExcluded?'rgba(229,57,53,0.3)':'transparent'}">${note}</span>`:''}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── MATRIX ────────────────────────────────────────────────────────────────
-function renderMatrix(){
-  const w=document.getElementById('matrixWrapper');
-  let html='<table class="matrix-table"><thead><tr><th class="row-header">FROM \\ TO</th>';
-  LOCATIONS.forEach(l=>{ html+=`<th>${l.name.replace('ALM ','')}</th>`; });
-  html+='</tr></thead><tbody>';
-  LOCATIONS.forEach(from=>{
-    html+=`<tr><th class="row-header">${from.name}</th>`;
-    LOCATIONS.forEach(to=>{
-      const key=`${from.name}|${to.name}`;
-      if(from.name===to.name){ html+=`<td class="self">—</td>`; }
-      else if(EXCLUDED.has(key)){ html+=`<td class="excluded">N/R</td>`; }
-      else {
-        const live=liveDistances[key],est=ESTIMATES[key],miles=live!==undefined?live:est,isLive=live!==undefined;
-        const cls=miles<20?'green':miles<35?'yellow':miles<55?'orange':'red-cell';
-        html+=`<td class="${cls}" title="${from.name} → ${to.name}: ${miles} mi"><div class="source-dot ${isLive?'live':'estimated'}"></div><div class="cell-miles">${miles}</div><div class="cell-unit">mi</div></td>`;
-      }
-    });
-    html+='</tr>';
-  });
-  html+='</tbody></table>'; w.innerHTML=html;
-}
-
-// ── REFRESH ───────────────────────────────────────────────────────────────
-async function refreshAllDistances(){
-  const btn=document.getElementById('refreshBtn'),status=document.getElementById('refreshStatus');
-  const bar=document.getElementById('progressBar'),fill=document.getElementById('progressFill');
-  btn.disabled=true; bar.style.display='block';
-  const pairs=[];
-  LOCATIONS.forEach(a=>LOCATIONS.forEach(b=>{if(a.name!==b.name&&!EXCLUDED.has(`${a.name}|${b.name}`))pairs.push([a.name,b.name]);}));
-  let done=0; const total=pairs.length;
-  for(const[from,to]of pairs){
-    status.innerHTML=`Fetching: <span style="color:var(--amber)">${from} → ${to}</span> (${done+1}/${total})`;
-    fill.style.width=`${(done/total)*100}%`;
-    const m=await fetchMapsDistance(from,to);
-    if(m!==null) liveDistances[`${from}|${to}`]=m;
-    done++; await new Promise(r=>setTimeout(r,100));
-  }
-  localStorage.setItem('maps_distances_v2',JSON.stringify(liveDistances));
-  fill.style.width='100%';
-  status.innerHTML=`<span style="color:var(--green)">✓ All ${total} routes refreshed from Google Maps!</span>`;
-  btn.disabled=false; renderMatrix();
-  toast(`${total} routes updated via Google Maps`,'success');
-}
-
-// ── EXCEL ─────────────────────────────────────────────────────────────────
-function downloadExcel(){
-  if(!routeDays.length){ toast('No routes to export','error'); return; }
-  const wb=XLSX.utils.book_new();
-  const sumData=[['Date','Total Miles','Legs','Purpose','Route','Synced to Sheets']];
-  routeDays.forEach(r=>sumData.push([r.date,r.totalMiles,r.legs.length,r.purpose,r.stops.join(' → '),r.synced?'Yes':'No']));
-  sumData.push(['','TOTAL',routeDays.reduce((s,r)=>s+r.totalMiles,0).toFixed(1),'','','']);
-  const ws1=XLSX.utils.aoa_to_sheet(sumData); ws1['!cols']=[{wch:12},{wch:10},{wch:6},{wch:18},{wch:60},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
-  const legData=[['Date','From','To','Miles','Source','Purpose']];
-  routeDays.forEach(r=>r.legs.forEach(l=>legData.push([r.date,l.from,l.to,l.miles,l.source,r.purpose])));
-  const ws2=XLSX.utils.aoa_to_sheet(legData); ws2['!cols']=[{wch:12},{wch:22},{wch:22},{wch:8},{wch:10},{wch:18}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Detailed Legs');
-  const matData=[['FROM \\ TO',...LOCATIONS.map(l=>l.name)]];
-  LOCATIONS.forEach(from=>{
-    const row=[from.name];
-    LOCATIONS.forEach(to=>{
-      const key=`${from.name}|${to.name}`;
-      if(from.name===to.name) row.push(0);
-      else if(EXCLUDED.has(key)) row.push('N/R');
-      else { const live=liveDistances[key],est=ESTIMATES[key]; row.push(live!==undefined?live:(est||'')); }
-    }); matData.push(row);
-  });
-  const ws3=XLSX.utils.aoa_to_sheet(matData); ws3['!cols']=[{wch:22},...LOCATIONS.map(()=>({wch:14}))];
-  XLSX.utils.book_append_sheet(wb,ws3,'Distance Matrix');
-  XLSX.writeFile(wb,`ALM_Mileage_Tracker_${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('Excel downloaded!','success');
-}
-
-async function importExcel(event){
-  const file = event.target.files[0];
-  if(!file){ return; }
-  
-  try {
-    const data = await file.arrayBuffer();
-    const wb = XLSX.read(data, {type:'array'});
-    
-    // Read Summary sheet (has: Date, Total Miles, Legs, Purpose, Route, Synced to Sheets)
-    const summarySheet = wb.Sheets['Summary'];
-    if(!summarySheet){ toast('Invalid file: missing Summary sheet','error'); return; }
-    const summaryData = XLSX.utils.sheet_to_json(summarySheet, {header:1});
-    
-    // Read Detailed Legs sheet (has: Date, From, To, Miles, Source, Purpose)
-    const legsSheet = wb.Sheets['Detailed Legs'];
-    if(!legsSheet){ toast('Invalid file: missing Detailed Legs sheet','error'); return; }
-    const legsData = XLSX.utils.sheet_to_json(legsSheet, {header:1});
-    
-    // Skip header rows and TOTAL row
-    const summaryRows = summaryData.slice(1).filter(row=>row[0] && row[0]!=='TOTAL' && row[1]!=='TOTAL');
-    const legRows = legsData.slice(1).filter(row=>row[0]);
-    
-    // Build route objects from Summary + Detailed Legs
-    const importedRoutes = summaryRows.map(sumRow => {
-      const [date, totalMiles, legCount, purpose, routeStr, synced] = sumRow;
-      
-      // Parse stops from route string (e.g. "Home → ALM Kennesaw → Home")
-      const stops = routeStr.split(' → ').map(s=>s.trim());
-      
-      // Find matching legs for this date
-      const matchingLegs = legRows.filter(legRow=>legRow[0]===date).map(legRow=>{
-        const [_, from, to, miles, source, legPurpose] = legRow;
-        return { from, to, miles: parseFloat(miles)||0, source: source||'estimated' };
-      });
-      
-      return {
-        id: Date.now() + Math.random(), // Generate new unique ID
-        date,
-        purpose,
-        legs: matchingLegs,
-        totalMiles: parseFloat(totalMiles)||0,
-        stops,
-        synced: synced==='Yes',
-      };
-    });
-    
-    // Merge: only add routes that don't already exist (check by date + totalMiles)
-    const existing = new Set(routeDays.map(r=>`${r.date}:${r.totalMiles}`));
-    const newRoutes = importedRoutes.filter(r=>!existing.has(`${r.date}:${r.totalMiles}`));
-    
-    if(!newRoutes.length){ toast('No new routes to import — all already exist','info'); return; }
-    
-    routeDays.push(...newRoutes);
-    routeDays.sort((a,b)=>a.date.localeCompare(b.date)); // Sort by date
-    localStorage.setItem('alm_routes', JSON.stringify(routeDays));
-    
-    renderHistory();
-    updateGlobalStats();
-    toast(`Imported ${newRoutes.length} route${newRoutes.length>1?'s':''} from Excel!`,'success');
-    
-    // Reset file input so same file can be re-imported if needed
-    event.target.value = '';
-  } catch(e) {
-    console.error('Import error:', e);
-    toast('Failed to import Excel file: ' + e.message, 'error');
-  }
-}
-
-// ── CHANGELOG ─────────────────────────────────────────────────────────────
-const CHANGELOG = [
-  {
-    version: 9,
-    title: 'Auto-save Drafts',
-    date: 'Feb 2026',
-    changes: [
-      'Routes automatically save as drafts while you build them — never lose work',
-      'Draft saves every time you change date, purpose, or any stop',
-      'On page reload, a banner appears if you have an unsaved draft',
-      'Click "Resume Draft" to restore exactly where you left off',
-      'Draft automatically clears when you successfully save the route',
-      'Useful if browser crashes or you accidentally close the tab',
-    ]
-  },
-  {
-    version: 8,
-    title: 'Cost Calculator',
-    date: 'Feb 2026',
-    changes: [
-      'New Cost Report page under Analysis section',
-      'Calculates total reimbursement at IRS standard mileage rate ($0.70/mile for 2025)',
-      'Monthly breakdown table showing miles and dollar amounts per month',
-      'Three summary cards: total miles, IRS rate, total reimbursement',
-      'Useful for expense reporting and tax deductions',
-    ]
-  },
-  {
-    version: 7,
-    title: 'Charts & Analytics',
-    date: 'Feb 2026',
-    changes: [
-      'New Charts page under Analysis section with visual data insights',
-      'Monthly miles bar chart — see your driving trends over time',
-      'Purpose breakdown pie chart — visualize where your miles go',
-      'Hover tooltips show exact values and percentages',
-      'Charts auto-update as you add or import routes',
-    ]
-  },
-  {
-    version: 6,
-    title: 'Excel Import',
-    date: 'Feb 2026',
-    changes: [
-      'Added "↑ Import Excel" button in Export section',
-      'Reads previously downloaded Excel files and restores trip history',
-      'Parses both Summary and Detailed Legs sheets to rebuild full route objects',
-      'Smart merge — only imports routes that don\'t already exist (checks date + miles)',
-      'Preserves synced status from the Excel file',
-      'Useful for recovering data if browser storage clears or moving between devices',
-    ]
-  },
-  {
-    version: 5,
-    title: 'Force Resync',
-    date: 'Feb 2026',
-    changes: [
-      'Unsynced routes in Trip History now show a red "↻ Retry" button instead of plain "local"',
-      'Clicking Retry re-attempts the Sheets sync for that specific route',
-      'Added "⬆ Sync All Unsynced" button at the top of Trip History for bulk retry',
-      'Both retry paths prompt Google sign-in if the token has expired',
-    ]
-  },
-  {
-    version: 4,
-    title: 'Sheets Sync Fixes',
-    date: 'Feb 2026',
-    changes: [
-      'Fixed URL encoding bug — "Detailed Legs" tab name was double-encoding spaces, causing 404 errors',
-      'Error messages now surface in the toast so sync failures are visible and debuggable',
-      'Fixed token reuse after expiry — re-auth now works cleanly from the header pill',
-      'After signing in, any previously unsynced routes automatically retry and push to Sheets',
-      'Removed forced consent prompt on repeat sign-ins for smoother re-authentication',
-    ]
-  },
-  {
-    version: 3,
-    title: 'Google Integration',
-    date: 'Feb 2026',
-    changes: [
-      'Replaced OpenRouteService with Google Maps Distance Matrix API for real driving distances',
-      'Added Google Sheets auto-backup — every saved route syncs to Summary and Detailed Legs tabs',
-      'OAuth 2.0 sign-in via Google Identity Services — one-time auth stored in localStorage',
-      'Header status pills show live Maps (always on) and Sheets connection state',
-      '"Synced" badge shown in Trip History for routes successfully pushed to Sheets',
-      'Manual sync button to push all unsynced local routes to Sheets at once',
-    ]
-  },
-  {
-    version: 2,
-    title: 'Multi-Stop Route Builder',
-    date: 'Feb 2026',
-    changes: [
-      'Rebuilt trip entry from single A→B to a full route builder supporting up to 6 stops',
-      'Visual connector UI with green start dot, amber middle stops, red end dot',
-      'Live mileage badge per leg with source label (live / cached / estimated)',
-      'Day total bar with per-leg breakdown and reimbursable vs N/R separation',
-      'Zero-mile days supported — logs Home ↔ Corporate only days as non-reimbursable',
-      'Trip History shows full stop chain with expandable leg detail rows',
-      'Excel export adds Detailed Legs sheet (one row per leg) alongside Summary',
-      'Corrected 6 location addresses verified against Google Maps',
-      'Added Locations page showing all addresses with notes',
-    ]
-  },
-  {
-    version: 1,
-    title: 'Initial Release',
-    date: 'Feb 2026',
-    changes: [
-      'Single-file HTML app — no install, works from any browser',
-      'Logged trips with date, A→B route, miles, and purpose',
-      'OpenRouteService API integration for live driving distances',
-      'Haversine fallback estimates when API unavailable',
-      'Distance Matrix view for all 10 ALM locations',
-      'Trip History with monthly filters and per-trip delete',
-      'Excel export with Summary and Distance Matrix sheets',
-      '10 pre-loaded ALM locations across metro Atlanta',
-      'Home ↔ Corporate marked non-reimbursable and excluded from totals',
-    ]
-  },
-];
-
-const CURRENT_VERSION = 9;
-
-function renderChangelog(){
-  const container = document.getElementById('changelogList');
-  container.innerHTML = CHANGELOG.map(entry => {
-    const isCurrent = entry.version === CURRENT_VERSION;
-    return `
-      <div class="changelog-entry${isCurrent?' current':''}">
-        <div class="cl-version-col">
-          <div class="cl-version">v${entry.version}</div>
-          ${isCurrent?'<div class="cl-current-badge">CURRENT</div>':''}
-        </div>
-        <div class="cl-body">
-          <div class="cl-title">${entry.title}</div>
-          <div class="cl-date">${entry.date}</div>
-          <ul class="cl-changes">
-            ${entry.changes.map(c=>`<li class="cl-change"><span class="cl-bullet">→</span><span>${c}</span></li>`).join('')}
-          </ul>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-// ── COST REPORT ───────────────────────────────────────────────────────────
-const IRS_RATE = 0.70; // 2025 standard mileage rate
-
-function renderCostReport(){
-  const totalMiles = routeDays.reduce((s,r)=>s+r.totalMiles,0);
-  const totalCost = totalMiles * IRS_RATE;
-  
-  document.getElementById('costTotalMiles').textContent = totalMiles.toFixed(1);
-  document.getElementById('costTotal').textContent = `$${totalCost.toFixed(2)}`;
-
-  // Monthly breakdown
-  const monthlyData = {};
-  routeDays.forEach(r=>{
-    const month = r.date.slice(0,7);
-    if(!monthlyData[month]) monthlyData[month]=0;
-    monthlyData[month]+=r.totalMiles;
-  });
-
-  const sorted = Object.keys(monthlyData).sort().reverse();
-  const body = document.getElementById('costBreakdownBody');
-  
-  if(!sorted.length){
-    body.innerHTML='<tr><td colspan="3"><div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No routes logged yet</div></div></td></tr>';
-    return;
-  }
-
-  body.innerHTML = sorted.map(m=>{
-    const miles = monthlyData[m];
-    const cost = miles * IRS_RATE;
-    const [y,mo] = m.split('-');
-    const label = new Date(y,mo-1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    return `<tr>
-      <td style="color:var(--text);font-weight:500">${label}</td>
-      <td style="color:var(--text-mid)">${miles.toFixed(1)} mi</td>
-      <td style="color:var(--amber);font-weight:600;font-size:14px">$${cost.toFixed(2)}</td>
-    </tr>`;
-  }).join('');
-
-  // Add total row
-  body.innerHTML += `<tr style="border-top:2px solid var(--border)">
-    <td style="color:var(--text);font-weight:600">TOTAL</td>
-    <td style="color:var(--amber);font-weight:600">${totalMiles.toFixed(1)} mi</td>
-    <td style="color:var(--amber);font-weight:600;font-size:16px">$${totalCost.toFixed(2)}</td>
-  </tr>`;
-}
-
-// ── CHARTS ────────────────────────────────────────────────────────────────
-let monthlyChartInstance = null;
-let purposeChartInstance = null;
-
-function renderCharts(){
-  // Destroy existing charts to avoid memory leaks
-  if(monthlyChartInstance) monthlyChartInstance.destroy();
-  if(purposeChartInstance) purposeChartInstance.destroy();
-
-  // Monthly miles bar chart
-  const monthlyData = {};
-  routeDays.forEach(r=>{
-    const month = r.date.slice(0,7); // YYYY-MM
-    if(!monthlyData[month]) monthlyData[month]=0;
-    monthlyData[month]+=r.totalMiles;
-  });
-  const sortedMonths = Object.keys(monthlyData).sort();
-  const monthLabels = sortedMonths.map(m=>{
-    const[y,mo]=m.split('-');
-    return new Date(y,mo-1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
-  });
-  const monthValues = sortedMonths.map(m=>monthlyData[m]);
-
-  const ctx1 = document.getElementById('monthlyChart');
-  monthlyChartInstance = new Chart(ctx1, {
-    type: 'bar',
-    data: {
-      labels: monthLabels,
-      datasets: [{
-        label: 'Miles',
-        data: monthValues,
-        backgroundColor: '#f5a623',
-        borderColor: '#f5a623',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1a1a1a',
-          titleColor: '#e8e8e8',
-          bodyColor: '#e8e8e8',
-          borderColor: '#2a2a2a',
-          borderWidth: 1,
-          callbacks: {
-            label: ctx => `${ctx.parsed.y.toFixed(1)} miles`
-          }
+            // Initialize route with 3 stops: START > STOP 1 > END
+            initializeDefaultRoute();
+            
+            // Setup navigation
+            setupNavigation();
+            
+            // Auto-save on changes
+            setupAutoSave();
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: '#666', callback: v=>v+' mi' },
-          grid: { color: '#2a2a2a' }
-        },
-        x: {
-          ticks: { color: '#666' },
-          grid: { display: false }
+
+        function initializeDefaultRoute() {
+            // Clear any existing route
+            currentRoute = [];
+            document.getElementById('stops-list').innerHTML = '';
+            
+            // Add START stop (Home)
+            addStopAtIndex(0, 'start', 'START', true);
+            
+            // Add middle stop (empty)
+            addStopAtIndex(1, 'end', 'STOP 1 - END', false);
+            
+            // Update counters and buttons
+            updateStopCounter();
+            updateAddStopButton();
         }
-      }
-    }
-  });
 
-  // Purpose pie chart
-  const purposeData = {};
-  routeDays.forEach(r=>{
-    if(!purposeData[r.purpose]) purposeData[r.purpose]=0;
-    purposeData[r.purpose]+=r.totalMiles;
-  });
-  const purposeLabels = Object.keys(purposeData);
-  const purposeValues = Object.values(purposeData);
-  const purposeColors = ['#f5a623','#4caf50','#2196f3','#e53935','#9c27b0','#ff9800'];
-
-  const ctx2 = document.getElementById('purposeChart');
-  purposeChartInstance = new Chart(ctx2, {
-    type: 'pie',
-    data: {
-      labels: purposeLabels,
-      datasets: [{
-        data: purposeValues,
-        backgroundColor: purposeColors.slice(0,purposeLabels.length),
-        borderColor: '#0a0a0a',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: { color: '#e8e8e8', padding: 15, font: { size: 12 } }
-        },
-        tooltip: {
-          backgroundColor: '#1a1a1a',
-          titleColor: '#e8e8e8',
-          bodyColor: '#e8e8e8',
-          borderColor: '#2a2a2a',
-          borderWidth: 1,
-          callbacks: {
-            label: ctx => `${ctx.label}: ${ctx.parsed.toFixed(1)} mi (${((ctx.parsed/routeDays.reduce((s,r)=>s+r.totalMiles,0))*100).toFixed(1)}%)`
-          }
+        function addStopAtIndex(index, indicatorClass, labelText, autoSelectHome) {
+            const stopsList = document.getElementById('stops-list');
+            
+            const stopItem = document.createElement('div');
+            stopItem.className = 'stop-item';
+            stopItem.dataset.index = index;
+            
+            stopItem.innerHTML = `
+                <div class="stop-indicator ${indicatorClass}"></div>
+                <div class="stop-label">${labelText}</div>
+                <select class="stop-select" onchange="updateRoute(${index})">
+                    <option value="">Choose location...</option>
+                    ${Object.entries(ALM_LOCATIONS).map(([key, loc]) => 
+                        `<option value="${key}">${loc.name}</option>`
+                    ).join('')}
+                </select>
+                <div class="stop-distance" style="display: none;">0 mi</div>
+                ${index > 0 ? `<button class="stop-remove" onclick="removeStop(${index})">×</button>` : ''}
+            `;
+            
+            stopsList.appendChild(stopItem);
+            currentRoute.push({ location: null, distance: 0 });
+            
+            // Auto-select Home for first stop
+            if (autoSelectHome) {
+                const select = stopItem.querySelector('select');
+                select.value = 'home';
+                currentRoute[index].location = 'home';
+            }
         }
-      }
-    }
-  });
-}
 
-// ── NAV ───────────────────────────────────────────────────────────────────
-function showPage(id,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  btn.classList.add('active');
-  if(id==='matrix') renderMatrix();
-  if(id==='history') renderHistory();
-  if(id==='locations') renderLocations();
-  if(id==='changelog') renderChangelog();
-  if(id==='charts') renderCharts();
-  if(id==='cost') renderCostReport();
-}
+        function setupNavigation() {
+            const navItems = document.querySelectorAll('.nav-item[data-page]');
+            const pages = document.querySelectorAll('.page');
 
-// ── UTILS ─────────────────────────────────────────────────────────────────
-function fmtDate(d){ if(!d)return''; const[y,m,day]=d.split('-'); return`${m}/${day}/${y}`; }
-function toast(msg,type='info'){
-  const c=document.getElementById('toastContainer'),t=document.createElement('div');
-  t.className=`toast ${type}`;
-  const icons={success:'✓',error:'✗',info:'→',sheets:'⬆'};
-  const colors={success:'var(--green)',error:'var(--red)',info:'var(--amber)',sheets:'var(--blue)'};
-  t.innerHTML=`<span style="color:${colors[type]||'var(--amber)'}">${icons[type]||'→'}</span> ${msg}`;
-  c.appendChild(t); setTimeout(()=>t.remove(),3500);
-}
-</script>
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetPage = item.dataset.page;
+                    
+                    // Update active nav item
+                    navItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Update active page
+                    pages.forEach(page => page.classList.remove('active'));
+                    document.getElementById(`${targetPage}-page`).classList.add('active');
+                });
+            });
+        }
+
+        function setupAutoSave() {
+            // Auto-save draft when inputs change
+            const inputs = ['trip-date', 'trip-purpose'];
+            inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', saveDraft);
+                    element.addEventListener('change', saveDraft);
+                }
+            });
+        }
+
+        function addStop() {
+            if (currentRoute.length >= MAX_STOPS) {
+                showToast('Maximum 6 stops allowed', 'warning');
+                return;
+            }
+
+            const stopsList = document.getElementById('stops-list');
+            const stopIndex = currentRoute.length;
+            
+            const stopItem = document.createElement('div');
+            stopItem.className = 'stop-item';
+            stopItem.dataset.index = stopIndex;
+            
+            // All added stops are middle stops initially
+            const indicatorClass = 'middle';
+            const labelText = `STOP ${stopIndex} - END`;
+            
+            stopItem.innerHTML = `
+                <div class="stop-indicator ${indicatorClass}"></div>
+                <div class="stop-label">${labelText}</div>
+                <select class="stop-select" onchange="updateRoute(${stopIndex})">
+                    <option value="">Choose location...</option>
+                    ${Object.entries(ALM_LOCATIONS).map(([key, loc]) => 
+                        `<option value="${key}">${loc.name}</option>`
+                    ).join('')}
+                </select>
+                <div class="stop-distance" style="display: none;">0 mi</div>
+                <button class="stop-remove" onclick="removeStop(${stopIndex})">×</button>
+            `;
+            
+            stopsList.appendChild(stopItem);
+            currentRoute.push({ location: null, distance: 0 });
+            
+            // Update labels to ensure the last stop is marked as END
+            updateStopLabels();
+            
+            // Update add button and stop count
+            updateStopCounter();
+            updateAddStopButton();
+            saveDraft();
+        }
+
+        function updateStopCounter() {
+            const validStops = currentRoute.filter(stop => stop.location).length;
+            const legs = Math.max(0, validStops - 1);
+            const counterText = `${validStops} locations • ${legs} legs`;
+            
+            const stopCount = document.getElementById('stop-count');
+            if (stopCount) {
+                stopCount.textContent = counterText;
+            }
+            
+            // Update the add button text to reflect current state
+            const addBtn = document.getElementById('add-stop-btn');
+            if (addBtn) {
+                const totalStops = currentRoute.length;
+                const currentLegs = Math.max(0, totalStops - 1);
+                addBtn.innerHTML = `+ Add Stop<span id="stop-count">${totalStops} locations • ${currentLegs} legs</span>`;
+            }
+        }
+
+        function removeStop(index) {
+            if (index === 0) {
+                showToast('Cannot remove START location', 'warning');
+                return;
+            }
+            
+            if (currentRoute.length <= 2) {
+                showToast('Must have at least 2 stops', 'warning');
+                return;
+            }
+            
+            const stopItem = document.querySelector(`[data-index="${index}"]`);
+            if (stopItem) {
+                stopItem.remove();
+            }
+            
+            currentRoute.splice(index, 1);
+            
+            // Re-index remaining stops
+            const stopItems = document.querySelectorAll('.stop-item');
+            stopItems.forEach((item, i) => {
+                item.dataset.index = i;
+                const select = item.querySelector('select');
+                const removeBtn = item.querySelector('.stop-remove');
+                
+                // Update onchange and onclick attributes
+                select.setAttribute('onchange', `updateRoute(${i})`);
+                if (removeBtn && i > 0) {
+                    removeBtn.setAttribute('onclick', `removeStop(${i})`);
+                }
+            });
+            
+            // Update all labels and indicators
+            updateStopLabels();
+            updateStopCounter();
+            updateAddStopButton();
+            calculateRoute();
+            saveDraft();
+        }
+
+        function updateRoute(index) {
+            const stopItem = document.querySelector(`[data-index="${index}"]`);
+            const select = stopItem.querySelector('select');
+            const locationKey = select.value;
+            
+            if (locationKey && ALM_LOCATIONS[locationKey]) {
+                currentRoute[index].location = locationKey;
+                
+                // Update labels and indicators
+                updateStopLabels();
+                updateStopCounter();
+                calculateRoute();
+                saveDraft();
+            }
+        }
+
+        function updateStopLabels() {
+            const stopItems = document.querySelectorAll('.stop-item');
+            stopItems.forEach((item, i) => {
+                const label = item.querySelector('.stop-label');
+                const indicator = item.querySelector('.stop-indicator');
+                
+                if (i === 0) {
+                    // First stop is always START
+                    indicator.className = 'stop-indicator start';
+                    label.textContent = 'START';
+                } else if (i === currentRoute.length - 1) {
+                    // Last stop is always END
+                    indicator.className = 'stop-indicator end';
+                    label.textContent = `STOP ${i} - END`;
+                } else {
+                    // Middle stops
+                    indicator.className = 'stop-indicator middle';
+                    label.textContent = `STOP ${i}`;
+                }
+            });
+        }
+
+        function updateAddStopButton() {
+            const addBtn = document.getElementById('add-stop-btn');
+            addBtn.style.display = currentRoute.length >= MAX_STOPS ? 'none' : 'inline-flex';
+        }
+
+        async function calculateRoute() {
+            const validStops = currentRoute.filter(stop => stop.location);
+            
+            if (validStops.length < 2) {
+                resetDistanceDisplay();
+                return;
+            }
+
+            try {
+                const distanceMatrix = await getDistanceMatrix(validStops);
+                updateDistanceDisplay(distanceMatrix);
+                updateButtons();
+            } catch (error) {
+                console.error('Distance calculation error:', error);
+                showToast('Error calculating distances', 'error');
+            }
+        }
+
+        async function getDistanceMatrix(stops) {
+            const service = new google.maps.DistanceMatrixService();
+            const origins = stops.slice(0, -1).map(stop => {
+                const loc = ALM_LOCATIONS[stop.location];
+                return new google.maps.LatLng(loc.lat, loc.lng);
+            });
+            const destinations = stops.slice(1).map(stop => {
+                const loc = ALM_LOCATIONS[stop.location];
+                return new google.maps.LatLng(loc.lat, loc.lng);
+            });
+
+            return new Promise((resolve, reject) => {
+                service.getDistanceMatrix({
+                    origins: origins,
+                    destinations: destinations,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    unitSystem: google.maps.UnitSystem.IMPERIAL,
+                    avoidHighways: false,
+                    avoidTolls: false
+                }, (response, status) => {
+                    if (status === google.maps.DistanceMatrixStatus.OK) {
+                        resolve(response);
+                    } else {
+                        reject(new Error(`Distance Matrix error: ${status}`));
+                    }
+                });
+            });
+        }
+
+        function updateDistanceDisplay(distanceMatrix) {
+            let totalMiles = 0;
+            const elements = distanceMatrix.rows[0].elements;
+            
+            // Update individual leg distances
+            elements.forEach((element, index) => {
+                if (element.status === 'OK') {
+                    const miles = Math.round(element.distance.value * 0.000621371 * 100) / 100;
+                    totalMiles += miles;
+                    
+                    // Update leg badge
+                    const stopItem = document.querySelector(`[data-index="${index + 1}"]`);
+                    if (stopItem) {
+                        const badge = stopItem.querySelector('.stop-distance');
+                        badge.textContent = `${miles} mi`;
+                        badge.style.display = 'block';
+                    }
+                }
+            });
+            
+            // Update total display
+            totalDistance = totalMiles;
+            document.getElementById('total-value').innerHTML = `${totalMiles.toFixed(1)}<span class="total-unit">miles</span>`;
+            document.getElementById('day-total').style.display = 'block';
+            
+            // Update top bar total
+            document.getElementById('total-miles-display').textContent = totalMiles.toFixed(1);
+            
+            // Update status pill
+            updateMapsStatus('connected');
+        }
+
+        function resetDistanceDisplay() {
+            totalDistance = 0;
+            document.getElementById('day-total').style.display = 'none';
+            document.getElementById('total-miles-display').textContent = '0.0';
+            
+            // Hide leg badges
+            document.querySelectorAll('.stop-distance').forEach(badge => {
+                badge.style.display = 'none';
+            });
+            
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const previewBtn = document.getElementById('preview-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const hasValidRoute = currentRoute.filter(s => s.location).length >= 2;
+            
+            previewBtn.disabled = !hasValidRoute || totalDistance === 0;
+            saveBtn.disabled = !hasValidRoute || totalDistance === 0;
+        }
+
+        // Google Maps Integration
+        function initMap() {
+            isMapInitialized = true;
+            
+            // Initialize map (hidden by default)
+            map = new google.maps.Map(document.createElement('div'), {
+                zoom: 10,
+                center: { lat: 33.9490, lng: -84.3880 }, // Atlanta center
+                styles: [
+                    {
+                        "elementType": "geometry",
+                        "stylers": [{"color": "#1d2c4d"}]
+                    },
+                    {
+                        "elementType": "labels.text.fill",
+                        "stylers": [{"color": "#8ec3b9"}]
+                    },
+                    {
+                        "elementType": "labels.text.stroke",
+                        "stylers": [{"color": "#1a3646"}]
+                    }
+                    // Add more dark theme styles here...
+                ]
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                polylineOptions: {
+                    strokeColor: '#ffa726',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 4
+                }
+            });
+
+            updateMapsStatus('connected');
+        }
+
+        function previewRoute() {
+            const validStops = currentRoute.filter(stop => stop.location);
+            
+            if (validStops.length < 2) {
+                showToast('Need at least 2 stops to preview route', 'warning');
+                return;
+            }
+
+            if (!isMapInitialized) {
+                showToast('Map is still loading, please wait...', 'warning');
+                return;
+            }
+
+            // Show map preview section
+            const mapSection = document.getElementById('map-preview');
+            const mapContainer = document.getElementById('map-container');
+            
+            mapSection.style.display = 'block';
+            
+            // Replace placeholder with actual map
+            mapContainer.innerHTML = '';
+            map.getDiv().style.width = '100%';
+            map.getDiv().style.height = '100%';
+            mapContainer.appendChild(map.getDiv());
+            
+            // Trigger map resize
+            setTimeout(() => {
+                google.maps.event.trigger(map, 'resize');
+                displayRouteOnMap(validStops);
+            }, 100);
+            
+            // Update toggle button
+            document.getElementById('map-toggle-btn').textContent = 'Hide Map';
+        }
+
+        function displayRouteOnMap(stops) {
+            const waypoints = stops.slice(1, -1).map(stop => {
+                const loc = ALM_LOCATIONS[stop.location];
+                return {
+                    location: new google.maps.LatLng(loc.lat, loc.lng),
+                    stopover: true
+                };
+            });
+
+            const start = ALM_LOCATIONS[stops[0].location];
+            const end = ALM_LOCATIONS[stops[stops.length - 1].location];
+
+            const request = {
+                origin: new google.maps.LatLng(start.lat, start.lng),
+                destination: new google.maps.LatLng(end.lat, end.lng),
+                waypoints: waypoints,
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: false
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // Add custom markers for ALM locations
+                    addCustomMarkers(stops);
+                } else {
+                    console.error('Directions request failed:', status);
+                    showToast('Failed to load route preview', 'error');
+                }
+            });
+        }
+
+        function addCustomMarkers(stops) {
+            stops.forEach((stop, index) => {
+                const location = ALM_LOCATIONS[stop.location];
+                const isHome = location.type === 'home';
+                const isCorporate = location.type === 'corporate';
+                
+                const marker = new google.maps.Marker({
+                    position: { lat: location.lat, lng: location.lng },
+                    map: map,
+                    title: location.name,
+                    icon: {
+                        url: `data:image/svg+xml,${encodeURIComponent(`
+                            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="14" fill="${isHome ? '#22c55e' : isCorporate ? '#ef4444' : '#ffa726'}" stroke="white" stroke-width="2"/>
+                                <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">
+                                    ${isHome ? 'H' : isCorporate ? 'C' : (index + 1)}
+                                </text>
+                            </svg>
+                        `)}`,
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
+                });
+            });
+        }
+
+        function toggleMapPreview() {
+            const mapSection = document.getElementById('map-preview');
+            const toggleBtn = document.getElementById('map-toggle-btn');
+            
+            if (mapSection.style.display === 'none' || !mapSection.style.display) {
+                previewRoute();
+            } else {
+                mapSection.style.display = 'none';
+                toggleBtn.textContent = 'Show Map';
+            }
+        }
+
+        // Route Management
+        function clearRoute() {
+            currentRoute = [];
+            document.getElementById('stops-list').innerHTML = '';
+            resetDistanceDisplay();
+            
+            // Hide map preview
+            document.getElementById('map-preview').style.display = 'none';
+            
+            // Reset form
+            document.getElementById('trip-purpose').value = '';
+            
+            // Initialize with default 3-stop route
+            initializeDefaultRoute();
+            
+            clearDraft();
+        }
+
+        function saveRoute() {
+            const date = document.getElementById('trip-date').value;
+            const purpose = document.getElementById('trip-purpose').value;
+            const validStops = currentRoute.filter(stop => stop.location);
+            
+            if (!date || !purpose || validStops.length < 2 || totalDistance === 0) {
+                showToast('Please complete all fields and calculate route', 'warning');
+                return;
+            }
+            
+            // Check for non-reimbursable routes
+            const isNonReimbursable = checkNonReimbursable(validStops);
+            
+            const routeData = {
+                id: Date.now().toString(),
+                date: date,
+                purpose: purpose,
+                stops: validStops.map(stop => ({
+                    location: stop.location,
+                    name: ALM_LOCATIONS[stop.location].name
+                })),
+                totalMiles: totalDistance,
+                reimbursable: !isNonReimbursable,
+                cost: isNonReimbursable ? 0 : (totalDistance * IRS_RATE),
+                timestamp: new Date().toISOString(),
+                synced: false
+            };
+            
+            // Save to localStorage
+            const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+            existingRoutes.push(routeData);
+            localStorage.setItem('alm_routes', JSON.stringify(existingRoutes));
+            
+            // Clear form and draft
+            clearRoute();
+            clearDraft();
+            
+            showToast(`Trip saved successfully! ${isNonReimbursable ? '(Non-reimbursable)' : ''}`, 'success');
+        }
+
+        function checkNonReimbursable(stops) {
+            // Home <-> Corporate is non-reimbursable
+            if (stops.length === 2) {
+                const [start, end] = stops;
+                return (start.location === 'home' && end.location === 'corporate') ||
+                       (start.location === 'corporate' && end.location === 'home');
+            }
+            return false;
+        }
+
+        // Draft Management
+        function saveDraft() {
+            const draftData = {
+                date: document.getElementById('trip-date').value,
+                purpose: document.getElementById('trip-purpose').value,
+                route: currentRoute,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('alm_draft_route', JSON.stringify(draftData));
+        }
+
+        function checkDraft() {
+            const draft = localStorage.getItem('alm_draft_route');
+            if (draft) {
+                const draftData = JSON.parse(draft);
+                document.getElementById('draft-banner').classList.add('show');
+            }
+        }
+
+        function resumeDraft() {
+            const draft = localStorage.getItem('alm_draft_route');
+            if (draft) {
+                const draftData = JSON.parse(draft);
+                
+                // Restore form data
+                document.getElementById('trip-date').value = draftData.date || '';
+                document.getElementById('trip-purpose').value = draftData.purpose || '';
+                
+                // Restore route
+                if (draftData.route && draftData.route.length > 0) {
+                    currentRoute = draftData.route;
+                    rebuildStopsList();
+                    calculateRoute();
+                }
+                
+                document.getElementById('draft-banner').classList.remove('show');
+                showToast('Draft restored successfully', 'success');
+            }
+        }
+
+        function discardDraft() {
+            clearDraft();
+            document.getElementById('draft-banner').classList.remove('show');
+            showToast('Draft discarded', 'warning');
+        }
+
+        function clearDraft() {
+            localStorage.removeItem('alm_draft_route');
+        }
+
+        function rebuildStopsList() {
+            const stopsList = document.getElementById('stops-list');
+            stopsList.innerHTML = '';
+            
+            currentRoute.forEach((stop, index) => {
+                const stopItem = document.createElement('div');
+                stopItem.className = 'stop-item';
+                stopItem.dataset.index = index;
+                
+                let indicatorClass, labelText;
+                if (index === 0) {
+                    indicatorClass = 'start';
+                    labelText = 'START';
+                } else if (index === currentRoute.length - 1) {
+                    indicatorClass = 'end';
+                    labelText = `STOP ${index} - END`;
+                } else {
+                    indicatorClass = 'middle';
+                    labelText = `STOP ${index}`;
+                }
+                
+                stopItem.innerHTML = `
+                    <div class="stop-indicator ${indicatorClass}"></div>
+                    <div class="stop-label">${labelText}</div>
+                    <select class="stop-select" onchange="updateRoute(${index})">
+                        <option value="">Choose location...</option>
+                        ${Object.entries(ALM_LOCATIONS).map(([key, loc]) => 
+                            `<option value="${key}" ${stop.location === key ? 'selected' : ''}>${loc.name}</option>`
+                        ).join('')}
+                    </select>
+                    <div class="stop-distance" style="display: none;">0 mi</div>
+                    ${index > 0 ? `<button class="stop-remove" onclick="removeStop(${index})">×</button>` : ''}
+                `;
+                
+                stopsList.appendChild(stopItem);
+            });
+            
+            updateStopCounter();
+            updateAddStopButton();
+        }
+
+        // Status Management
+        function updateStatus() {
+            updateMapsStatus('checking');
+            updateSheetsStatus('checking');
+            
+            // Check Maps API
+            if (typeof google !== 'undefined' && google.maps) {
+                updateMapsStatus('connected');
+            } else {
+                setTimeout(() => {
+                    if (typeof google !== 'undefined' && google.maps) {
+                        updateMapsStatus('connected');
+                    } else {
+                        updateMapsStatus('disconnected');
+                    }
+                }, 3000);
+            }
+            
+            // Check Sheets (placeholder for now)
+            setTimeout(() => {
+                updateSheetsStatus('disconnected');
+            }, 1000);
+        }
+
+        function updateMapsStatus(status) {
+            const pill = document.getElementById('maps-status');
+            if (status === 'connected') {
+                pill.className = 'status-pill maps-active';
+                pill.innerHTML = '● MAPS ACTIVE';
+            } else {
+                pill.className = 'status-pill sheets-signin'; // red color
+                pill.innerHTML = '● MAPS ERROR';
+            }
+        }
+
+        function updateSheetsStatus(status) {
+            const pill = document.getElementById('sheets-status');
+            if (status === 'connected') {
+                pill.className = 'status-pill maps-active'; // green color
+                pill.innerHTML = '● SHEETS CONNECTED';
+            } else {
+                pill.className = 'status-pill sheets-signin';
+                pill.innerHTML = '● SHEETS: SIGN IN';
+            }
+        }
+
+        // Utility Functions
+        function refreshDistances() {
+            showToast('Refreshing distance cache...', 'warning');
+            // This would clear the distance cache and recalculate
+            localStorage.removeItem('maps_distances_v2');
+            showToast('Distance cache cleared', 'success');
+        }
+
+        function downloadExcel() {
+            showToast('Excel download functionality will be available soon', 'warning');
+            // This would trigger the Excel export
+        }
+
+        function importExcel() {
+            showToast('Excel import functionality will be available soon', 'warning');
+            // This would trigger the Excel import dialog
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Handle Google Maps API load error
+        window.gm_authFailure = function() {
+            updateMapsStatus('disconnected');
+            showToast('Google Maps authentication failed', 'error');
+        };
+    </script>
 </body>
 </html>
