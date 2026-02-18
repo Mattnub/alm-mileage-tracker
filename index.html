@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v13.1</title>
+    <title>ALM Mileage Tracker v13.2</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -1295,7 +1295,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v13.1</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v13.2</div>
             </div>
             
             <div class="nav-section">
@@ -2449,12 +2449,17 @@
             const locationCards = Object.entries(allLocations).map(([key, location]) => {
                 const isCustom = !ALM_LOCATIONS[key];
                 return `
-                    <div class="location-card">
+                    <div class="location-card" id="location-card-${key}">
                         <div class="location-name">${location.name} ${isCustom ? '(Custom)' : ''}</div>
                         <div class="location-type ${location.type}">${location.type}</div>
                         <div class="location-address">${location.address}</div>
                         <div class="location-coords">${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</div>
-                        ${isCustom ? `<button class="conflict-btn skip" onclick="deleteCustomLocation('${key}')" style="margin-top: 10px; padding: 4px 8px; font-size: 10px;">Delete</button>` : ''}
+                        ${isCustom ? `
+                            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                <button class="conflict-btn keep-both" onclick="editCustomLocation('${key}')" style="padding: 4px 8px; font-size: 10px;">Edit</button>
+                                <button class="conflict-btn skip" onclick="deleteCustomLocation('${key}')" style="padding: 4px 8px; font-size: 10px;">Delete</button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }).join('');
@@ -2591,6 +2596,137 @@
             updateRouteBuilderLocations();
             
             showToast(`Location "${name}" added successfully`, 'success');
+        }
+
+        function editCustomLocation(key) {
+            if (!key.startsWith('custom_')) {
+                showToast('Cannot edit built-in ALM locations', 'error');
+                return;
+            }
+            
+            const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
+            const location = customLocations[key];
+            
+            if (!location) {
+                showToast('Location not found', 'error');
+                return;
+            }
+            
+            // Populate the form with existing data
+            document.getElementById('new-location-name').value = location.name;
+            document.getElementById('new-location-address').value = location.address;
+            document.getElementById('new-location-type').value = location.type;
+            document.getElementById('new-location-lat').value = location.lat;
+            document.getElementById('new-location-lng').value = location.lng;
+            
+            // Change the "Add Location" button to "Update Location"
+            const addBtn = document.querySelector('button[onclick="addNewLocation()"]');
+            addBtn.textContent = 'Update Location';
+            addBtn.onclick = function() { updateLocation(key); };
+            
+            // Show edit notice
+            showEditModeNotice(location.name, key);
+            
+            // Scroll to form
+            document.querySelector('.route-card').scrollIntoView({ behavior: 'smooth' });
+            
+            showToast(`Editing "${location.name}" - Update the fields and click "Update Location"`, 'warning');
+        }
+
+        function showEditModeNotice(locationName, key) {
+            // Add or update edit notice
+            let notice = document.getElementById('edit-mode-notice');
+            if (!notice) {
+                notice = document.createElement('div');
+                notice.id = 'edit-mode-notice';
+                notice.className = 'draft-banner show';
+                notice.style.marginBottom = '15px';
+                
+                const form = document.querySelector('.route-form').parentElement;
+                form.insertBefore(notice, form.firstChild);
+            }
+            
+            notice.innerHTML = `
+                <strong>EDITING MODE:</strong> Currently editing "${locationName}"
+                <div class="draft-actions">
+                    <button class="draft-btn" onclick="cancelLocationEdit()">Cancel Edit</button>
+                </div>
+            `;
+        }
+
+        function updateLocation(key) {
+            const name = document.getElementById('new-location-name').value.trim();
+            const address = document.getElementById('new-location-address').value.trim();
+            const type = document.getElementById('new-location-type').value;
+            const lat = parseFloat(document.getElementById('new-location-lat').value);
+            const lng = parseFloat(document.getElementById('new-location-lng').value);
+            
+            // Validation
+            if (!name || !address || !type) {
+                showToast('Please fill in all required fields', 'warning');
+                return;
+            }
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                showToast('Please provide valid coordinates', 'warning');
+                return;
+            }
+            
+            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                showToast('Coordinates are out of valid range', 'error');
+                return;
+            }
+            
+            // Update the location
+            const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
+            const originalName = customLocations[key]?.name || 'Unknown';
+            
+            customLocations[key] = {
+                name: name,
+                address: address,
+                lat: lat,
+                lng: lng,
+                type: type
+            };
+            
+            // Save to localStorage
+            localStorage.setItem('alm_custom_locations', JSON.stringify(customLocations));
+            
+            // Update runtime locations
+            ALM_LOCATIONS[key] = customLocations[key];
+            
+            // Exit edit mode
+            cancelLocationEdit();
+            
+            // Refresh locations display
+            loadLocations();
+            
+            // Update route builder dropdowns
+            updateRouteBuilderLocations();
+            
+            showToast(`Location "${originalName}" updated to "${name}"`, 'success');
+        }
+
+        function cancelLocationEdit() {
+            // Clear form
+            document.getElementById('new-location-name').value = '';
+            document.getElementById('new-location-address').value = '';
+            document.getElementById('new-location-lat').value = '';
+            document.getElementById('new-location-lng').value = '';
+            document.getElementById('new-location-type').value = 'dealership';
+            
+            // Reset button
+            const addBtn = document.querySelector('button[onclick*="Location"]');
+            addBtn.textContent = 'Add Location';
+            addBtn.onclick = function() { addNewLocation(); };
+            
+            // Remove edit notice
+            const notice = document.getElementById('edit-mode-notice');
+            if (notice) {
+                notice.remove();
+            }
+            
+            showToast('Edit cancelled', 'success');
         }
 
         function deleteCustomLocation(key) {
@@ -2933,6 +3069,17 @@
             const container = document.getElementById('changelog-content');
             
             const changelog = [
+                {
+                    version: 'v13.2',
+                    date: 'February 2026',
+                    features: [
+                        'Modern Map Markers - Updated to AdvancedMarkerElement API (removes deprecation warnings)',
+                        'Edit Location Names - Click "Edit" button on custom locations to modify details',
+                        'Enhanced Location Management - Update name, address, coordinates, and type',
+                        'Smart Edit Mode - Form pre-fills with existing data and shows edit status',
+                        'Graceful Fallback - Still works with legacy markers if new API unavailable'
+                    ]
+                },
                 {
                     version: 'v13.1',
                     date: 'February 2026',
@@ -3486,22 +3633,65 @@
                 const isHome = location.type === 'home';
                 const isCorporate = location.type === 'corporate';
                 
-                const marker = new google.maps.Marker({
-                    position: { lat: location.lat, lng: location.lng },
-                    map: map,
-                    title: location.name,
-                    icon: {
-                        url: `data:image/svg+xml,${encodeURIComponent(`
-                            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="16" cy="16" r="14" fill="${isHome ? '#22c55e' : isCorporate ? '#ef4444' : '#ffa726'}" stroke="white" stroke-width="2"/>
-                                <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">
-                                    ${isHome ? 'H' : isCorporate ? 'C' : (index + 1)}
-                                </text>
-                            </svg>
-                        `)}`,
-                        scaledSize: new google.maps.Size(32, 32)
+                // Create SVG content for the marker
+                const markerContent = document.createElement('div');
+                markerContent.innerHTML = `
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="14" fill="${isHome ? '#22c55e' : isCorporate ? '#ef4444' : '#ffa726'}" stroke="white" stroke-width="2"/>
+                        <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">
+                            ${isHome ? 'H' : isCorporate ? 'C' : (index + 1)}
+                        </text>
+                    </svg>
+                `;
+                
+                try {
+                    // Use new AdvancedMarkerElement if available
+                    if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+                        const marker = new google.maps.marker.AdvancedMarkerElement({
+                            position: { lat: location.lat, lng: location.lng },
+                            map: map,
+                            title: location.name,
+                            content: markerContent
+                        });
+                    } else {
+                        // Fallback to legacy Marker if AdvancedMarkerElement not available
+                        const marker = new google.maps.Marker({
+                            position: { lat: location.lat, lng: location.lng },
+                            map: map,
+                            title: location.name,
+                            icon: {
+                                url: `data:image/svg+xml,${encodeURIComponent(`
+                                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="16" cy="16" r="14" fill="${isHome ? '#22c55e' : isCorporate ? '#ef4444' : '#ffa726'}" stroke="white" stroke-width="2"/>
+                                        <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">
+                                            ${isHome ? 'H' : isCorporate ? 'C' : (index + 1)}
+                                        </text>
+                                    </svg>
+                                `)}`,
+                                scaledSize: new google.maps.Size(32, 32)
+                            }
+                        });
                     }
-                });
+                } catch (error) {
+                    console.warn('Error creating advanced marker, falling back to legacy marker:', error);
+                    // Fallback to legacy marker on error
+                    const marker = new google.maps.Marker({
+                        position: { lat: location.lat, lng: location.lng },
+                        map: map,
+                        title: location.name,
+                        icon: {
+                            url: `data:image/svg+xml,${encodeURIComponent(`
+                                <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="16" cy="16" r="14" fill="${isHome ? '#22c55e' : isCorporate ? '#ef4444' : '#ffa726'}" stroke="white" stroke-width="2"/>
+                                    <text x="16" y="20" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">
+                                        ${isHome ? 'H' : isCorporate ? 'C' : (index + 1)}
+                                    </text>
+                                </svg>
+                            `)}`,
+                            scaledSize: new google.maps.Size(32, 32)
+                        }
+                    });
+                }
             });
         }
 
