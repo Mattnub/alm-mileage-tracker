@@ -1547,6 +1547,95 @@
         .spotcheck-log-entry .log-time { color: #444; }
         .spotcheck-log-entry .log-match { color: #22c55e; }
         .spotcheck-log-entry .log-miss  { color: #ef4444; }
+
+        /* ── Route Picker ─────────────────────────────────────────────────── */
+        .route-picker {
+            margin: 0 0 12px 0;
+            padding: 14px 16px;
+            background: #0f1a0f;
+            border: 1px solid #1e3a1e;
+            border-radius: 6px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .route-picker-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .route-picker-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .route-option-btn {
+            background: #1a2a1a;
+            border: 1px solid #2a4a2a;
+            color: #ccc;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 90px;
+        }
+
+        .route-option-btn:hover {
+            background: #ffa726;
+            border-color: #ffa726;
+            color: #000;
+        }
+
+        .route-option-btn.selected {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: #000;
+        }
+
+        .route-option-miles {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .route-option-sub {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .route-picker-single {
+            color: #ffa726;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .route-picker-loading {
+            color: #555;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -3850,238 +3939,349 @@
         }
 
         // Smart Routing Configuration
-        let routingPreference = 'shortest'; // 'shortest' or 'fastest'
+        let routingPreference = 'shortest';
+
+        // ── Route Picker System ───────────────────────────────────────────
+        // For each leg, if the pair is cached use it immediately.
+        // If not cached, call the Directions API with alternatives and show
+        // the user a picker so they choose which route distance to lock in.
 
         async function calculateOptimalRoute() {
             const validStops = currentRoute.filter(stop => stop.location);
-            
             if (validStops.length < 2) {
                 resetDistanceDisplay();
+                clearAllRoutePickers();
                 return;
             }
 
-            try {
-                // Use Directions API for optimal routing (more accurate than Distance Matrix for multi-stop)
-                const optimizedRoute = await getOptimizedDirections(validStops);
-                if (optimizedRoute) {
-                    updateDistanceDisplayFromDirections(optimizedRoute);
-                }
-                
-                // Fallback to Distance Matrix if Directions fails
-            } catch (error) {
-                console.warn('Optimized routing failed, using Distance Matrix fallback:', error);
-                // Fall back to the existing Distance Matrix approach
-                const origins = [validStops[0]];
-                const destinations = validStops.slice(1);
-                
-                try {
-                    const distanceMatrix = await getDistanceMatrix(origins, destinations);
-                    updateDistanceDisplay(distanceMatrix);
-                } catch (matrixError) {
-                    console.error('Both routing methods failed:', matrixError);
-                    showToast('Failed to calculate distances', 'error');
-                    resetDistanceDisplay();
+            // Process each leg independently
+            resetDistanceDisplay();
+            clearAllRoutePickers();
+
+            let grandTotal = 0;
+            let allResolved = true;
+
+            for (let i = 0; i < validStops.length - 1; i++) {
+                const fromKey = validStops[i].location;
+                const toKey   = validStops[i + 1].location;
+                const cacheKey = `${fromKey}_${toKey}`;
+                const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+
+                if (cache[cacheKey] !== undefined) {
+                    // Cache hit — show immediately, no picker needed
+                    const miles = cache[cacheKey];
+                    grandTotal += miles;
+                    showLegDistance(i + 1, miles);
+                } else {
+                    // Not cached — fetch alternatives and show picker
+                    allResolved = false;
+                    showLegPicker(i, validStops, fromKey, toKey);
                 }
             }
-        }
 
-        async function getOptimizedDirections(stops) {
-            if (!directionsService) return null;
-            
-            if (stops.length === 2) {
-                // Simple A->B route
-                const start = ALM_LOCATIONS[stops[0].location];
-                const end = ALM_LOCATIONS[stops[1].location];
-                
-                return new Promise((resolve, reject) => {
-                    directionsService.route({
-                        origin: new google.maps.LatLng(start.lat, start.lng),
-                        destination: new google.maps.LatLng(end.lat, end.lng),
-                        travelMode: google.maps.TravelMode.DRIVING,
-                        avoidHighways: false,
-                        avoidTolls: false,
-                        region: 'US',
-                        provideRouteAlternatives: true,  // Get multiple route options
-                        drivingOptions: {
-                            departureTime: new Date(),
-                            trafficModel: google.maps.TrafficModel.OPTIMISTIC  // Less traffic bias
-                        }
-                    }, (result, status) => {
-                        if (status === 'OK') {
-                            // If multiple routes available, choose the shortest distance
-                            if (result.routes.length > 1) {
-                                const shortestRoute = result.routes.reduce((shortest, current) => {
-                                    const shortestDistance = shortest.legs[0].distance.value;
-                                    const currentDistance = current.legs[0].distance.value;
-                                    return currentDistance < shortestDistance ? current : shortest;
-                                });
-                                
-                                // Replace the result with only the shortest route
-                                result.routes = [shortestRoute];
-                                console.log(`Found ${result.routes.length} alternatives, chose shortest: ${(shortestRoute.legs[0].distance.value * 0.000621371).toFixed(1)} mi`);
-                            }
-                            resolve(result);
-                        } else {
-                            reject(new Error(`Directions failed: ${status}`));
-                        }
-                    });
-                });
-            } else {
-                // Multi-stop route with optimization
-                const start = ALM_LOCATIONS[stops[0].location];
-                const end = ALM_LOCATIONS[stops[stops.length - 1].location];
-                const waypoints = stops.slice(1, -1).map(stop => {
-                    const loc = ALM_LOCATIONS[stop.location];
-                    return {
-                        location: new google.maps.LatLng(loc.lat, loc.lng),
-                        stopover: true
-                    };
-                });
-                
-                return new Promise((resolve, reject) => {
-                    directionsService.route({
-                        origin: new google.maps.LatLng(start.lat, start.lng),
-                        destination: new google.maps.LatLng(end.lat, end.lng),
-                        waypoints: waypoints,
-                        travelMode: google.maps.TravelMode.DRIVING,
-                        optimizeWaypoints: true,
-                        avoidHighways: false,
-                        avoidTolls: false,
-                        region: 'US',
-                        provideRouteAlternatives: false,  // Multi-stop routes don't provide alternatives
-                        drivingOptions: {
-                            departureTime: new Date(),
-                            trafficModel: google.maps.TrafficModel.OPTIMISTIC  // Less traffic bias for shorter routes
-                        }
-                    }, (result, status) => {
-                        if (status === 'OK') {
-                            const totalDistance = result.routes[0].legs.reduce((sum, leg) => sum + leg.distance.value, 0) * 0.000621371;
-                            console.log(`Optimized multi-stop route: ${totalDistance.toFixed(1)} mi total`);
-                            resolve(result);
-                        } else {
-                            reject(new Error(`Optimized directions failed: ${status}`));
-                        }
-                    });
-                });
+            if (allResolved) {
+                commitTotalDistance(grandTotal);
             }
+            // If any leg needed a picker, commitTotalDistance is called
+            // by pickRoute() once all legs resolve
         }
 
-        function updateDistanceDisplayFromDirections(directionsResult) {
-            let totalMiles = 0;
-            const legs = directionsResult.routes[0].legs;
-            
-            // Update individual leg distances
-            legs.forEach((leg, index) => {
-                const miles = Math.round(leg.distance.value * 0.000621371 * 100) / 100;
-                totalMiles += miles;
-                
-                // Update leg badge
-                const stopItem = document.querySelector(`[data-index="${index + 1}"]`);
-                if (stopItem) {
-                    const badge = stopItem.querySelector('.stop-distance');
-                    badge.textContent = `${miles} mi`;
-                    badge.style.display = 'block';
-                }
-            });
-            
-            // Update total display
-            totalDistance = totalMiles;
-            document.getElementById('total-value').innerHTML = `${totalMiles.toFixed(1)}<span class="total-unit">miles</span>`;
+        function clearAllRoutePickers() {
+            document.querySelectorAll('.route-picker').forEach(el => el.remove());
+        }
+
+        function showLegDistance(stopIndex, miles) {
+            const stopItem = document.querySelector(`[data-index="${stopIndex}"]`);
+            if (!stopItem) return;
+            const badge = stopItem.querySelector('.stop-distance');
+            badge.textContent = `${miles} mi`;
+            badge.style.display  = 'block';
+            badge.style.background = '';
+        }
+
+        function commitTotalDistance(miles) {
+            // Only commit if ALL legs have a selected distance
+            const validStops = currentRoute.filter(s => s.location);
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+
+            let total = 0;
+            let complete = true;
+            for (let i = 0; i < validStops.length - 1; i++) {
+                const key = `${validStops[i].location}_${validStops[i+1].location}`;
+                if (cache[key] === undefined) { complete = false; break; }
+                total += cache[key];
+            }
+
+            if (!complete) return; // still waiting on picker selections
+
+            totalDistance = total;
+            document.getElementById('total-value').innerHTML =
+                `${total.toFixed(1)}<span class="total-unit">miles</span>`;
             document.getElementById('day-total').style.display = 'block';
-            
-            // Update top bar total
-            document.getElementById('total-miles-display').textContent = totalMiles.toFixed(1);
-            
-            // Cache the optimized distances for future use
-            cacheOptimizedDistances(directionsResult);
-            
-            // Update status and buttons
+            document.getElementById('total-miles-display').textContent = total.toFixed(1);
             updateMapsStatus('connected');
             updateButtons();
         }
 
+        async function showLegPicker(legIndex, validStops, fromKey, toKey) {
+            // Insert a loading picker below this stop item
+            const stopIndex = legIndex + 1; // data-index of the destination stop
+            const anchorItem = document.querySelector(`[data-index="${stopIndex}"]`);
+            if (!anchorItem) return;
+
+            const pickerId = `picker-${legIndex}`;
+            // Remove any existing picker for this leg
+            const existing = document.getElementById(pickerId);
+            if (existing) existing.remove();
+
+            const pickerEl = document.createElement('div');
+            pickerEl.className = 'route-picker';
+            pickerEl.id = pickerId;
+            pickerEl.innerHTML = `
+                <div class="route-picker-label">
+                    ${ALM_LOCATIONS[fromKey].name} → ${ALM_LOCATIONS[toKey].name} — Choose route
+                </div>
+                <div class="route-picker-options">
+                    <span class="route-picker-loading">⟳ Fetching routes…</span>
+                </div>
+            `;
+            anchorItem.insertAdjacentElement('afterend', pickerEl);
+
+            // Fetch alternatives from Directions API — no traffic, distance only
+            if (typeof google === 'undefined' || !directionsService) {
+                pickerEl.querySelector('.route-picker-options').innerHTML =
+                    '<span class="route-picker-single" style="color:#ef4444;">Maps API unavailable</span>';
+                return;
+            }
+
+            const fromLoc = ALM_LOCATIONS[fromKey];
+            const toLoc   = ALM_LOCATIONS[toKey];
+
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    directionsService.route({
+                        origin:      new google.maps.LatLng(fromLoc.lat, fromLoc.lng),
+                        destination: new google.maps.LatLng(toLoc.lat,   toLoc.lng),
+                        travelMode:  google.maps.TravelMode.DRIVING,
+                        avoidHighways: false,
+                        avoidTolls:    false,
+                        region: 'US',
+                        provideRouteAlternatives: true
+                        // No drivingOptions — pure road distance, no traffic
+                    }, (res, status) => status === 'OK' ? resolve(res) : reject(new Error(status)));
+                });
+
+                const routes = result.routes;
+                const optionsContainer = pickerEl.querySelector('.route-picker-options');
+
+                if (routes.length === 1) {
+                    // Only one route available
+                    const miles = parseFloat((routes[0].legs[0].distance.value * 0.000621371).toFixed(2));
+                    optionsContainer.innerHTML = `
+                        <span class="route-picker-single">Only 1 route available — </span>
+                        <button class="route-option-btn" onclick="pickRoute('${fromKey}','${toKey}',${miles},'${pickerId}',this)">
+                            <span class="route-option-miles">${miles} mi</span>
+                            <span class="route-option-sub">Confirm</span>
+                        </button>
+                    `;
+                } else {
+                    // Sort by distance ascending so Route 1 is always shortest
+                    const sorted = [...routes].sort((a, b) =>
+                        a.legs[0].distance.value - b.legs[0].distance.value
+                    );
+                    optionsContainer.innerHTML = sorted.map((route, idx) => {
+                        const miles = parseFloat((route.legs[0].distance.value * 0.000621371).toFixed(2));
+                        return `
+                            <button class="route-option-btn"
+                                onclick="pickRoute('${fromKey}','${toKey}',${miles},'${pickerId}',this)">
+                                <span class="route-option-miles">${miles} mi</span>
+                                <span class="route-option-sub">Route ${idx + 1}</span>
+                            </button>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                pickerEl.querySelector('.route-picker-options').innerHTML =
+                    `<span class="route-picker-single" style="color:#ef4444;">Error: ${err.message}</span>`;
+            }
+        }
+
+        function pickRoute(fromKey, toKey, miles, pickerId, btn) {
+            // Mark selected
+            const picker = document.getElementById(pickerId);
+            if (picker) {
+                picker.querySelectorAll('.route-option-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            }
+
+            // Write to cache — A→B only, B→A gets its own picker when traveled
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            cache[`${fromKey}_${toKey}`] = miles;
+            localStorage.setItem('maps_distances_v2', JSON.stringify(cache));
+
+            // Update the leg badge
+            const validStops = currentRoute.filter(s => s.location);
+            const legIndex = validStops.findIndex(s => s.location === fromKey);
+            if (legIndex !== -1) showLegDistance(legIndex + 1, miles);
+
+            // Try to commit total — will only fire if all legs now have values
+            commitTotalDistance(0);
+
+            // Collapse picker after short delay so user sees their selection
+            setTimeout(() => {
+                if (picker) picker.remove();
+            }, 800);
+        }
+
+        // Legacy: kept so cacheOptimizedDistances still works from the directions path
+        function getOptimizedDirections(stops) {
+            // No longer called directly — calculateOptimalRoute handles per-leg
+            return Promise.resolve(null);
+        }
+
+        function updateDistanceDisplayFromDirections(directionsResult) {
+            // No longer called directly — commitTotalDistance handles display
+            if (!directionsResult) return;
+        }
+
         function cacheOptimizedDistances(directionsResult) {
-            // Cache the optimized route distances
+            // Cache each leg separately — A→B and B→A are NOT assumed equal
             const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
             const legs = directionsResult.routes[0].legs;
             const validStops = currentRoute.filter(stop => stop.location);
-            
+
             legs.forEach((leg, index) => {
                 const fromKey = validStops[index].location;
-                const toKey = validStops[index + 1].location;
-                const miles = leg.distance.value * 0.000621371;
-                
-                // Cache both directions
+                const toKey   = validStops[index + 1].location;
+                const miles   = parseFloat((leg.distance.value * 0.000621371).toFixed(2));
+                // Store A→B only — reverse direction gets its own API call when needed
                 cachedDistances[`${fromKey}_${toKey}`] = miles;
-                cachedDistances[`${toKey}_${fromKey}`] = miles;
             });
-            
+
             localStorage.setItem('maps_distances_v2', JSON.stringify(cachedDistances));
         }
 
-        async function getDistanceMatrix(stops) {
+        // Calls the Distance Matrix API exactly once per leg (1 origin → 1 destination).
+        // This prevents the N×N grid cross-matching bug where rows[0].elements was the
+        // only row ever read, silently zeroing every leg beyond the first.
+        async function getSingleLegDistance(fromKey, toKey) {
             const service = new google.maps.DistanceMatrixService();
-            const origins = stops.slice(0, -1).map(stop => {
-                const loc = ALM_LOCATIONS[stop.location];
-                return new google.maps.LatLng(loc.lat, loc.lng);
-            });
-            const destinations = stops.slice(1).map(stop => {
-                const loc = ALM_LOCATIONS[stop.location];
-                return new google.maps.LatLng(loc.lat, loc.lng);
-            });
+            const fromLoc = ALM_LOCATIONS[fromKey];
+            const toLoc   = ALM_LOCATIONS[toKey];
 
             return new Promise((resolve, reject) => {
                 service.getDistanceMatrix({
-                    origins: origins,
-                    destinations: destinations,
-                    travelMode: google.maps.TravelMode.DRIVING,
-                    unitSystem: google.maps.UnitSystem.IMPERIAL,
-                    avoidHighways: false,  // Allow highways for potentially shorter routes
-                    avoidTolls: false,     // Allow toll roads if they're shorter
-                    drivingOptions: {
-                        departureTime: new Date(),
-                        trafficModel: google.maps.TrafficModel.BEST_GUESS
-                    }
+                    origins:      [new google.maps.LatLng(fromLoc.lat, fromLoc.lng)],
+                    destinations: [new google.maps.LatLng(toLoc.lat,   toLoc.lng)],
+                    travelMode:   google.maps.TravelMode.DRIVING,
+                    unitSystem:   google.maps.UnitSystem.IMPERIAL,
+                    avoidHighways: false,
+                    avoidTolls:    false
                 }, (response, status) => {
-                    if (status === google.maps.DistanceMatrixStatus.OK) {
-                        resolve(response);
-                    } else {
+                    if (status !== google.maps.DistanceMatrixStatus.OK) {
                         reject(new Error(`Distance Matrix error: ${status}`));
+                        return;
                     }
+                    const el = response.rows[0].elements[0];
+                    if (el.status !== 'OK') {
+                        reject(new Error(`Leg error: ${el.status}`));
+                        return;
+                    }
+                    const miles = parseFloat((el.distance.value * 0.000621371).toFixed(2));
+                    resolve(miles);
                 });
             });
         }
 
-        function updateDistanceDisplay(distanceMatrix) {
+        // Replaces the old getDistanceMatrix + updateDistanceDisplay pair.
+        // Fetches each leg sequentially, caches each direction independently,
+        // and updates the UI as results arrive — no haversine fallback.
+        async function getDistanceMatrix(stops) {
+            const service = new google.maps.DistanceMatrixService();
             let totalMiles = 0;
-            const elements = distanceMatrix.rows[0].elements;
-            
-            // Update individual leg distances
-            elements.forEach((element, index) => {
-                if (element.status === 'OK') {
-                    const miles = Math.round(element.distance.value * 0.000621371 * 100) / 100;
-                    totalMiles += miles;
-                    
-                    // Update leg badge
-                    const stopItem = document.querySelector(`[data-index="${index + 1}"]`);
-                    if (stopItem) {
-                        const badge = stopItem.querySelector('.stop-distance');
-                        badge.textContent = `${miles} mi`;
-                        badge.style.display = 'block';
+            const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+
+            for (let i = 0; i < stops.length - 1; i++) {
+                const fromKey = stops[i].location;
+                const toKey   = stops[i + 1].location;
+                const cacheKey = `${fromKey}_${toKey}`;
+
+                let miles;
+                if (cachedDistances[cacheKey] !== undefined) {
+                    // Cache hit — use stored value
+                    miles = cachedDistances[cacheKey];
+                } else {
+                    // No cache — call API for this single leg only
+                    const fromLoc = ALM_LOCATIONS[fromKey];
+                    const toLoc   = ALM_LOCATIONS[toKey];
+
+                    const response = await new Promise((resolve, reject) => {
+                        service.getDistanceMatrix({
+                            origins:      [new google.maps.LatLng(fromLoc.lat, fromLoc.lng)],
+                            destinations: [new google.maps.LatLng(toLoc.lat,   toLoc.lng)],
+                            travelMode:   google.maps.TravelMode.DRIVING,
+                            unitSystem:   google.maps.UnitSystem.IMPERIAL,
+                            avoidHighways: false,
+                            avoidTolls:    false
+                        }, (resp, status) => {
+                            if (status === google.maps.DistanceMatrixStatus.OK) resolve(resp);
+                            else reject(new Error(`Distance Matrix error: ${status}`));
+                        });
+                    });
+
+                    const el = response.rows[0].elements[0];
+                    if (el.status !== 'OK') {
+                        // No haversine fallback — show unavailable rather than a wrong number
+                        const stopItem = document.querySelector(`[data-index="${i + 1}"]`);
+                        if (stopItem) {
+                            const badge = stopItem.querySelector('.stop-distance');
+                            badge.textContent = 'N/A';
+                            badge.style.display = 'block';
+                            badge.style.background = '#ef4444';
+                        }
+                        continue;
                     }
+
+                    miles = parseFloat((el.distance.value * 0.000621371).toFixed(2));
+                    // Cache A→B only — B→A is a separate direction with its own value
+                    cachedDistances[cacheKey] = miles;
                 }
-            });
-            
+
+                totalMiles += miles;
+
+                // Update leg badge
+                const stopItem = document.querySelector(`[data-index="${i + 1}"]`);
+                if (stopItem) {
+                    const badge = stopItem.querySelector('.stop-distance');
+                    badge.textContent = `${miles} mi`;
+                    badge.style.display  = 'block';
+                    badge.style.background = '';
+                }
+            }
+
+            // Persist any newly fetched legs to cache
+            localStorage.setItem('maps_distances_v2', JSON.stringify(cachedDistances));
+
             // Update total display
             totalDistance = totalMiles;
             document.getElementById('total-value').innerHTML = `${totalMiles.toFixed(1)}<span class="total-unit">miles</span>`;
             document.getElementById('day-total').style.display = 'block';
-            
-            // Update top bar total
             document.getElementById('total-miles-display').textContent = totalMiles.toFixed(1);
-            
-            // Update status pill
             updateMapsStatus('connected');
+            updateButtons();
+
+            // Return a dummy object so the caller doesn't break
+            return { _handled: true };
+        }
+
+        function updateDistanceDisplay(distanceMatrix) {
+            // This function is now a no-op when getDistanceMatrix handles display directly.
+            // It remains here as a safety shim for any legacy call paths.
+            if (distanceMatrix && distanceMatrix._handled) return;
+
+            // Legacy fallback path (should not normally be reached)
+            console.warn('updateDistanceDisplay called with unhandled matrix — this is a bug.');
         }
 
         function resetDistanceDisplay() {
@@ -4322,6 +4522,7 @@
         function clearRoute() {
             currentRoute = [];
             document.getElementById('stops-list').innerHTML = '';
+            clearAllRoutePickers();
             resetDistanceDisplay();
             
             // Hide map preview
@@ -4990,21 +5191,15 @@
         }
 
         function calculateLegDistance(fromStop, toStop) {
-            // Try to get from cache first
+            // Only use cached API values — no haversine fallback (it's too inaccurate)
             const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
             const cacheKey = `${fromStop.location}_${toStop.location}`;
-            
-            if (cachedDistances[cacheKey]) {
+            if (cachedDistances[cacheKey] !== undefined) {
                 return cachedDistances[cacheKey];
             }
-            
-            // Fallback to haversine calculation
-            const from = ALM_LOCATIONS[fromStop.location];
-            const to = ALM_LOCATIONS[toStop.location];
-            
-            if (!from || !to) return 0;
-            
-            return haversineDistance(from.lat, from.lng, to.lat, to.lng) * 1.25; // 25% multiplier for road distance
+            // No cache available — return 0 and let the caller handle it
+            // Run a Distance Refresh to populate the cache
+            return 0;
         }
 
         function haversineDistance(lat1, lon1, lat2, lon2) {
