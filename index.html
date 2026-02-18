@@ -3,8 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v13.5</title>
+    <title>ALM Mileage Tracker v1.9.4</title>
     <style>
+        /* ================================================================
+           ALM MILEAGE TRACKER v1.9.4 — STYLESHEET
+           ================================================================
+           Sections (in order):
+             1.  Reset & Base
+             2.  App Layout
+             3.  Sidebar & Navigation
+             4.  Top Bar & Status Pills
+             5.  Page Content & Headers
+             6.  Route Builder Card & Forms
+             7.  Stop List & Route Builder Body
+             8.  Day Total Display
+             9.  Map Preview
+            10.  Action Buttons
+            11.  Draft Banner
+            12.  Toast Notifications
+            13.  Page Visibility (show/hide)
+            14.  Data Tables
+            15.  Location Grid & Cards
+            16.  Distance Matrix
+            17.  Stats Grid & Stat Cards
+            18.  Status Badges
+            19.  Changelog
+            20.  Conflict Resolution Modal
+            21.  Print Styles
+            22.  Print Button UI (non-print)
+            23.  Distance Refresh & Spot-Check Pages
+            24.  Terminal
+            25.  Spot-Check Result Panel & Log
+            26.  Route Picker
+            27.  Animations
+            28.  Responsive Breakpoints
+           ================================================================ */
+
+        /* ================================================================
+           1. RESET & BASE
+           ================================================================ */
+
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: #0f0f0f;
@@ -14,12 +52,25 @@
             overflow-x: hidden;
         }
 
+        /* ================================================================
+           2. APP LAYOUT
+           ================================================================ */
+
         .app-container {
             display: flex;
             min-height: 100vh;
         }
 
-        /* Sidebar */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            background: #141414;
+        }
+
+        /* ================================================================
+           3. SIDEBAR & NAVIGATION
+           ================================================================ */
+
         .sidebar {
             width: 250px;
             background: #1c1c1c;
@@ -89,14 +140,10 @@
             font-size: 14px;
         }
 
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: 250px;
-            background: #141414;
-        }
+        /* ================================================================
+           4. TOP BAR & STATUS PILLS
+           ================================================================ */
 
-        /* Top Bar */
         .top-bar {
             background: #1c1c1c;
             border-bottom: 1px solid #2a2a2a;
@@ -134,7 +181,10 @@
             font-weight: 700;
         }
 
-        /* Page Content */
+        /* ================================================================
+           5. PAGE CONTENT & HEADERS
+           ================================================================ */
+
         .page-content {
             padding: 30px;
         }
@@ -158,7 +208,10 @@
             letter-spacing: 1px;
         }
 
-        /* Route Builder Card */
+        /* ================================================================
+           6. ROUTE BUILDER CARD & FORMS
+           ================================================================ */
+
         .route-card {
             background: #1c1c1c;
             border: 1px solid #2a2a2a;
@@ -228,7 +281,10 @@
             box-shadow: 0 0 0 2px rgba(255, 167, 38, 0.1);
         }
 
-        /* Route Builder */
+        /* ================================================================
+           7. STOP LIST & ROUTE BUILDER BODY
+           ================================================================ */
+
         .route-builder {
             padding: 25px;
         }
@@ -248,6 +304,7 @@
             border-radius: 6px;
         }
 
+        /* Colored dot: green=start, amber=middle, red=end */
         .stop-indicator {
             width: 12px;
             height: 12px;
@@ -255,17 +312,9 @@
             flex-shrink: 0;
         }
 
-        .stop-indicator.start {
-            background: #22c55e;
-        }
-
-        .stop-indicator.middle {
-            background: #ffa726;
-        }
-
-        .stop-indicator.end {
-            background: #ef4444;
-        }
+        .stop-indicator.start  { background: #22c55e; }
+        .stop-indicator.middle { background: #ffa726; }
+        .stop-indicator.end    { background: #ef4444; }
 
         .stop-label {
             font-size: 11px;
@@ -285,6 +334,7 @@
             font-size: 14px;
         }
 
+        /* Amber pill showing the leg's cached distance */
         .stop-distance {
             background: #ffa726;
             color: #000;
@@ -338,7 +388,10 @@
             color: #ffa726;
         }
 
-        /* Day Total */
+        /* ================================================================
+           8. DAY TOTAL DISPLAY
+           ================================================================ */
+
         .day-total {
             background: #252525;
             border: 1px solid #2a2a2a;
@@ -374,7 +427,10 @@
             margin-top: 8px;
         }
 
-        /* Map Preview */
+        /* ================================================================
+           9. MAP PREVIEW
+           ================================================================ */
+
         .map-preview {
             background: #1c1c1c;
             border: 1px solid #2a2a2a;
@@ -410,7 +466,10 @@
             color: #666;
         }
 
-        /* Action Buttons */
+        /* ================================================================
+           10. ACTION BUTTONS
+           ================================================================ */
+
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -430,41 +489,23 @@
             transition: all 0.2s;
         }
 
-        .btn-clear {
-            background: #333;
-            color: #ccc;
-        }
+        .btn-clear         { background: #333; color: #ccc; }
+        .btn-clear:hover   { background: #444; }
 
-        .btn-clear:hover {
-            background: #444;
-        }
+        .btn-preview       { background: transparent; border: 1px solid #ffa726; color: #ffa726; }
+        .btn-preview:hover { background: #ffa726; color: #000; }
 
-        .btn-preview {
-            background: transparent;
-            border: 1px solid #ffa726;
-            color: #ffa726;
-        }
+        .btn-save          { background: #ffa726; color: #000; }
+        .btn-save:hover    { background: #ff9800; }
 
-        .btn-preview:hover {
-            background: #ffa726;
-            color: #000;
-        }
+        .btn-secondary     { background: #333; color: #ccc; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
 
-        .btn-save {
-            background: #ffa726;
-            color: #000;
-        }
+        .btn:disabled      { opacity: 0.4; cursor: not-allowed; }
 
-        .btn-save:hover {
-            background: #ff9800;
-        }
+        /* ================================================================
+           11. DRAFT BANNER
+           ================================================================ */
 
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        /* Draft Banner */
         .draft-banner {
             background: linear-gradient(135deg, #ffa726, #ff9800);
             color: #000;
@@ -476,9 +517,7 @@
             display: none;
         }
 
-        .draft-banner.show {
-            display: block;
-        }
+        .draft-banner.show { display: block; }
 
         .draft-actions {
             margin-top: 10px;
@@ -498,11 +537,12 @@
             cursor: pointer;
         }
 
-        .draft-btn:hover {
-            background: rgba(0, 0, 0, 0.3);
-        }
+        .draft-btn:hover { background: rgba(0, 0, 0, 0.3); }
 
-        /* Toast */
+        /* ================================================================
+           12. TOAST NOTIFICATIONS
+           ================================================================ */
+
         .toast {
             position: fixed;
             top: 20px;
@@ -518,59 +558,299 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .toast.show {
-            transform: translateX(0);
+        .toast.show    { transform: translateX(0); }
+        .toast.success { background: #22c55e; }
+        .toast.error   { background: #ef4444; }
+        .toast.warning { background: #ffa726; color: #000; }
+
+        /* ================================================================
+           13. PAGE VISIBILITY
+           Pages are hidden by default; JS adds .active to show them.
+           ================================================================ */
+
+        .page        { display: none; }
+        .page.active { display: block; }
+
+        /* ================================================================
+           14. DATA TABLES
+           Used on Trip History and Cost Report pages.
+           ================================================================ */
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
         }
 
-        .toast.success {
-            background: #22c55e;
+        .data-table th {
+            background: #252525;
+            color: #ffa726;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
         }
 
-        .toast.error {
-            background: #ef4444;
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            color: #fff;
+            font-size: 13px;
         }
 
-        .toast.warning {
+        .data-table tr:hover               { background: rgba(255, 167, 38, 0.05); }
+        .data-table tr:last-child td       { border-bottom: none; }
+
+        /* ================================================================
+           15. LOCATION GRID & CARDS
+           ================================================================ */
+
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .location-card {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .location-card:hover {
+            border-color: #ffa726;
+            transform: translateY(-2px);
+        }
+
+        .location-name {
+            color: #ffa726;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* Type badge: green=home, red=corporate, amber=dealership */
+        .location-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .location-type.home        { background: #22c55e; color: white; }
+        .location-type.corporate   { background: #ef4444; color: white; }
+        .location-type.dealership  { background: #ffa726; color: black; }
+
+        .location-address {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .location-coords {
+            color: #666;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        /* ================================================================
+           16. DISTANCE MATRIX
+           The container handles horizontal scroll with a sticky first column.
+           ================================================================ */
+
+        .distance-matrix-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            max-width: 100%;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #141414;
+        }
+
+        .distance-matrix {
+            min-width: 900px;
+            width: max-content;
+            margin: 0;
+        }
+
+        .distance-matrix th,
+        .distance-matrix td {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Column headers: vertical text */
+        .distance-matrix th.location-header {
             background: #ffa726;
-            color: #000;
+            color: black;
+            font-weight: 700;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 8px 4px;
         }
 
-        /* Hidden pages */
-        .page {
-            display: none;
+        /* Row headers: horizontal text, sticky */
+        .distance-matrix td.location-header {
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
+            writing-mode: horizontal-tb;
+            text-orientation: initial;
+            padding: 8px 12px;
+            text-align: left;
         }
 
-        .page.active {
-            display: block;
+        /* Sticky first column (row labels) */
+        .distance-matrix th:first-child,
+        .distance-matrix td:first-child {
+            position: sticky;
+            left: 0;
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
+            z-index: 2;
+            border-right: 2px solid #333;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s;
-            }
+        .distance-matrix th:first-child { background: #444; color: white; }
 
-            .main-content {
-                margin-left: 0;
-            }
+        /* Cell states */
+        .distance-cell             { color: #ffa726; font-weight: 600; }
+        .distance-cell.unavailable { color: #666; font-style: italic; }
 
-            .route-form {
-                grid-template-columns: 1fr;
-            }
+        /* Clickable cells jump to Spot-Check for that pair */
+        .distance-cell.clickable       { cursor: pointer; transition: background 0.15s, color 0.15s; }
+        .distance-cell.clickable:hover { background: rgba(245, 166, 35, 0.12); color: #f5a623; outline: 1px solid #f5a62355; }
+        .distance-cell.unavailable.clickable:hover { background: rgba(255,255,255,0.05); color: #aaa; }
 
-            .action-buttons {
-                flex-direction: column;
-            }
+        /* ================================================================
+           17. STATS GRID & STAT CARDS
+           ================================================================ */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
         }
 
-        /* Conflict Resolution Modal */
+        .stat-card {
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffa726;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ================================================================
+           18. STATUS BADGES
+           Used in Trip History rows: reimbursable/non-reimbursable, synced/unsynced.
+           ================================================================ */
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.reimbursable     { background: #22c55e; color: white; }
+        .status-badge.non-reimbursable { background: #ef4444; color: white; }
+        .status-badge.synced           { background: #22c55e; color: white; }
+        .status-badge.unsynced         { background: #666;    color: white; }
+
+        /* ================================================================
+           19. CHANGELOG
+           ================================================================ */
+
+        .changelog-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .changelog-version {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .changelog-version:last-child { border-bottom: none; }
+
+        .changelog-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .version-number {
+            background: #ffa726;
+            color: black;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .version-date { color: #666; font-size: 12px; }
+
+        .changelog-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .changelog-features li {
+            padding: 8px 0 8px 20px;
+            color: #ccc;
+            position: relative;
+        }
+
+        .changelog-features li::before {
+            content: '•';
+            color: #ffa726;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        /* ================================================================
+           20. CONFLICT RESOLUTION MODAL
+           Shown during Excel import when incoming routes overlap saved ones.
+           ================================================================ */
+
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8);
             display: none;
             align-items: center;
@@ -578,9 +858,7 @@
             z-index: 1000;
         }
 
-        .modal-overlay.show {
-            display: flex;
-        }
+        .modal-overlay.show { display: flex; }
 
         .conflict-modal {
             background: #1c1c1c;
@@ -616,14 +894,10 @@
             margin-top: 5px;
         }
 
-        .modal-body {
-            padding: 25px;
-        }
+        .modal-body    { padding: 25px; }
+        .conflicts-list { margin-bottom: 20px; }
 
-        .conflicts-list {
-            margin-bottom: 20px;
-        }
-
+        /* Conflict item — changes color based on resolution state */
         .conflict-item {
             background: rgba(255, 167, 38, 0.06);
             border: 1px solid rgba(255, 167, 38, 0.2);
@@ -633,21 +907,9 @@
             transition: all 0.3s ease;
         }
 
-        .conflict-item.resolved-overwrite {
-            background: rgba(239, 68, 68, 0.06);
-            border-color: rgba(239, 68, 68, 0.2);
-        }
-
-        .conflict-item.resolved-skip {
-            background: rgba(102, 102, 102, 0.06);
-            border-color: rgba(102, 102, 102, 0.2);
-            opacity: 0.7;
-        }
-
-        .conflict-item.resolved-keep-both {
-            background: rgba(34, 197, 94, 0.06);
-            border-color: rgba(34, 197, 94, 0.2);
-        }
+        .conflict-item.resolved-overwrite  { background: rgba(239, 68, 68, 0.06);  border-color: rgba(239, 68, 68, 0.2); }
+        .conflict-item.resolved-skip       { background: rgba(102, 102, 102, 0.06); border-color: rgba(102, 102, 102, 0.2); opacity: 0.7; }
+        .conflict-item.resolved-keep-both  { background: rgba(34, 197, 94, 0.06);  border-color: rgba(34, 197, 94, 0.2); }
 
         .conflict-header {
             background: rgba(255, 167, 38, 0.1);
@@ -658,22 +920,8 @@
             align-items: center;
         }
 
-        .conflict-date {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffa726;
-        }
-
-        .conflict-indicator {
-            background: #ef4444;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .conflict-date      { font-size: 16px; font-weight: 700; color: #ffa726; }
+        .conflict-indicator { background: #ef4444; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
         .conflict-comparison {
             padding: 20px;
@@ -706,17 +954,8 @@
             justify-content: space-between;
         }
 
-        .conflict-label {
-            color: #999;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .conflict-value {
-            color: #fff;
-            font-weight: 600;
-        }
+        .conflict-label { color: #999; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .conflict-value { color: #fff; font-weight: 600; }
 
         .conflict-actions {
             padding: 15px 20px;
@@ -763,32 +1002,12 @@
             transition: all 0.2s;
         }
 
-        .conflict-btn.overwrite {
-            background: #ef4444;
-            color: white;
-        }
-
-        .conflict-btn.overwrite:hover {
-            background: #dc2626;
-        }
-
-        .conflict-btn.skip {
-            background: #666;
-            color: white;
-        }
-
-        .conflict-btn.skip:hover {
-            background: #777;
-        }
-
-        .conflict-btn.keep-both {
-            background: #22c55e;
-            color: white;
-        }
-
-        .conflict-btn.keep-both:hover {
-            background: #16a34a;
-        }
+        .conflict-btn.overwrite        { background: #ef4444; color: white; }
+        .conflict-btn.overwrite:hover  { background: #dc2626; }
+        .conflict-btn.skip             { background: #666; color: white; }
+        .conflict-btn.skip:hover       { background: #777; }
+        .conflict-btn.keep-both        { background: #22c55e; color: white; }
+        .conflict-btn.keep-both:hover  { background: #16a34a; }
 
         .modal-footer {
             background: #252525;
@@ -800,370 +1019,17 @@
             align-items: center;
         }
 
-        .bulk-actions {
-            display: flex;
-            gap: 10px;
-        }
+        .bulk-actions     { display: flex; gap: 10px; }
+        .conflicts-summary { color: #666; font-size: 13px; }
 
-        .conflicts-summary {
-            color: #666;
-            font-size: 13px;
-        }
+        /* ================================================================
+           21. PRINT STYLES
+           Hides chrome, forces white background, adds report header/footer.
+           ================================================================ */
 
-        @media (max-width: 768px) {
-            .conflict-comparison {
-                grid-template-columns: 1fr;
-            }
-            
-            .conflict-actions {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-            
-            .date-adjustment {
-                margin-right: 0;
-                justify-content: center;
-            }
-        }
-
-        /* Dashboard Tables */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #141414;
-            border: 1px solid #333;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .data-table th {
-            background: #252525;
-            color: #ffa726;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 15px 12px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #333;
-            color: #fff;
-            font-size: 13px;
-        }
-
-        .data-table tr:hover {
-            background: rgba(255, 167, 38, 0.05);
-        }
-
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Location Grid */
-        .locations-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .location-card {
-            background: #141414;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 20px;
-            transition: all 0.2s;
-        }
-
-        .location-card:hover {
-            border-color: #ffa726;
-            transform: translateY(-2px);
-        }
-
-        .location-name {
-            color: #ffa726;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .location-type {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-        }
-
-        .location-type.home {
-            background: #22c55e;
-            color: white;
-        }
-
-        .location-type.corporate {
-            background: #ef4444;
-            color: white;
-        }
-
-        .location-type.dealership {
-            background: #ffa726;
-            color: black;
-        }
-
-        .location-address {
-            color: #ccc;
-            font-size: 13px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-
-        .location-coords {
-            color: #666;
-            font-size: 11px;
-            font-family: monospace;
-        }
-
-        /* Distance Matrix */
-        .distance-matrix-container {
-            overflow-x: auto;
-        }
-
-        .distance-matrix {
-            min-width: 800px;
-        }
-
-        .distance-matrix th,
-        .distance-matrix td {
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .distance-matrix .location-header {
-            background: #ffa726;
-            color: black;
-            font-weight: 700;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            padding: 8px 4px;
-        }
-
-        .distance-matrix th.location-header {
-            background: #ffa726;
-            color: black;
-            font-weight: 700;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            padding: 8px 4px;
-        }
-
-        .distance-matrix td.location-header {
-            background: #ffa726;
-            color: black;
-            font-weight: 700;
-            writing-mode: horizontal-tb;
-            text-orientation: initial;
-            padding: 8px 12px;
-            text-align: left;
-        }
-
-        .distance-cell {
-            color: #ffa726;
-            font-weight: 600;
-        }
-
-        .distance-cell.unavailable {
-            color: #666;
-            font-style: italic;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: #141414;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #ffa726;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Status badges */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .status-badge.reimbursable {
-            background: #22c55e;
-            color: white;
-        }
-
-        .status-badge.non-reimbursable {
-            background: #ef4444;
-            color: white;
-        }
-
-        .status-badge.synced {
-            background: #22c55e;
-            color: white;
-        }
-
-        .status-badge.unsynced {
-            background: #666;
-            color: white;
-        }
-
-        /* Changelog */
-        .changelog-content {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .changelog-version {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #333;
-        }
-
-        .changelog-version:last-child {
-            border-bottom: none;
-        }
-
-        .changelog-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .version-number {
-            background: #ffa726;
-            color: black;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .version-date {
-            color: #666;
-            font-size: 12px;
-        }
-
-        .changelog-features {
-            list-style: none;
-            padding: 0;
-        }
-
-        .changelog-features li {
-            padding: 8px 0;
-            color: #ccc;
-            position: relative;
-            padding-left: 20px;
-        }
-
-        .changelog-features li::before {
-            content: '•';
-            color: #ffa726;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .locations-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .route-form[style*="grid-template-columns: repeat(4, 1fr)"] {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .distance-matrix-container {
-                position: relative;
-            }
-            
-            .distance-matrix-container::after {
-                content: 'Scroll horizontally to view all columns →';
-                position: absolute;
-                bottom: -25px;
-                right: 0;
-                color: #666;
-                font-size: 11px;
-                font-style: italic;
-            }
-        }
-
-        /* Distance Matrix Improvements */
-        .distance-matrix-container {
-            overflow-x: auto;
-            overflow-y: visible;
-            max-width: 100%;
-            border: 1px solid #333;
-            border-radius: 6px;
-            background: #141414;
-        }
-
-        .distance-matrix {
-            min-width: 900px;
-            width: max-content;
-            margin: 0;
-        }
-
-        .distance-matrix th:first-child,
-        .distance-matrix td:first-child {
-            position: sticky;
-            left: 0;
-            background: #ffa726;
-            color: black;
-            font-weight: 700;
-            z-index: 2;
-            border-right: 2px solid #333;
-        }
-
-        .distance-matrix th:first-child {
-            background: #444;
-            color: white;
-        }
-
-        /* Print Styles */
         @media print {
-            /* Hide navigation and non-essential elements */
+
+            /* Hide all navigation, buttons, and interactive chrome */
             .sidebar,
             .top-bar,
             .modal-overlay,
@@ -1175,110 +1041,55 @@
             .conflict-actions,
             .nav-item,
             .map-preview,
-            .map-container {
+            .map-container,
+            .print-section {
                 display: none !important;
             }
-            
-            /* Adjust main content for print */
+
+            /* Full-width content, no side margin */
             .main-content {
                 margin-left: 0 !important;
                 width: 100% !important;
             }
-            
+
             .page-content {
                 padding: 0 !important;
                 margin: 0 !important;
             }
-            
-            /* Page breaks */
-            .route-card {
-                page-break-inside: avoid;
-                margin-bottom: 20px;
-            }
-            
-            .page-header {
-                page-break-after: avoid;
-                margin-bottom: 20px;
-            }
-            
-            /* Print-friendly colors */
-            body {
-                background: white !important;
-                color: black !important;
-            }
-            
+
+            /* Avoid splitting a route card across pages */
+            .route-card     { page-break-inside: avoid; margin-bottom: 20px; }
+            .page-header    { page-break-after: avoid;  margin-bottom: 20px; }
+
+            /* White background, black text throughout */
+            body                            { background: white !important; color: black !important; }
             .route-card,
-            .route-card-header {
-                background: white !important;
-                border: 1px solid #000 !important;
-                color: black !important;
-            }
-            
-            .data-table {
-                background: white !important;
-                border-collapse: collapse !important;
-            }
-            
-            .data-table th {
-                background: #f0f0f0 !important;
-                color: black !important;
-                border: 1px solid #000 !important;
-            }
-            
-            .data-table td {
-                color: black !important;
-                border: 1px solid #000 !important;
-            }
-            
-            /* Print headers */
-            .page-title {
-                color: black !important;
-                font-size: 24px !important;
-            }
-            
-            .page-subtitle {
-                color: #666 !important;
-            }
-            
-            .section-title {
-                color: black !important;
-            }
-            
-            .section-title::before {
-                background: black !important;
-            }
-            
-            /* Status badges for print */
-            .status-badge {
-                border: 1px solid #000 !important;
-                background: white !important;
-                color: black !important;
-            }
-            
-            /* Stats and numbers */
+            .route-card-header              { background: white !important; border: 1px solid #000 !important; color: black !important; }
+            .data-table                     { background: white !important; border-collapse: collapse !important; }
+            .data-table th                  { background: #f0f0f0 !important; color: black !important; border: 1px solid #000 !important; }
+            .data-table td                  { color: black !important; border: 1px solid #000 !important; }
+            .page-title                     { color: black !important; font-size: 24px !important; }
+            .page-subtitle                  { color: #666 !important; }
+            .section-title                  { color: black !important; }
+            .section-title::before          { background: black !important; }
+            .status-badge                   { border: 1px solid #000 !important; background: white !important; color: black !important; }
             .stat-value,
             .total-value,
-            .conflict-value {
-                color: black !important;
-            }
-            
-            /* Print page setup */
-            @page {
-                size: A4;
-                margin: 0.75in;
-            }
-            
-            /* Force page title to show */
+            .conflict-value                 { color: black !important; }
+
+            /* Page setup */
+            @page { size: A4; margin: 0.75in; }
+
+            /* Report branding injected via CSS pseudo-elements */
             .page-header::before {
-                content: "ALM Mileage Tracker - Printed Report";
+                content: "ALM Mileage Tracker — Printed Report";
                 display: block;
                 font-size: 12px;
                 color: #666;
                 margin-bottom: 10px;
                 text-align: right;
             }
-            
-            /* Print date */
+
             .page-header::after {
                 content: "Generated: " attr(data-print-date);
                 display: block;
@@ -1289,7 +1100,11 @@
             }
         }
 
-        /* Print button styling */
+        /* ================================================================
+           22. PRINT BUTTON UI  (visible on screen only, hidden on print)
+           Panel shown inside Trip History and Cost Report to trigger printing.
+           ================================================================ */
+
         .print-section {
             margin: 20px 0;
             padding: 15px;
@@ -1310,11 +1125,12 @@
             margin: 0 5px;
         }
 
-        .print-btn:hover {
-            background: #ff9800;
-        }
+        .print-btn:hover { background: #ff9800; }
 
-        /* ── Distance Refresh & Spot-Check Pages ─────────────────────────── */
+        /* ================================================================
+           23. DISTANCE REFRESH & SPOT-CHECK PAGES
+           Status bar, action button group, and shared layout.
+           ================================================================ */
 
         .sync-status-bar {
             display: flex;
@@ -1327,11 +1143,7 @@
             margin-bottom: 20px;
         }
 
-        .sync-status-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+        .sync-status-item  { display: flex; flex-direction: column; gap: 4px; }
 
         .sync-status-label {
             font-size: 10px;
@@ -1341,21 +1153,12 @@
             font-weight: 600;
         }
 
-        .sync-status-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-        }
+        .sync-status-value               { font-size: 14px; font-weight: 600; color: #fff; }
+        .sync-status-value.good          { color: #22c55e; }
+        .sync-status-value.warn          { color: #ffa726; }
+        .sync-status-value.bad           { color: #ef4444; }
 
-        .sync-status-value.good { color: #22c55e; }
-        .sync-status-value.warn { color: #ffa726; }
-        .sync-status-value.bad  { color: #ef4444; }
-
-        .sync-divider {
-            width: 1px;
-            height: 36px;
-            background: #2a2a2a;
-        }
+        .sync-divider { width: 1px; height: 36px; background: #2a2a2a; }
 
         .refresh-btn-group {
             display: flex;
@@ -1364,6 +1167,7 @@
             flex-wrap: wrap;
         }
 
+        /* Primary refresh button */
         .btn-refresh-all {
             background: #ffa726;
             color: #000;
@@ -1378,9 +1182,10 @@
             transition: all 0.2s;
         }
 
-        .btn-refresh-all:hover { background: #ff9800; }
+        .btn-refresh-all:hover    { background: #ff9800; }
         .btn-refresh-all:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* Secondary: refresh used routes only */
         .btn-refresh-used {
             background: transparent;
             color: #ffa726;
@@ -1395,9 +1200,10 @@
             transition: all 0.2s;
         }
 
-        .btn-refresh-used:hover { background: rgba(255,167,38,0.1); }
+        .btn-refresh-used:hover    { background: rgba(255,167,38,0.1); }
         .btn-refresh-used:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* Destructive: clear cache */
         .btn-clear-cache {
             background: transparent;
             color: #ef4444;
@@ -1414,7 +1220,11 @@
 
         .btn-clear-cache:hover { background: rgba(239,68,68,0.1); }
 
-        /* Terminal */
+        /* ================================================================
+           24. TERMINAL
+           macOS-style terminal shell used on the Distance Refresh page.
+           ================================================================ */
+
         .terminal-wrap {
             background: #0a0a0a;
             border: 1px solid #1e3a1e;
@@ -1431,13 +1241,11 @@
             border-bottom: 1px solid #1e3a1e;
         }
 
-        .terminal-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-        }
-        .terminal-dot.red   { background: #ef4444; }
-        .terminal-dot.yellow{ background: #ffa726; }
-        .terminal-dot.green { background: #22c55e; }
+        /* Traffic-light dots */
+        .terminal-dot           { width: 10px; height: 10px; border-radius: 50%; }
+        .terminal-dot.red       { background: #ef4444; }
+        .terminal-dot.yellow    { background: #ffa726; }
+        .terminal-dot.green     { background: #22c55e; }
 
         .terminal-title {
             font-size: 11px;
@@ -1458,13 +1266,16 @@
             color: #22c55e;
         }
 
-        .terminal-body .t-dim    { color: #444; }
-        .terminal-body .t-info   { color: #22c55e; }
-        .terminal-body .t-warn   { color: #ffa726; }
-        .terminal-body .t-error  { color: #ef4444; }
-        .terminal-body .t-ok     { color: #22c55e; font-weight: bold; }
-        .terminal-body .t-ts     { color: #555; }
-        .terminal-body .t-hi     { color: #fff; font-weight: bold; }
+        /* Terminal text color classes */
+        .terminal-body .t-dim   { color: #444; }
+        .terminal-body .t-info  { color: #22c55e; }
+        .terminal-body .t-warn  { color: #ffa726; }
+        .terminal-body .t-error { color: #ef4444; }
+        .terminal-body .t-ok    { color: #22c55e; font-weight: bold; }
+        .terminal-body .t-ts    { color: #555; }
+        .terminal-body .t-hi    { color: #fff; font-weight: bold; }
+
+        /* Blinking block cursor */
         .terminal-body .t-cursor {
             display: inline-block;
             width: 8px;
@@ -1474,12 +1285,10 @@
             animation: blink 1s step-end infinite;
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0; }
-        }
+        /* ================================================================
+           25. SPOT-CHECK RESULT PANEL & LOG
+           ================================================================ */
 
-        /* Spot-Check */
         .spotcheck-form {
             display: grid;
             grid-template-columns: 1fr 1fr auto;
@@ -1488,6 +1297,7 @@
             margin-bottom: 20px;
         }
 
+        /* Hidden until a check runs */
         .spotcheck-result {
             background: #0f1f0f;
             border: 1px solid #1e3a1e;
@@ -1512,12 +1322,13 @@
 
         .spotcheck-row:last-child { border-bottom: none; }
 
-        .spotcheck-key { color: #666; }
-        .spotcheck-val { font-weight: bold; color: #22c55e; }
+        .spotcheck-key         { color: #666; }
+        .spotcheck-val         { font-weight: bold; color: #22c55e; }
         .spotcheck-val.mismatch { color: #ef4444; }
         .spotcheck-val.match    { color: #22c55e; }
         .spotcheck-val.pending  { color: #ffa726; }
 
+        /* MATCH / MISMATCH / NO CACHE / SAVED badge */
         .match-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -1532,10 +1343,6 @@
         .match-badge.mismatch { background: rgba(239,68,68,0.2);  color: #ef4444; border: 1px solid #ef4444; }
         .match-badge.no-cache { background: rgba(255,167,38,0.2); color: #ffa726; border: 1px solid #ffa726; }
 
-        .spotcheck-log {
-            margin-top: 20px;
-        }
-
         .spotcheck-log-entry {
             padding: 6px 0;
             border-bottom: 1px solid #1a2a1a;
@@ -1544,11 +1351,16 @@
             color: #666;
         }
 
-        .spotcheck-log-entry .log-time { color: #444; }
+        .spotcheck-log-entry .log-time  { color: #444; }
         .spotcheck-log-entry .log-match { color: #22c55e; }
         .spotcheck-log-entry .log-miss  { color: #ef4444; }
 
-        /* ── Route Picker ─────────────────────────────────────────────────── */
+        /* ================================================================
+           26. ROUTE PICKER
+           Inline card that appears when a leg has no cached distance.
+           User picks a route; the choice is written to cache immediately.
+           ================================================================ */
+
         .route-picker {
             margin: 0 0 12px 0;
             padding: 14px 16px;
@@ -1556,11 +1368,6 @@
             border: 1px solid #1e3a1e;
             border-radius: 6px;
             animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to   { opacity: 1; transform: translateY(0); }
         }
 
         .route-picker-label {
@@ -1598,17 +1405,8 @@
             min-width: 90px;
         }
 
-        .route-option-btn:hover {
-            background: #ffa726;
-            border-color: #ffa726;
-            color: #000;
-        }
-
-        .route-option-btn.selected {
-            background: #22c55e;
-            border-color: #22c55e;
-            color: #000;
-        }
+        .route-option-btn:hover    { background: #ffa726; border-color: #ffa726; color: #000; }
+        .route-option-btn.selected { background: #22c55e; border-color: #22c55e; color: #000; }
 
         .route-option-miles {
             font-size: 16px;
@@ -1622,6 +1420,7 @@
             letter-spacing: 0.5px;
         }
 
+        /* Used when only a single route is available */
         .route-picker-single {
             color: #ffa726;
             font-size: 12px;
@@ -1636,15 +1435,108 @@
             align-items: center;
             gap: 8px;
         }
+
+        /* ================================================================
+           27. ANIMATIONS
+           ================================================================ */
+
+        /* Blinking cursor used in the terminal */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        /* Slide-in for route picker cards */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ================================================================
+           28. RESPONSIVE BREAKPOINTS
+           All @media queries consolidated here.
+           ================================================================ */
+
+        @media (max-width: 768px) {
+
+            /* Sidebar slides off-canvas on small screens */
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .main-content { margin-left: 0; }
+
+            /* Single-column forms */
+            .route-form    { grid-template-columns: 1fr; }
+
+            /* Stack action buttons vertically */
+            .action-buttons { flex-direction: column; }
+
+            /* Single-column grids */
+            .locations-grid { grid-template-columns: 1fr; }
+            .stats-grid     { grid-template-columns: 1fr; }
+
+            /* 4-col filter row collapses to 2 */
+            .route-form[style*="grid-template-columns: repeat(4, 1fr)"] {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            /* Hint text when matrix needs horizontal scroll */
+            .distance-matrix-container { position: relative; }
+            .distance-matrix-container::after {
+                content: 'Scroll horizontally to view all columns →';
+                position: absolute;
+                bottom: -25px;
+                right: 0;
+                color: #666;
+                font-size: 11px;
+                font-style: italic;
+            }
+
+            /* Conflict modal: stack comparison panels */
+            .conflict-comparison  { grid-template-columns: 1fr; }
+            .conflict-actions     { flex-direction: column; align-items: stretch; gap: 10px; }
+            .date-adjustment      { margin-right: 0; justify-content: center; }
+        }
     </style>
 </head>
 <body>
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║  ALM MILEAGE TRACKER v1.9.4 — HTML STRUCTURE OVERVIEW           ║
+    ║                                                                  ║
+    ║  <body>                                                          ║
+    ║    <div.app-container>          flex root                        ║
+    ║      <aside.sidebar>            fixed left nav (250px)           ║
+    ║      <main.main-content>        scrollable right panel           ║
+    ║        <div.top-bar>            status pills                     ║
+    ║        <div.draft-banner>       resume/discard draft             ║
+    ║        <div.page-content>       9 page divs (only 1 active)      ║
+    ║          #log-page              New Route builder                ║
+    ║          #history-page          Trip History + filters           ║
+    ║          #locations-page        Location directory               ║
+    ║          #matrix-page           Distance Matrix grid             ║
+    ║          #charts-page           Charts + stats                   ║
+    ║          #cost-page             Cost Report                      ║
+    ║          #dist-refresh-page     Bulk cache refresh               ║
+    ║          #dist-spotcheck-page   Single-pair spot check           ║
+    ║          #changelog-page        Version history                  ║
+    ║    <div.modal-overlay>          Import conflict modal (fixed)    ║
+    ║    External scripts             Maps API, Chart.js, SheetJS      ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
     <div class="app-container">
-        <!-- Sidebar Navigation -->
+        <!-- ═══════════════════════════════════════════════════════════
+             SIDEBAR NAVIGATION
+             Fixed 250px left panel. Nav items use data-page="<id>" to
+             tell setupNavigation() which page div to activate on click.
+             Export items use onclick directly (no page switch needed).
+        ════════════════════════════════════════════════════════════════ -->
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v13.5</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v1.9.4</div>
             </div>
             
             <div class="nav-section">
@@ -1712,9 +1604,16 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- ═══════════════════════════════════════════════════════════
+             MAIN CONTENT AREA
+             Fills viewport minus the 250px sidebar. Contains the top bar,
+             the draft resume banner, and the page-content div that holds
+             all 9 page divs. JS shows/hides pages by toggling .active.
+        ════════════════════════════════════════════════════════════════ -->
         <main class="main-content">
-            <!-- Top Bar -->
+            <!-- Top Bar: Maps status pill, Sheets status pill, running
+                 total miles pill. Updated by updateStatus() on init and
+                 after every save. -->
             <div class="top-bar">
                 <div class="status-pill maps-active" id="maps-status">
                     ● MAPS ACTIVE
@@ -1727,7 +1626,9 @@
                 </div>
             </div>
 
-            <!-- Draft Banner -->
+            <!-- Draft Banner: hidden by default (.draft-banner { display:none }).
+                 checkDraft() shows it on load if localStorage has a saved draft.
+                 resumeDraft() restores the form; discardDraft() clears it. -->
             <div class="draft-banner" id="draft-banner">
                 DRAFT FOUND - You have an unsaved route in progress
                 <div class="draft-actions">
@@ -1736,9 +1637,26 @@
                 </div>
             </div>
 
-            <!-- Page Content -->
+            <!-- ═══════════════════════════════════════════════════════
+                 PAGE CONTENT CONTAINER
+                 All 9 pages live here as siblings. Only the one with
+                 class="page active" is visible. setupNavigation() swaps
+                 the .active class on every nav-item click, then calls
+                 initializePage() to load data for the new page.
+            ════════════════════════════════════════════════════════════ -->
             <div class="page-content">
-                <!-- Log Trip Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: LOG  (#log-page)
+                     The main route builder. Active by default on load.
+                     Contains:
+                       • Route Details header (date + purpose form)
+                       • Route Builder body (dynamic stop list)
+                       • Day Total display (hidden until legs are resolved)
+                       • Map Preview (hidden until Preview Route is clicked)
+                       • Action Buttons (Clear / Preview Route / Save Route)
+                     Stop rows are injected dynamically by addStopAtIndex().
+                     Route pickers appear inline when a leg has no cache hit.
+                ════════════════════════════════════════════════════════ -->
                 <div class="page active" id="log-page">
                     <div class="page-header">
                         <h1 class="page-title">New Route</h1>
@@ -1774,7 +1692,7 @@
                         <div class="route-builder">
                             <div class="stops-section">
                                 <div id="stops-list">
-                                    <!-- Stop items will be added dynamically -->
+                                    <!-- Stop rows injected here by addStopAtIndex() / addStop() / removeStop() -->
                                 </div>
                                 <button class="add-stop-btn" onclick="addStop()" id="add-stop-btn">
                                     + Add Stop
@@ -1782,7 +1700,8 @@
                                 </button>
                             </div>
 
-                            <!-- Day Total -->
+                            <!-- Day Total: hidden until all legs have cached distances.
+                                 commitTotalDistance() sums legs and shows this panel. -->
                             <div class="day-total" id="day-total" style="display: none;">
                                 <div class="total-label">Day Total</div>
                                 <div class="total-value" id="total-value">
@@ -1791,7 +1710,9 @@
                                 <div class="total-note">Add stops to see breakdown</div>
                             </div>
 
-                            <!-- Map Preview -->
+                            <!-- Map Preview: hidden until previewRoute() is called.
+                                 toggleMapPreview() shows/hides it after the initial render.
+                                 The #map-container div is the Google Maps mount point. -->
                             <div class="map-preview" id="map-preview" style="display: none;">
                                 <div class="map-preview-header">
                                     <div class="map-preview-title">Route Preview</div>
@@ -1818,8 +1739,14 @@
                     </div>
                 </div>
 
-                <!-- Placeholder pages -->
-                <!-- Trip History Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: HISTORY  (#history-page)
+                     Reads all saved routes from localStorage, renders filter
+                     dropdowns (month / purpose / status), and builds a data
+                     table with date, route, miles, cost, and a delete button.
+                     Filter dropdowns call filterHistory() on change.
+                     Print buttons trigger printCurrentView() / printFilteredData().
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="history-page">
                     <div class="page-header">
                         <h1 class="page-title">Trip History</h1>
@@ -1835,12 +1762,6 @@
                                     <label>Month</label>
                                     <select id="filter-month" onchange="filterHistory()">
                                         <option value="">All Months</option>
-                                        <option value="2026-01">Jan 2026</option>
-                                        <option value="2026-02">Feb 2026</option>
-                                        <option value="2026-03">Mar 2026</option>
-                                        <option value="2026-04">Apr 2026</option>
-                                        <option value="2026-05">May 2026</option>
-                                        <option value="2026-06">Jun 2026</option>
                                     </select>
                                 </div>
                                 <div class="form-field">
@@ -1886,13 +1807,22 @@
                             </div>
                             
                             <div id="history-table-container">
-                                <!-- History table will be populated here -->
+                                <!-- Populated by renderHistoryTable() — one <tr> per saved route -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Locations Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: LOCATIONS  (#locations-page)
+                     Two sections:
+                       • Add New Location form — name, address, type, lat/lng.
+                         geocodeAddress() auto-fills lat/lng via Geocoding API.
+                         addNewLocation() saves to localStorage + ALM_LOCATIONS.
+                       • Location Directory grid — one card per location.
+                         editLocation(key) / deleteCustomLocation(key) on each card.
+                     Changes here update all stop-select dropdowns automatically.
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="locations-page">
                     <div class="page-header">
                         <h1 class="page-title">Locations</h1>
@@ -1908,15 +1838,15 @@
                             <div class="route-form" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
                                 <div class="form-field">
                                     <label>Location Name</label>
-                                    <input type="text" id="new-location-name" placeholder="e.g., ALM Alpharetta" class="form-control">
+                                    <input type="text" id="new-location-name" placeholder="e.g., ALM Alpharetta">
                                 </div>
                                 <div class="form-field">
                                     <label>Full Address</label>
-                                    <input type="text" id="new-location-address" placeholder="Street, City, State ZIP" class="form-control">
+                                    <input type="text" id="new-location-address" placeholder="Street, City, State ZIP">
                                 </div>
                                 <div class="form-field">
                                     <label>Location Type</label>
-                                    <select id="new-location-type" class="form-control">
+                                    <select id="new-location-type">
                                         <option value="dealership">Dealership</option>
                                         <option value="corporate">Corporate Office</option>
                                         <option value="home">Home/Personal</option>
@@ -1927,11 +1857,11 @@
                             <div class="route-form" style="grid-template-columns: 1fr 1fr 1fr auto; align-items: end;">
                                 <div class="form-field">
                                     <label>Latitude</label>
-                                    <input type="number" id="new-location-lat" step="0.000001" placeholder="34.123456" class="form-control">
+                                    <input type="number" id="new-location-lat" step="0.000001" placeholder="34.123456">
                                 </div>
                                 <div class="form-field">
                                     <label>Longitude</label>
-                                    <input type="number" id="new-location-lng" step="0.000001" placeholder="-84.123456" class="form-control">
+                                    <input type="number" id="new-location-lng" step="0.000001" placeholder="-84.123456">
                                 </div>
                                 <div class="form-field">
                                     <button class="btn btn-secondary" onclick="geocodeAddress()" id="geocode-btn">
@@ -1957,13 +1887,20 @@
                         </div>
                         <div class="route-builder">
                             <div id="locations-grid" class="locations-grid">
-                                <!-- Locations will be populated here -->
+                                <!-- Populated by loadLocations() — one .location-card per entry -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Distance Matrix Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: MATRIX  (#matrix-page)
+                     Renders a location × location grid from the distance cache.
+                     loadDistanceMatrix() builds the <table> and injects it into
+                     #distance-matrix-container. Each data cell is clickable —
+                     clicking calls matrixOpenSpotCheck(fromKey, toKey) to jump
+                     to the Spot-Check page with that pair pre-filled.
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="matrix-page">
                     <div class="page-header">
                         <h1 class="page-title">Distance Matrix</h1>
@@ -1975,13 +1912,21 @@
                         </div>
                         <div class="route-builder">
                             <div id="distance-matrix-container" class="distance-matrix-container">
-                                <!-- Distance matrix table will be populated here -->
+                                <!-- <table class="distance-matrix"> injected by loadDistanceMatrix() -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: CHARTS  (#charts-page)
+                     Three sections rendered by loadCharts():
+                       • Monthly Miles — Chart.js bar chart (#monthly-chart canvas)
+                       • Purpose Breakdown — Chart.js doughnut (#purpose-chart canvas)
+                       • Statistics Summary — stat cards grid (#stats-summary)
+                     Existing Chart.js instances are destroyed before re-render
+                     to avoid the "canvas already in use" error.
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="charts-page">
                     <div class="page-header">
                         <h1 class="page-title">Charts</h1>
@@ -2016,13 +1961,21 @@
                         </div>
                         <div class="route-builder">
                             <div id="stats-summary" class="stats-grid">
-                                <!-- Stats will be populated here -->
+                                <!-- Populated by updateStatsGrid() — one .stat-card per metric -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cost Report Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: COST  (#cost-page)
+                     Rendered by loadCostReport(). Three summary cards:
+                       • Total Miles  (#total-miles-card)
+                       • Total Reimbursement at IRS rate  (#total-reimbursement-card)
+                       • IRS Rate display  (#irs-rate-card)
+                     Below: monthly breakdown table built by createMonthlyCostTable().
+                     Print buttons trigger printCostReport() / printMonthlySummary().
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="cost-page">
                     <div class="page-header">
                         <h1 class="page-title">Cost Report</h1>
@@ -2067,20 +2020,33 @@
                             </div>
                             
                             <div id="monthly-cost-table">
-                                <!-- Monthly cost table will be populated here -->
+                                <!-- Populated by createMonthlyCostTable() — one section per month -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Distance Refresh Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: DIST-REFRESH  (#dist-refresh-page)
+                     Bulk-refreshes the distance cache via Directions API.
+                     Layout (top → bottom):
+                       • Sync Status Bar — Last Sync / Cache Entries / API / Health
+                       • Action Buttons — Refresh All / Refresh Used / Clear Cache
+                       • Terminal — live log output with blinking cursor
+                       • Route Picker Section (#dr-picker-section, hidden until fetch)
+                         ↳ Progress mini-bar (Fetched / Done / Remaining)
+                         ↳ Save All Picked button (#dr-save-btn)
+                         ↳ #dr-picker-list — one picker card per location pair
+                     runDistanceRefresh(mode) drives the whole flow.
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="dist-refresh-page">
                     <div class="page-header">
                         <h1 class="page-title">Distance Refresh</h1>
                         <p class="page-subtitle">CACHE MANAGEMENT & DISTANCE RECALCULATION</p>
                     </div>
 
-                    <!-- Status Bar -->
+                    <!-- Status Bar: four read-only metrics updated by updateDrStatusBar().
+                         Values are read from localStorage (cache key + sync timestamp). -->
                     <div class="sync-status-bar">
                         <div class="sync-status-item">
                             <span class="sync-status-label">Last Sync</span>
@@ -2103,10 +2069,12 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
+                    <!-- Refresh buttons: all three disabled while a run is active
+                         (drSetButtonsDisabled). Refresh Used counts only pairs that
+                         appear in at least one saved route. -->
                     <div class="refresh-btn-group">
                         <button class="btn-refresh-all" id="dr-btn-all" onclick="runDistanceRefresh('all')">
-                            ⟲ Refresh All Pairs (45)
+                            ⟲ Refresh All Pairs (<span id="dr-pair-count">?</span>)
                         </button>
                         <button class="btn-refresh-used" id="dr-btn-used" onclick="runDistanceRefresh('used')">
                             ⟲ Refresh Used Routes Only
@@ -2116,7 +2084,8 @@
                         </button>
                     </div>
 
-                    <!-- Terminal -->
+                    <!-- Terminal: output-only div. drLog(html) appends lines and
+                         re-plants the blinking cursor. drTimestamp() prefixes each line. -->
                     <div class="terminal-wrap">
                         <div class="terminal-header">
                             <div class="terminal-dot red"></div>
@@ -2125,14 +2094,57 @@
                             <span class="terminal-title">alm-distance-refresh — bash</span>
                         </div>
                         <div class="terminal-body" id="dr-terminal">
-                            <span class="t-dim">ALM Distance Refresh Terminal v13.5</span><br>
+                            <span class="t-dim">ALM Distance Refresh Terminal v1.9.4</span><br>
                             <span class="t-dim">── Ready. Choose a refresh option above to begin. ──</span><br>
                             <span class="t-cursor"></span>
                         </div>
                     </div>
+
+                    <!-- Route Picker Results: revealed after runDistanceRefresh() fetches
+                         all pairs. drRenderPickerCards() builds one card per pair.
+                         drPickRoute() records a selection. drSaveAllPicked() commits all
+                         choices to the cache and hides this section. -->
+                    <div id="dr-picker-section" style="display:none; margin-top:24px;">
+                        <div class="sync-status-bar" style="margin-bottom:16px;">
+                            <div class="sync-status-item">
+                                <span class="sync-status-label">Pairs Fetched</span>
+                                <span class="sync-status-value" id="dr-picker-fetched">0</span>
+                            </div>
+                            <div class="sync-divider"></div>
+                            <div class="sync-status-item">
+                                <span class="sync-status-label">Selections Made</span>
+                                <span class="sync-status-value" id="dr-picker-done">0</span>
+                            </div>
+                            <div class="sync-divider"></div>
+                            <div class="sync-status-item">
+                                <span class="sync-status-label">Remaining</span>
+                                <span class="sync-status-value" id="dr-picker-remaining">0</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div style="font-size:11px; color:#666; font-family:'Courier New',monospace; text-transform:uppercase; letter-spacing:1px;">
+                                Select your preferred route for each pair — shortest is Route 1
+                            </div>
+                            <button class="btn-refresh-all" id="dr-save-btn" onclick="drSaveAllPicked()" style="font-size:12px; padding:8px 20px;" disabled>
+                                ✓ Save All Selections
+                            </button>
+                        </div>
+                        <div id="dr-picker-list"></div>
+                    </div>
                 </div>
 
-                <!-- Distance Spot-Check Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: DIST-SPOTCHECK  (#dist-spotcheck-page)
+                     Tests a single location pair against the live API.
+                     Layout:
+                       • spotcheck-form — start/end dropdowns + Run button
+                       • #sc-result — result panel (hidden until check runs):
+                           Route Pair / Cached Distance / Live Distance / Diff / Badge
+                       • #sc-route-picker — inline picker to update cache
+                       • Recent Checks log (#sc-log) — last 20 checks, session only
+                     Can be jumped to directly from the Distance Matrix by clicking
+                     any cell (matrixOpenSpotCheck pre-fills start/end and auto-runs).
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="dist-spotcheck-page">
                     <div class="page-header">
                         <h1 class="page-title">Distance Spot-Check</h1>
@@ -2164,7 +2176,8 @@
                                 </div>
                             </div>
 
-                            <!-- Result panel -->
+                            <!-- Result panel: hidden (.spotcheck-result { display:none }) until
+                                 runSpotCheck() resolves. scPickAndSave() updates the badge to SAVED. -->
                             <div class="spotcheck-result" id="sc-result">
                                 <div class="spotcheck-row">
                                     <span class="spotcheck-key">Route Pair</span>
@@ -2187,10 +2200,21 @@
                                     <span id="sc-badge"></span>
                                 </div>
                             </div>
+
+                            <!-- Route picker: shown after live fetch completes.
+                                 One button per Directions API alternative, sorted shortest first.
+                                 scPickAndSave() writes the chosen miles to cache on click. -->
+                            <div id="sc-route-picker" style="display:none; margin-top:16px;">
+                                <div style="font-size:11px; color:#888; font-family:'Courier New',monospace; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">
+                                    Pick a route to save to the Distance Matrix ↓
+                                </div>
+                                <div class="route-picker-options" id="sc-picker-options"></div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Check Log -->
+                    <!-- Check Log: session-only. renderScLog() rebuilds from the
+                         in-memory scLog array (max 20 entries). clearSpotCheckLog() resets it. -->
                     <div class="route-card" style="margin-top:20px;">
                         <div class="route-card-header">
                             <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
@@ -2206,7 +2230,12 @@
                     </div>
                 </div>
 
-                <!-- Changelog Page -->
+                <!-- ═══════════════════════════════════════════════════
+                     PAGE: CHANGELOG  (#changelog-page)
+                     Version history rendered by loadChangelog(). The changelog
+                     array lives inside that function — add new entries at the TOP.
+                     Each entry: { version, date, features: [...] }
+                ════════════════════════════════════════════════════════ -->
                 <div class="page" id="changelog-page">
                     <div class="page-header">
                         <h1 class="page-title">Changelog</h1>
@@ -2218,7 +2247,7 @@
                         </div>
                         <div class="route-builder">
                             <div id="changelog-content" class="changelog-content">
-                                <!-- Changelog content will be populated here -->
+                                <!-- Populated by loadChangelog() — one .changelog-version div per release -->
                             </div>
                         </div>
                     </div>
@@ -2227,7 +2256,15 @@
         </main>
     </div>
 
-    <!-- Conflict Resolution Modal -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         CONFLICT RESOLUTION MODAL  (#conflict-modal)
+         Fixed overlay, hidden by default (.modal-overlay { display:none }).
+         showConflictModal() adds .show to make it visible.
+         The #conflicts-list is populated by createConflictElement() — one
+         card per conflict with Overwrite / Skip / Keep Both buttons.
+         Footer has bulk-resolve buttons and the Proceed button (#proceed-btn),
+         which is disabled until updateConflictsRemaining() reaches 0.
+    ════════════════════════════════════════════════════════════════════ -->
     <div class="modal-overlay" id="conflict-modal">
         <div class="conflict-modal">
             <div class="modal-header">
@@ -2236,7 +2273,7 @@
             </div>
             <div class="modal-body">
                 <div class="conflicts-list" id="conflicts-list">
-                    <!-- Conflicts will be populated dynamically -->
+                    <!-- Populated by createConflictElement() — one card per conflict -->
                 </div>
             </div>
             <div class="modal-footer">
@@ -2255,7 +2292,14 @@
         </div>
     </div>
 
-    <!-- Google Maps API -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         EXTERNAL SCRIPTS
+         Load order matters:
+           1. Google Maps JS API (async/defer, callback=initMap)
+           2. Chart.js          (synchronous, needed before loadCharts())
+           3. SheetJS (xlsx)    (synchronous, needed before importExcel())
+           4. Main app script   (inline <script> block — all app code)
+    ════════════════════════════════════════════════════════════════════ -->
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE&callback=initMap&libraries=geometry"></script>
     
     <!-- Chart.js for analytics -->
@@ -2265,6 +2309,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
+        // ════════════════════════════════════════════════════════════════════
+        //  CONSTANTS & GLOBAL STATE
+        //  App-wide constants, location data, and mutable runtime variables.
+        // ════════════════════════════════════════════════════════════════════
+
         // Constants
         const MAX_STOPS = 6;
         const GOOGLE_API_KEY = 'AIzaSyBjlBfZykUSXuKi-O3OGJ4YTfiI4H3CpdE';
@@ -2347,7 +2396,13 @@
         let importConflicts = [];
         let conflictResolutions = {};
 
-        // Conflict Resolution System
+        // ════════════════════════════════════════════════════════════════════
+        //  IMPORT CONFLICT RESOLUTION
+        //  Detect, display, and resolve conflicts when importing Excel data.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Compares incoming routes against existing saved routes and returns
+                // an array of conflict objects where dates and mileage overlap.
         function detectConflicts(newRoutes, existingRoutes) {
             const conflicts = [];
             const existingByDate = {};
@@ -2381,6 +2436,8 @@
             return conflicts;
         }
 
+        // Renders the conflict resolution modal with all detected conflicts
+                // and makes it visible on screen.
         function showConflictModal(conflicts) {
             importConflicts = conflicts;
             conflictResolutions = {};
@@ -2399,6 +2456,8 @@
             modal.classList.add('show');
         }
 
+        // Builds the HTML for a single conflict card — shows existing vs
+                // incoming data side-by-side with Overwrite / Skip / Keep Both buttons.
         function createConflictElement(conflict) {
             const div = document.createElement('div');
             div.className = 'conflict-item';
@@ -2473,6 +2532,8 @@
             return div;
         }
 
+        // Starting from originalDate, finds the next calendar date that does
+                // not already have a saved route (used by Keep Both mode).
         function findNextAvailableDate(originalDate) {
             const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
             const existingDates = new Set(existingRoutes.map(r => r.date));
@@ -2495,6 +2556,7 @@
             return testDate.toISOString().split('T')[0];
         }
 
+        // Converts a YYYY-MM-DD string to a human-readable date like "Feb 18, 2026".
         function formatDate(dateStr) {
             const date = new Date(dateStr + 'T00:00:00');
             return date.toLocaleDateString('en-US', { 
@@ -2505,6 +2567,8 @@
             });
         }
 
+        // Joins an array of stop objects into a readable string like
+                // "Home → ALM Kennesaw → ALM Corporate".
         function formatRoute(stops) {
             if (!stops || stops.length === 0) return 'No route';
             if (stops.length === 1) return stops[0].name;
@@ -2512,6 +2576,8 @@
             return `${stops[0].name} → ... → ${stops[stops.length - 1].name} (${stops.length} stops)`;
         }
 
+        // Updates the proposed adjusted date for a Keep Both conflict when
+                // the user manually changes the date input in the conflict card.
         function updateAdjustedDate(conflictId, newDate) {
             const conflict = importConflicts.find(c => c.id === conflictId);
             if (conflict) {
@@ -2524,6 +2590,8 @@
             }
         }
 
+        // Records the user's resolution choice (overwrite / skip / keep-both)
+                // for a specific conflict and updates the card's visual state.
         function resolveConflict(conflictId, resolution) {
             const conflict = importConflicts.find(c => c.id === conflictId);
             if (!conflict) return;
@@ -2558,6 +2626,8 @@
             updateConflictsRemaining();
         }
 
+        // Applies the same resolution to every unresolved conflict at once
+                // (used by the Skip All and Overwrite All buttons).
         function bulkResolve(resolution) {
             importConflicts.forEach(conflict => {
                 if (!conflictResolutions[conflict.id]) {
@@ -2568,6 +2638,8 @@
             showToast(`Applied "${resolution}" to all unresolved conflicts`, 'success');
         }
 
+        // Counts unresolved conflicts and updates the counter in the modal footer.
+                // Enables the Proceed button once all conflicts have a resolution.
         function updateConflictsRemaining() {
             const resolved = Object.keys(conflictResolutions).length;
             const remaining = importConflicts.length - resolved;
@@ -2576,6 +2648,8 @@
             document.getElementById('proceed-btn').disabled = remaining > 0;
         }
 
+        // Hides the conflict modal and discards all pending import data
+                // without writing anything to localStorage.
         function cancelImport() {
             const modal = document.getElementById('conflict-modal');
             modal.classList.remove('show');
@@ -2584,6 +2658,8 @@
             showToast('Import cancelled', 'warning');
         }
 
+        // Applies all resolved conflicts (merge, skip, or date-shift) and
+                // writes the final set of imported routes to localStorage.
         function proceedWithImport() {
             // Apply all resolutions and import the data
             const existingRoutes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
@@ -2645,13 +2721,20 @@
             conflictResolutions = {};
         }
 
-        // Initialize application
+        // ════════════════════════════════════════════════════════════════════
+        //  APP INIT & NAVIGATION
+        //  Bootstrap the app on DOMContentLoaded, set up nav click handlers,
+        //  and route each page to its initialization function.
+        // ════════════════════════════════════════════════════════════════════
+
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
             checkDraft();
             updateStatus();
         });
 
+        // Entry point called on DOMContentLoaded. Sets today's date, loads
+                // custom locations, builds the default route, wires up nav and auto-save.
         function initializeApp() {
             // Set today's date
             const today = new Date().toISOString().split('T')[0];
@@ -2676,12 +2759,20 @@
             }
         }
 
+        // Reads any user-added locations from localStorage and merges them
+                // into the global ALM_LOCATIONS object so they appear everywhere.
         function loadCustomLocationsIntoMemory() {
             const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
             Object.assign(ALM_LOCATIONS, customLocations);
         }
 
-        // Print Functions
+        // ════════════════════════════════════════════════════════════════════
+        //  PRINT FUNCTIONS
+        //  Trigger print dialogs for the current view, filtered data, or cost reports.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Stamps today's date onto the page header for the print header,
+                // then triggers window.print().
         function printCurrentView() {
             // Set print date attribute
             const pageHeader = document.querySelector('.page-header');
@@ -2692,6 +2783,8 @@
             window.print();
         }
 
+        // Only prints if filters are active on the History page; otherwise
+                // nudges the user to use Print Current View instead.
         function printFilteredData() {
             // For history page, ensure we're showing filtered data
             if (document.getElementById('history-page').classList.contains('active')) {
@@ -2708,6 +2801,8 @@
             printCurrentView();
         }
 
+        // Navigates to the Cost Report page if not already there, then
+                // triggers a print after a short delay to allow the page to load.
         function printCostReport() {
             // Switch to cost page if not already there
             const costPage = document.getElementById('cost-page');
@@ -2719,10 +2814,13 @@
             }
         }
 
+        // Alias for printCostReport — both produce the same output for now.
         function printMonthlySummary() {
             printCostReport(); // Same as cost report for now
         }
 
+        // Resets the stop list and adds the default two-stop layout:
+                // START (auto-selected to Home) and STOP 1 - END (empty).
         function initializeDefaultRoute() {
             // Clear any existing route
             currentRoute = [];
@@ -2739,6 +2837,8 @@
             updateAddStopButton();
         }
 
+        // Creates a single stop row DOM element at the given index, appends
+                // it to the stop list, and optionally auto-selects Home.
         function addStopAtIndex(index, indicatorClass, labelText, autoSelectHome) {
             const stopsList = document.getElementById('stops-list');
             
@@ -2770,6 +2870,8 @@
             }
         }
 
+        // Attaches click listeners to every sidebar nav item. On click:
+                // swaps active classes on nav items and pages, then calls initializePage().
         function setupNavigation() {
             const navItems = document.querySelectorAll('.nav-item[data-page]');
             const pages = document.querySelectorAll('.page');
@@ -2796,6 +2898,8 @@
             });
         }
 
+        // Router — called whenever a page becomes active. Dispatches to the
+                // correct load function (loadTripHistory, loadCharts, etc.) by page name.
         function initializePage(pageType) {
             switch(pageType) {
                 case 'history':
@@ -2825,11 +2929,20 @@
             }
         }
 
-        // Trip History Functions
+        // ════════════════════════════════════════════════════════════════════
+        //  TRIP HISTORY
+        //  Load, filter, render, and delete saved routes from localStorage.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Reads all saved routes, populates the month filter dropdown,
+                // applies active filters, and renders the history table.
         function loadTripHistory() {
             const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
             const container = document.getElementById('history-table-container');
-            
+
+            // Populate month filter dynamically from actual saved route dates
+            populateMonthFilter(routes);
+
             if (routes.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No trips recorded yet</p>';
                 return;
@@ -2839,6 +2952,29 @@
             renderHistoryTable(filteredRoutes);
         }
 
+        // Extracts unique YYYY-MM values from all route dates and rebuilds
+                // the month dropdown sorted newest first.
+        function populateMonthFilter(routes) {
+            const select = document.getElementById('filter-month');
+            if (!select) return;
+            const currentValue = select.value;
+
+            // Collect unique YYYY-MM values from all saved routes, sorted newest first
+            const months = [...new Set(routes.map(r => r.date.substring(0, 7)))]
+                .filter(Boolean)
+                .sort()
+                .reverse();
+
+            select.innerHTML = '<option value="">All Months</option>' + months.map(m => {
+                const [year, month] = m.split('-');
+                const label = new Date(parseInt(year), parseInt(month) - 1, 1)
+                    .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                return `<option value="${m}" ${m === currentValue ? 'selected' : ''}>${label}</option>`;
+            }).join('');
+        }
+
+        // Filters the routes array by the active month, purpose, and
+                // status dropdown selections.
         function applyHistoryFilters(routes) {
             const monthFilter = document.getElementById('filter-month')?.value;
             const purposeFilter = document.getElementById('filter-purpose')?.value;
@@ -2860,6 +2996,8 @@
             });
         }
 
+        // Builds and injects the full history <table> from the filtered
+                // routes array.
         function renderHistoryTable(routes) {
             const container = document.getElementById('history-table-container');
             
@@ -2906,10 +3044,13 @@
             container.appendChild(table);
         }
 
+        // Triggered by any filter dropdown change — simply reloads the
+                // history page with current filter values applied.
         function filterHistory() {
             loadTripHistory();
         }
 
+        // Resets all filter dropdowns to "All" and reloads the history.
         function clearFilters() {
             document.getElementById('filter-month').value = '';
             document.getElementById('filter-purpose').value = '';
@@ -2917,6 +3058,8 @@
             loadTripHistory();
         }
 
+        // Prompts for confirmation, removes the route with the matching id
+                // from localStorage, and reloads the history table.
         function deleteRoute(routeId) {
             if (!confirm('Are you sure you want to delete this route?')) return;
             
@@ -2928,7 +3071,14 @@
             loadTripHistory();
         }
 
-        // Locations Functions
+        // ════════════════════════════════════════════════════════════════════
+        //  LOCATIONS MANAGEMENT
+        //  Display the location directory, add/edit/delete custom locations,
+        //  geocode addresses, and sync changes to all dropdowns.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Merges ALM_LOCATIONS with custom locations from localStorage and
+                // renders a card grid with Edit and Delete buttons.
         function loadLocations() {
             const container = document.getElementById('locations-grid');
             
@@ -2959,6 +3109,8 @@
             container.innerHTML = locationCards;
         }
 
+        // Calls the Google Maps Geocoding API with the address field value
+                // and auto-fills the lat/lng inputs on success.
         async function geocodeAddress() {
             const address = document.getElementById('new-location-address').value.trim();
             
@@ -3018,6 +3170,8 @@
             }
         }
 
+        // Validates the new location form, generates a unique key, saves
+                // to localStorage and ALM_LOCATIONS, then refreshes all dropdowns.
         function addNewLocation() {
             const name = document.getElementById('new-location-name').value.trim();
             const address = document.getElementById('new-location-address').value.trim();
@@ -3090,6 +3244,8 @@
             showToast(`Location "${name}" added successfully`, 'success');
         }
 
+        // Pre-fills the location form with existing data and switches the
+                // Add button to Update mode for the given location key.
         function editLocation(key) {
             const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
             
@@ -3122,6 +3278,8 @@
             showToast(`Editing "${location.name}" - Update the fields and click "Update Location"`, 'warning');
         }
 
+        // Injects an "EDITING MODE" banner above the form so the user
+                // knows which location is being modified.
         function showEditModeNotice(locationName, key) {
             // Add or update edit notice
             let notice = document.getElementById('edit-mode-notice');
@@ -3143,6 +3301,8 @@
             `;
         }
 
+        // Saves the edited form values back to localStorage and ALM_LOCATIONS.
+                // Built-in locations get a new custom key; custom ones update in place.
         function updateLocation(key) {
             const name = document.getElementById('new-location-name').value.trim();
             const address = document.getElementById('new-location-address').value.trim();
@@ -3218,6 +3378,8 @@
             showToast(`Location "${originalName}" updated to "${name}"`, 'success');
         }
 
+        // Clears the form, resets the button back to Add Location,
+                // and removes the editing mode banner.
         function cancelLocationEdit() {
             // Clear form
             document.getElementById('new-location-name').value = '';
@@ -3240,6 +3402,8 @@
             showToast('Edit cancelled', 'success');
         }
 
+        // Confirms and then removes a custom location from localStorage
+                // and ALM_LOCATIONS, then refreshes the display and dropdowns.
         function deleteCustomLocation(key) {
             if (!key.startsWith('custom_')) {
                 showToast('Cannot delete built-in ALM locations', 'error');
@@ -3269,6 +3433,8 @@
             showToast(`Location "${locationName}" deleted`, 'success');
         }
 
+        // Syncs all stop-select dropdowns in the route builder to the
+                // current ALM_LOCATIONS (after adding, editing, or deleting a location).
         function updateRouteBuilderLocations() {
             // Update all route builder dropdown menus
             const selects = document.querySelectorAll('.stop-select');
@@ -3282,7 +3448,15 @@
             });
         }
 
-        // Distance Matrix Functions
+        // ════════════════════════════════════════════════════════════════════
+        //  DISTANCE MATRIX
+        //  Build and render the location-to-location distance grid from cache.
+        //  Cells are clickable — they jump to Spot-Check for that pair.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Reads the distance cache and renders a grid table of all
+                // location-to-location pairs. Every cell is clickable to open
+                // Spot-Check for that specific pair.
         function loadDistanceMatrix() {
             const container = document.getElementById('distance-matrix-container');
             const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
@@ -3306,16 +3480,11 @@
                         tableHTML += '<td class="distance-cell">-</td>';
                     } else {
                         const cacheKey = `${fromKey}_${toKey}`;
-                        const reverseKey = `${toKey}_${fromKey}`;
-                        const distance = cachedDistances[cacheKey] || cachedDistances[reverseKey];
-                        
-                        if (distance) {
-                            tableHTML += `<td class="distance-cell">${distance.toFixed(1)} mi</td>`;
-                        } else {
-                            // Calculate haversine as fallback
-                            const haversineDist = haversineDistance(fromLoc.lat, fromLoc.lng, toLoc.lat, toLoc.lng) * 1.25;
-                            tableHTML += `<td class="distance-cell unavailable" title="Estimated">${haversineDist.toFixed(1)} mi*</td>`;
-                        }
+                        const distance = cachedDistances[cacheKey];
+                        const cellContent = distance !== undefined ? `${parseFloat(distance).toFixed(1)} mi` : '—';
+                        const cellClass   = distance !== undefined ? 'distance-cell clickable' : 'distance-cell unavailable clickable';
+                        const cellTitle   = distance !== undefined ? `${cellContent} — click to update` : 'Not cached — click to spot-check';
+                        tableHTML += `<td class="${cellClass}" title="${cellTitle}" onclick="matrixOpenSpotCheck('${fromKey}','${toKey}')">${cellContent}</td>`;
                     }
                 });
                 
@@ -3324,16 +3493,41 @@
             
             tableHTML += '</tbody></table>';
             
-            // Add legend for estimated distances
-            tableHTML += '<div style="margin-top: 10px; font-size: 11px; color: #666;">* Estimated distances (not from Google Maps)</div>';
+            // Legend
+            tableHTML += '<div style="margin-top:10px; font-size:11px; color:#666;">— = Not yet cached. Click any cell to spot-check or update that pair.</div>';
             
             container.innerHTML = tableHTML;
         }
 
-        // Charts Functions
+        // Navigates to the Spot-Check page, pre-fills the start/end
+                // dropdowns with the clicked pair, and auto-runs the check.
+        function matrixOpenSpotCheck(fromKey, toKey) {
+            // Navigate to spot-check page
+            const navItem = document.querySelector('.nav-item[data-page="dist-spotcheck"]');
+            if (navItem) navItem.click();
+
+            // Pre-fill the dropdowns after the page renders
+            setTimeout(() => {
+                const startSel = document.getElementById('sc-start');
+                const endSel   = document.getElementById('sc-end');
+                if (startSel) startSel.value = fromKey;
+                if (endSel)   endSel.value   = toKey;
+                // Auto-run the check
+                runSpotCheck();
+            }, 50);
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        //  CHARTS & ANALYTICS
+        //  Monthly miles bar chart, purpose breakdown doughnut, and stats summary
+        //  grid — all powered by Chart.js from saved route data.
+        // ════════════════════════════════════════════════════════════════════
+
         let monthlyChart = null;
         let purposeChart = null;
 
+        // Entry point for the Charts page — destroys any existing Chart.js
+                // instances and rebuilds the monthly and purpose charts.
         function loadCharts() {
             const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
             
@@ -3350,6 +3544,8 @@
             updateStatsGrid(routes);
         }
 
+        // Groups routes by YYYY-MM and renders a bar chart of total miles
+                // per month using Chart.js.
         function createMonthlyChart(routes) {
             const ctx = document.getElementById('monthly-chart');
             if (!ctx) return;
@@ -3413,6 +3609,8 @@
             });
         }
 
+        // Groups routes by trip purpose and renders a doughnut chart
+                // of miles broken down by purpose.
         function createPurposeChart(routes) {
             const ctx = document.getElementById('purpose-chart');
             if (!ctx) return;
@@ -3456,6 +3654,8 @@
             });
         }
 
+        // Calculates aggregate stats (total trips, miles, cost, averages)
+                // and renders them as stat cards on the Charts page.
         function updateStatsGrid(routes) {
             const container = document.getElementById('stats-summary');
             
@@ -3496,7 +3696,14 @@
             container.innerHTML = statsHTML;
         }
 
-        // Cost Report Functions
+        // ════════════════════════════════════════════════════════════════════
+        //  COST REPORT
+        //  Calculate total mileage reimbursement at the IRS rate and render
+        //  a monthly breakdown table.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Sums total miles and reimbursement from all saved routes and
+                // updates the summary cards, then builds the monthly breakdown table.
         function loadCostReport() {
             const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
             
@@ -3511,6 +3718,8 @@
             createMonthlyCostTable(routes);
         }
 
+        // Groups routes by month and renders a table with trips, miles,
+                // total cost, and average cost per trip for each month.
         function createMonthlyCostTable(routes) {
             const container = document.getElementById('monthly-cost-table');
             
@@ -3575,194 +3784,224 @@
             container.appendChild(table);
         }
 
-        // Changelog Functions
+        // ════════════════════════════════════════════════════════════════════
+        //  CHANGELOG
+        //  Renders the full version history. Add new entries at the top of
+        //  the changelog array inside loadChangelog().
+        // ════════════════════════════════════════════════════════════════════
+
+        // Defines the full version history array and renders it as a list
+                // of version cards. Add new entries at the TOP of the changelog array.
         function loadChangelog() {
             const container = document.getElementById('changelog-content');
             
             const changelog = [
                 {
-                    version: 'v13.4',
+                    version: 'v1.9.4',
                     date: 'February 2026',
                     features: [
-                        'Smart Shortest-Path Routing - Routes now prioritize actual shortest distance over fastest time',
-                        'Multiple Route Analysis - Requests alternative routes and automatically chooses shortest',
-                        'Optimized Traffic Model - Uses OPTIMISTIC model to avoid traffic-heavy but longer routes',
-                        'Enhanced Route Optimization - Improved waypoint optimization for multi-stop routes',
-                        'Better Distance Accuracy - Should show 18 miles instead of 22.2 for Corporate to Buford'
+                        'Distance Matrix cells are now clickable — click any cell in the matrix to jump directly to the Spot-Check page with that pair pre-filled and the live check auto-running. Works for both cached values and empty cells.',
+                        'Spot-Check now shows all route alternatives as a picker — after fetching, all routes returned by the API appear as buttons sorted shortest first. You choose which one to save rather than always defaulting to the shortest.',
+                        'Spot-Check picker saves directly to the Distance Matrix — selecting a route writes it to cache and instantly refreshes the matrix if it is currently open, with no page reload required.',
+                        'Distance Refresh Save All also updates the matrix live — saving selections from the refresh picker now refreshes the matrix table on the spot if you have it open.',
+                        'Version number corrected on main page — title and logo now correctly show v1.9.x instead of the old v13.x numbering.'
                     ]
                 },
                 {
-                    version: 'v13.3',
+                    version: 'v1.9.3',
                     date: 'February 2026',
                     features: [
-                        'Edit ALL Locations - Now edit built-in ALM locations, not just custom ones',
-                        'Improved Distance Matrix Readability - Fixed dark header colors for better text visibility',
-                        'Universal Location Management - Edit any location name, address, coordinates, type',
-                        'Enhanced Edit Mode - Better handling of built-in vs custom location editing'
+                        'Distance Refresh now shows route picker — after fetching alternatives, all pairs are displayed as interactive cards below the terminal. You choose your preferred route for each pair, then click Save All Selections to write them to cache in one action. Nothing is saved automatically.',
+                        'Refresh picker counter — a status bar above the cards tracks how many pairs have been fetched, how many selections you have made, and how many remain. The Save button is locked until every pair has a selection.',
+                        'Dead code removed — getSingleLegDistance, getDistanceMatrix, cacheOptimizedDistances, getOptimizedDirections, updateDistanceDisplayFromDirections, and updateDistanceDisplay were all unreachable and have been deleted.',
+                        'Map preview traffic model removed — displayRouteOnMap no longer passes drivingOptions or trafficModel to the Directions API, consistent with the no-traffic policy applied everywhere else.',
+                        'Month filter now dynamic — the Trip History month dropdown is populated from actual saved route dates instead of a hardcoded list of 2026 months. Works for any year and updates automatically as new routes are added.'
                     ]
                 },
                 {
-                    version: 'v13.2',
+                    version: 'v1.9.2',
                     date: 'February 2026',
                     features: [
-                        'Modern Map Markers - Updated to AdvancedMarkerElement API (removes deprecation warnings)',
-                        'Edit Location Names - Click "Edit" button on custom locations to modify details',
-                        'Enhanced Location Management - Update name, address, coordinates, and type',
-                        'Smart Edit Mode - Form pre-fills with existing data and shows edit status',
-                        'Graceful Fallback - Still works with legacy markers if new API unavailable'
+                        'Distance Refresh overhauled — now uses Directions API (one call per pair) instead of Distance Matrix batch calls, eliminating the N×N grid cross-matching bug that caused wrong distances to be stored under wrong route pairs.',
+                        'Distance Spot-Check overhauled — switched from Distance Matrix API to Directions API with route alternatives, so spot-check results now exactly match what the route builder\'s picker shows.',
+                        'Spot-Check "Use Live Value" button — when a mismatch or missing cache entry is found, a one-click button lets you push the live API result directly into cache without running a full refresh.',
+                        'Refresh "Used Routes" no longer mirrors pairs — previously A→B would auto-add B→A to the cache as the same value. Now only the direction actually traveled is cached, since road distances are not always equal in both directions.',
+                        'Refresh pair count is now dynamic — the "Refresh All Pairs" button shows the real computed count based on actual locations in the app, not a hardcoded number.',
+                        'Distance Matrix display no longer shows haversine estimates — cells with no cached value now show "—" with a tooltip directing you to run a Distance Refresh, instead of a fake estimated number marked with an asterisk.',
+                        'Directions API in Refresh shows route count — each terminal log line now shows how many route alternatives were checked and confirms the shortest was picked.',
+                        'rebuildStopsList now clears route pickers — resuming a draft no longer leaves stale picker elements on screen from a previous session.'
                     ]
                 },
                 {
-                    version: 'v13.1',
+                    version: 'v1.9.1',
                     date: 'February 2026',
                     features: [
-                        'Fixed Google Maps API Error Handling - Better error messages and graceful degradation',
-                        'Enhanced Geocoding Fallback - App works with or without Geocoding API',
-                        'Improved API Troubleshooting - Console logs guide users through API setup',
-                        'Better Status Detection - More accurate Maps API connection status'
+                        'Route picker UI — when a leg has no cached distance, up to 3 route alternatives appear inline below the stop, sorted shortest to longest. You click the one that matches how you actually drive and it locks in. If only one route is available, a single "Confirm" button appears with a note.',
+                        'Distances are now directional — A→B and B→A are stored as separate cache entries since road distances are not always equal in both directions.',
+                        'Haversine fallback removed from all route calculation paths — if a leg cannot be fetched, the badge shows "N/A" in red rather than a fabricated estimate.',
+                        'Traffic completely removed from all API calls — drivingOptions block eliminated across all Directions API requests. All distances now reflect pure road distance with no time-of-day or traffic-model bias.',
+                        'Distance Matrix multi-leg bug fixed — previously getDistanceMatrix sent all stops as an N×N grid and only read rows[0], silently zeroing every leg beyond the first. Rewritten to call the API once per leg sequentially.',
+                        'Route builder\'s Distance Matrix fallback removed — the route builder now goes exclusively through the picker system and cache; the legacy getDistanceMatrix path is no longer triggered.',
+                        'Cache is populated on pick — selecting a route option writes it to localStorage immediately so future visits to the same pair load instantly without an API call.'
                     ]
                 },
                 {
-                    version: 'v13',
+                    version: 'v1.9.0',
                     date: 'February 2026',
                     features: [
-                        'Print-Friendly Views - Professional printing for reports and history',
-                        'Add New Locations - Create custom locations with geocoding support',
-                        'Fixed Distance Matrix Scrolling - Improved horizontal scroll on mobile',
-                        'Complete Changelog - All versions from v1-v13 documented',
-                        'Enhanced Print Styles - Clean black/white formatting for expense reports'
+                        'Distance Refresh page added to the APP section — a terminal-style CLI interface for bulk refreshing cached distances. Shows timestamps, step-by-step progress, individual pair results, and a blinking cursor.',
+                        'Three refresh modes available — Refresh All Pairs fetches every directional combination across all locations, Refresh Used Routes Only fetches pairs from saved trip history, and Clear Cache Only wipes the cache without making API calls.',
+                        'Status bar on Refresh page — shows last sync timestamp, total cache entries, Maps API connection state, and an overall health indicator color-coded green/amber/red.',
+                        'Distance Spot-Check page added — lets you test a single location pair without running a bulk refresh. Shows cached distance, live API distance, difference in miles and percentage, and a MATCH / MISMATCH / NO CACHE badge.',
+                        'Spot-Check running log — keeps a timestamped history of all checks run in the current session, up to 20 entries.',
+                        'Sidebar reorganized — Refresh Distances removed from the DATA section; Distance Refresh and Distance Spot-Check added to the APP section alongside Changelog.'
                     ]
                 },
                 {
-                    version: 'v12',
+                    version: 'v1.8.0',
                     date: 'February 2026',
                     features: [
-                        'Complete Dashboard - All navigation tabs now functional',
-                        'Trip History - View, filter, and manage all saved routes',
-                        'Interactive Charts - Monthly miles and purpose breakdown',
-                        'Cost Reporting - Detailed reimbursement calculations',
-                        'Locations Directory - All ALM locations with coordinates',
-                        'Distance Matrix - Cached distance lookup grid',
-                        'Working Excel Import/Export with SheetJS integration',
-                        'Enhanced navigation with page-specific initialization'
+                        'Universal location editing — all locations can now be edited, including built-in ALM dealerships and the corporate office, not just custom-added locations.',
+                        'Improved Distance Matrix readability — fixed dark header cell background colors that made column and row labels unreadable.',
+                        'Edit form pre-fills with existing data — clicking Edit on any location populates the form with its current name, address, coordinates, and type.',
+                        'Built-in vs custom edit handling — built-in locations edited in-place in memory, custom locations updated in localStorage, both reflected immediately across all dropdowns and the distance matrix.'
                     ]
                 },
                 {
-                    version: 'v11',
+                    version: 'v1.7.2',
                     date: 'February 2026',
                     features: [
-                        'Conflict Resolution - Smart import conflict detection',
-                        'Date Adjustment - Automatically suggest available dates',
-                        'Bulk Actions - Skip All, Overwrite All options',
-                        'Side-by-side Comparison - Existing vs incoming data',
-                        'Professional Modal UI - Sophisticated conflict interface'
+                        'Updated map markers to AdvancedMarkerElement API — replaces deprecated google.maps.Marker to eliminate deprecation warnings in the browser console.',
+                        'Graceful fallback — app continues working with legacy markers if the new AdvancedMarkerElement API is unavailable in the loaded Maps JS version.',
+                        'Custom marker shapes preserved — H marker for Home, C marker for Corporate, numbered markers for ALM locations, all retained with the new API.'
                     ]
                 },
                 {
-                    version: 'v10',
+                    version: 'v1.7.1',
                     date: 'February 2026',
                     features: [
-                        'Map Preview - Google Maps integration for route visualization',
-                        'Custom Markers - H (Home), C (Corporate), numbered (ALM locations)',
-                        'Route Visualization - Amber polylines with waypoints',
-                        'Toggle Show/Hide - Collapsible map interface',
-                        'Mobile Responsive - Works on all device sizes'
+                        'Improved Google Maps API error handling — app no longer silently fails when an API is missing; errors surface with descriptive messages.',
+                        'Geocoding API made optional — address lookup works when the Geocoding API is enabled, and degrades gracefully with a clear message when it is not.',
+                        'Console logging for API troubleshooting — startup checks log which APIs are available, making it easier to diagnose missing API activations in Google Cloud Console.',
+                        'Maps API status detection improved — the status pill in the header more accurately reflects whether Maps is actually functional, not just loaded.'
                     ]
                 },
                 {
-                    version: 'v9',
+                    version: 'v1.7.0',
                     date: 'February 2026',
                     features: [
-                        'Auto-save Drafts - Routes save automatically on changes',
-                        'Draft Recovery - Resume interrupted route building',
-                        'Draft Banner - Clear notification of unsaved work',
-                        'LocalStorage Integration - Persistent draft storage'
+                        'Print-friendly views — professional black and white print stylesheets added for expense reports and trip history.',
+                        'Print buttons on Trip History and Cost Report pages — Print Current View prints the active page, Print Filtered Data only works when filters are applied.',
+                        'Add new locations — custom location form on the Locations page lets you add any address with name, type, and coordinates. Geocoding support auto-fills coordinates from a street address.',
+                        'Custom locations appear everywhere immediately — route builder dropdowns, distance matrix, and spot-check all update as soon as a new location is saved.',
+                        'Delete custom locations — remove any custom-added location with a confirmation prompt.',
+                        'Fixed Distance Matrix horizontal scrolling — overflow now works correctly on mobile and portrait orientations with a sticky first column.',
+                        'Complete changelog added — all versions v1.0.0 through current documented in the Changelog page.'
                     ]
                 },
                 {
-                    version: 'v8',
+                    version: 'v1.6.0',
                     date: 'February 2026',
                     features: [
-                        'Cost Calculator - Reimbursement calculations',
-                        'IRS Rate Integration - $0.70/mile (2025 standard)',
-                        'Monthly Cost Breakdown - Detailed reporting',
-                        'Summary Cards - Total reimbursement display'
+                        'Smart import conflict detection — when importing an Excel file, the app identifies routes that share the same date and total miles as existing saved routes.',
+                        'Conflict resolution modal — side-by-side comparison of existing vs incoming data with three options per conflict: Overwrite (replace existing), Skip (keep existing), or Keep Both (import with an adjusted date).',
+                        'Date adjustment logic — Keep Both mode suggests the next available date that does not already have a conflicting entry.',
+                        'Bulk resolution actions — Skip All and Overwrite All buttons for handling many conflicts at once.',
+                        'Conflicts remaining counter — live count in the modal shows how many conflicts still need a decision before import can proceed.'
                     ]
                 },
                 {
-                    version: 'v7',
+                    version: 'v1.5.0',
                     date: 'February 2026',
                     features: [
-                        'Charts Integration - Monthly miles bar chart',
-                        'Purpose Analysis - Pie chart breakdown',
-                        'Chart.js Integration - Interactive visualizations',
-                        'Dark Theme Charts - Consistent styling'
+                        'Map preview — Google Maps integration renders a visual route preview with an amber polyline connecting all stops.',
+                        'Custom map markers — Home location marked with H, Corporate with C, ALM dealerships with sequential numbers.',
+                        'Route visualization toggle — map section is hidden by default and can be shown or hidden with a button, keeping the UI clean.',
+                        'Waypoint optimization — multi-stop routes use Google\'s optimizeWaypoints to find the best stop order.',
+                        'Mobile responsive map — map container scales correctly on all screen sizes.'
                     ]
                 },
                 {
-                    version: 'v6',
+                    version: 'v1.4.0',
                     date: 'February 2026',
                     features: [
-                        'Excel Import - Read previously downloaded files',
-                        'Smart Merge - Only import new routes, check date+miles',
-                        'Parse Summary + Detailed Legs sheets',
-                        'Preserve synced status from file'
+                        'Complete dashboard — all navigation tabs functional with page-specific initialization.',
+                        'Trip history — full table of saved routes with filtering by month, purpose, and reimbursable status. Delete individual routes.',
+                        'Interactive charts — monthly miles bar chart and trip purpose breakdown pie chart using Chart.js.',
+                        'Cost reporting — detailed reimbursement calculations at the IRS standard rate, monthly breakdown table with totals.',
+                        'Locations directory — all ALM locations listed with addresses, coordinates, and type.',
+                        'Distance matrix — grid showing cached road distances between all location pairs.',
+                        'Working Excel import and export — SheetJS integration generates a workbook with a Summary sheet and a Detailed Legs sheet. Import reads previously exported files.',
+                        'Functional navigation — all sidebar tabs work with proper page initialization hooks.'
                     ]
                 },
                 {
-                    version: 'v5',
+                    version: 'v1.3.0',
                     date: 'February 2026',
                     features: [
-                        'Force Resync - Per-row "Retry" button on unsynced routes',
-                        'Sync All Unsynced - Bulk button at top of history',
-                        'Auto-retry after sign-in - Reprocess failed syncs',
-                        'Error handling improvements'
+                        'Excel import — reads previously downloaded ALM export files and merges new routes into local storage.',
+                        'Smart merge — only imports routes not already present, matched by date and total miles to avoid duplicates.',
+                        'Parses both Summary and Detailed Legs sheets from the workbook.',
+                        'Preserves synced status from the imported file so previously synced records are not marked as unsynced.'
                     ]
                 },
                 {
-                    version: 'v4',
+                    version: 'v1.2.1',
                     date: 'February 2026',
                     features: [
-                        'Google Sheets Sync Fixes - Fixed URL encoding bugs',
-                        'Error surfacing in toasts for debugging',
-                        'Token expiry handling with re-auth flow',
-                        'Improved sync reliability'
+                        'Force resync — per-row Retry button on unsynced routes in Trip History lets you push individual failed entries to Google Sheets.',
+                        'Sync All Unsynced — bulk button at the top of Trip History pushes every unsynced route in one action.',
+                        'Auto-retry after sign-in — OAuth re-authentication automatically reprocesses routes that failed due to expired tokens.',
+                        'Improved sync error handling — failure reasons now surfaced in toast messages instead of silently swallowed.'
                     ]
                 },
                 {
-                    version: 'v3',
+                    version: 'v1.2.0',
                     date: 'February 2026',
                     features: [
-                        'Google Integration - Switched to Google Maps Distance Matrix API',
-                        'Google Sheets Auto-backup via OAuth 2.0',
-                        'Summary + Detailed Legs tabs sync',
-                        'Header status pills show connection state'
+                        'Google integration — switched from OpenRouteService to Google Maps Distance Matrix API for driving distances.',
+                        'Google Sheets auto-backup via OAuth 2.0 — saved routes sync automatically to a Google Sheet with a Summary tab and a Detailed Legs tab.',
+                        'Header status pills — real-time indicators show Maps API connection state and Sheets sync state.',
+                        'URL encoding bug fixes in Sheets sync — special characters in location names and purposes no longer break the sync request.',
+                        'Token expiry handling — app detects expired OAuth tokens and triggers a re-authentication flow before retrying.'
                     ]
                 },
                 {
-                    version: 'v2',
+                    version: 'v1.1.1',
                     date: 'February 2026',
                     features: [
-                        'Multi-Stop Route Builder - Up to 6 stops per route (5 legs)',
-                        'Visual connector UI - Green start, amber middle, red end',
-                        'Live leg-by-leg mileage with badges',
-                        'Zero-mile days supported (N/R only)',
-                        'Expandable leg detail in history',
-                        'Corrected 6 location addresses via web search',
-                        'Added dedicated Locations page'
+                        'Auto-save drafts — route builder state saves automatically to localStorage on every change (date, purpose, and all stop selections), so work is not lost if you navigate away or close the tab.',
+                        'Draft recovery banner — a "DRAFT FOUND" notification appears at the top of the route builder on next visit, offering to restore or discard the previous unfinished route.',
+                        'Draft clears automatically on successful save — once a route is saved to history, the draft is wiped so the banner does not reappear unnecessarily.',
+                        'Draft includes all route state — date, trip purpose, and the full ordered list of stops are all preserved and restored.'
                     ]
                 },
                 {
-                    version: 'v1',
+                    version: 'v1.1.0',
                     date: 'February 2026',
                     features: [
-                        'Initial Release - Single A→B trip logging',
-                        'OpenRouteService API for driving distances',
-                        '10 ALM locations with haversine estimates as fallback',
-                        'Distance matrix view and trip history',
-                        'Excel export functionality',
-                        'Home ↔ Corporate marked non-reimbursable',
-                        'Dark theme with amber accent colors'
+                        'Multi-stop route builder — replaced the original single A→B form with a dynamic stop list supporting up to 6 stops (5 legs) per day. Designed around the real workflow of visiting multiple ALM dealerships in a single outing.',
+                        'Visual connector UI — green dot for the start location, amber dots for intermediate stops, red dot for the final destination.',
+                        'Live leg-by-leg mileage — a distance badge appears on each stop row as soon as both ends of that leg have a location selected.',
+                        'Zero-mile days supported — routes with no mileage can be saved and marked non-reimbursable (e.g., Home to Corporate only).',
+                        'Add and remove stops dynamically — stops can be added mid-build up to the maximum, and removed with automatic re-indexing of all remaining stops.',
+                        'Six ALM location addresses corrected — verified coordinates for Gwinnett, Roswell, Buford, Kennesaw, Newnan, and Union City via web lookup and updated in the app.',
+                        'Dedicated Locations page added — lists all 10 ALM locations with their full street addresses, GPS coordinates, and location type.'
+                    ]
+                },
+                {
+                    version: 'v1.0.0',
+                    date: 'February 2026',
+                    features: [
+                        'Initial release — single A→B trip logging with date selection, trip purpose dropdown, and a reimbursable/non-reimbursable toggle.',
+                        'OpenRouteService API for driving distance calculation — free tier with email-only signup, API key stored in browser localStorage so it persists between sessions.',
+                        '10 ALM locations pre-loaded — Home (Canton), ALM Corporate (Union City area), and 8 dealership locations across the Atlanta metro area.',
+                        'Haversine straight-line formula with 1.25x road multiplier as fallback — used when the API is unavailable or the key has not been entered.',
+                        'Distance matrix view — grid showing pairwise distances between all location combinations, with cached API values or fallback estimates.',
+                        'Trip history with localStorage persistence — all saved routes survive page reloads and browser restarts.',
+                        'Excel export via SheetJS — downloads a workbook with a Summary sheet listing one row per trip day.',
+                        'Home to Corporate flagged as non-reimbursable automatically — these commute-equivalent trips are excluded from reimbursement calculations.',
+                        'Dark theme with amber accent colors — industrial dashboard aesthetic established in v1 and maintained throughout.'
                     ]
                 }
             ];
@@ -3782,6 +4021,14 @@
             container.innerHTML = changelogHTML;
         }
 
+        // ════════════════════════════════════════════════════════════════════
+        //  ROUTE BUILDER — AUTO-SAVE & STOP MANAGEMENT
+        //  Auto-save drafts on input changes. Add, remove, and re-label stops.
+        //  Keep the stop counter and Add button in sync.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Attaches input/change listeners to the date and purpose fields
+                // so the draft saves automatically whenever either changes.
         function setupAutoSave() {
             // Auto-save draft when inputs change
             const inputs = ['trip-date', 'trip-purpose'];
@@ -3794,6 +4041,8 @@
             });
         }
 
+        // Adds a new blank middle stop to the route (up to MAX_STOPS).
+                // Updates labels, counter, and saves the draft.
         function addStop() {
             if (currentRoute.length >= MAX_STOPS) {
                 showToast('Maximum 6 stops allowed', 'warning');
@@ -3836,6 +4085,8 @@
             saveDraft();
         }
 
+        // Recalculates how many stops and legs are filled and updates
+                // the counter text inside the Add Stop button.
         function updateStopCounter() {
             const validStops = currentRoute.filter(stop => stop.location).length;
             const legs = Math.max(0, validStops - 1);
@@ -3855,6 +4106,8 @@
             }
         }
 
+        // Removes the stop at the given index, re-indexes all remaining
+                // stops, refreshes labels, and recalculates the route.
         function removeStop(index) {
             if (index === 0) {
                 showToast('Cannot remove START location', 'warning');
@@ -3895,6 +4148,8 @@
             saveDraft();
         }
 
+        // Called when a stop's dropdown changes. Saves the selected location
+                // key, refreshes labels/counter, and triggers route recalculation.
         function updateRoute(index) {
             const stopItem = document.querySelector(`[data-index="${index}"]`);
             const select = stopItem.querySelector('select');
@@ -3911,6 +4166,8 @@
             }
         }
 
+        // Walks all stop rows and sets the correct label and dot color:
+                // START (green), middle STOP N (amber), END (red).
         function updateStopLabels() {
             const stopItems = document.querySelectorAll('.stop-item');
             stopItems.forEach((item, i) => {
@@ -3933,12 +4190,19 @@
             });
         }
 
+        // Hides the Add Stop button when the route is already at MAX_STOPS.
         function updateAddStopButton() {
             const addBtn = document.getElementById('add-stop-btn');
             addBtn.style.display = currentRoute.length >= MAX_STOPS ? 'none' : 'inline-flex';
         }
 
-        // Smart Routing Configuration
+        // ════════════════════════════════════════════════════════════════════
+        //  ROUTE CALCULATION & LEG PICKER
+        //  For each leg: check cache first. If uncached, call Directions API
+        //  with alternatives and show a picker. User selects distance,
+        //  it writes to cache and locks in the leg total.
+        // ════════════════════════════════════════════════════════════════════
+
         let routingPreference = 'shortest';
 
         // ── Route Picker System ───────────────────────────────────────────
@@ -3946,6 +4210,8 @@
         // If not cached, call the Directions API with alternatives and show
         // the user a picker so they choose which route distance to lock in.
 
+        // Processes every leg in the current route. Cache hits show the
+                // distance immediately; misses trigger showLegPicker() for that leg.
         async function calculateOptimalRoute() {
             const validStops = currentRoute.filter(stop => stop.location);
             if (validStops.length < 2) {
@@ -3986,10 +4252,14 @@
             // by pickRoute() once all legs resolve
         }
 
+        // Removes all inline route picker elements from the DOM — called
+                // before each recalculation to avoid stale pickers accumulating.
         function clearAllRoutePickers() {
             document.querySelectorAll('.route-picker').forEach(el => el.remove());
         }
 
+        // Updates the distance badge on the stop row at stopIndex
+                // to show the confirmed miles for that leg.
         function showLegDistance(stopIndex, miles) {
             const stopItem = document.querySelector(`[data-index="${stopIndex}"]`);
             if (!stopItem) return;
@@ -3999,6 +4269,8 @@
             badge.style.background = '';
         }
 
+        // Checks that every leg has a cached value, sums them, and updates
+                // the Day Total display. Does nothing if any leg is still unresolved.
         function commitTotalDistance(miles) {
             // Only commit if ALL legs have a selected distance
             const validStops = currentRoute.filter(s => s.location);
@@ -4023,6 +4295,9 @@
             updateButtons();
         }
 
+        // Inserts a route picker card below the destination stop for this leg.
+                // Fetches Directions API alternatives and renders one button per route,
+                // sorted shortest first.
         async function showLegPicker(legIndex, validStops, fromKey, toKey) {
             // Insert a loading picker below this stop item
             const stopIndex = legIndex + 1; // data-index of the destination stop
@@ -4107,6 +4382,8 @@
             }
         }
 
+        // Called when the user clicks a route option button. Writes the chosen
+                // distance to cache, updates the leg badge, and tries to commit the total.
         function pickRoute(fromKey, toKey, miles, pickerId, btn) {
             // Mark selected
             const picker = document.getElementById(pickerId);
@@ -4134,156 +4411,10 @@
             }, 800);
         }
 
-        // Legacy: kept so cacheOptimizedDistances still works from the directions path
-        function getOptimizedDirections(stops) {
-            // No longer called directly — calculateOptimalRoute handles per-leg
-            return Promise.resolve(null);
-        }
 
-        function updateDistanceDisplayFromDirections(directionsResult) {
-            // No longer called directly — commitTotalDistance handles display
-            if (!directionsResult) return;
-        }
 
-        function cacheOptimizedDistances(directionsResult) {
-            // Cache each leg separately — A→B and B→A are NOT assumed equal
-            const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
-            const legs = directionsResult.routes[0].legs;
-            const validStops = currentRoute.filter(stop => stop.location);
-
-            legs.forEach((leg, index) => {
-                const fromKey = validStops[index].location;
-                const toKey   = validStops[index + 1].location;
-                const miles   = parseFloat((leg.distance.value * 0.000621371).toFixed(2));
-                // Store A→B only — reverse direction gets its own API call when needed
-                cachedDistances[`${fromKey}_${toKey}`] = miles;
-            });
-
-            localStorage.setItem('maps_distances_v2', JSON.stringify(cachedDistances));
-        }
-
-        // Calls the Distance Matrix API exactly once per leg (1 origin → 1 destination).
-        // This prevents the N×N grid cross-matching bug where rows[0].elements was the
-        // only row ever read, silently zeroing every leg beyond the first.
-        async function getSingleLegDistance(fromKey, toKey) {
-            const service = new google.maps.DistanceMatrixService();
-            const fromLoc = ALM_LOCATIONS[fromKey];
-            const toLoc   = ALM_LOCATIONS[toKey];
-
-            return new Promise((resolve, reject) => {
-                service.getDistanceMatrix({
-                    origins:      [new google.maps.LatLng(fromLoc.lat, fromLoc.lng)],
-                    destinations: [new google.maps.LatLng(toLoc.lat,   toLoc.lng)],
-                    travelMode:   google.maps.TravelMode.DRIVING,
-                    unitSystem:   google.maps.UnitSystem.IMPERIAL,
-                    avoidHighways: false,
-                    avoidTolls:    false
-                }, (response, status) => {
-                    if (status !== google.maps.DistanceMatrixStatus.OK) {
-                        reject(new Error(`Distance Matrix error: ${status}`));
-                        return;
-                    }
-                    const el = response.rows[0].elements[0];
-                    if (el.status !== 'OK') {
-                        reject(new Error(`Leg error: ${el.status}`));
-                        return;
-                    }
-                    const miles = parseFloat((el.distance.value * 0.000621371).toFixed(2));
-                    resolve(miles);
-                });
-            });
-        }
-
-        // Replaces the old getDistanceMatrix + updateDistanceDisplay pair.
-        // Fetches each leg sequentially, caches each direction independently,
-        // and updates the UI as results arrive — no haversine fallback.
-        async function getDistanceMatrix(stops) {
-            const service = new google.maps.DistanceMatrixService();
-            let totalMiles = 0;
-            const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
-
-            for (let i = 0; i < stops.length - 1; i++) {
-                const fromKey = stops[i].location;
-                const toKey   = stops[i + 1].location;
-                const cacheKey = `${fromKey}_${toKey}`;
-
-                let miles;
-                if (cachedDistances[cacheKey] !== undefined) {
-                    // Cache hit — use stored value
-                    miles = cachedDistances[cacheKey];
-                } else {
-                    // No cache — call API for this single leg only
-                    const fromLoc = ALM_LOCATIONS[fromKey];
-                    const toLoc   = ALM_LOCATIONS[toKey];
-
-                    const response = await new Promise((resolve, reject) => {
-                        service.getDistanceMatrix({
-                            origins:      [new google.maps.LatLng(fromLoc.lat, fromLoc.lng)],
-                            destinations: [new google.maps.LatLng(toLoc.lat,   toLoc.lng)],
-                            travelMode:   google.maps.TravelMode.DRIVING,
-                            unitSystem:   google.maps.UnitSystem.IMPERIAL,
-                            avoidHighways: false,
-                            avoidTolls:    false
-                        }, (resp, status) => {
-                            if (status === google.maps.DistanceMatrixStatus.OK) resolve(resp);
-                            else reject(new Error(`Distance Matrix error: ${status}`));
-                        });
-                    });
-
-                    const el = response.rows[0].elements[0];
-                    if (el.status !== 'OK') {
-                        // No haversine fallback — show unavailable rather than a wrong number
-                        const stopItem = document.querySelector(`[data-index="${i + 1}"]`);
-                        if (stopItem) {
-                            const badge = stopItem.querySelector('.stop-distance');
-                            badge.textContent = 'N/A';
-                            badge.style.display = 'block';
-                            badge.style.background = '#ef4444';
-                        }
-                        continue;
-                    }
-
-                    miles = parseFloat((el.distance.value * 0.000621371).toFixed(2));
-                    // Cache A→B only — B→A is a separate direction with its own value
-                    cachedDistances[cacheKey] = miles;
-                }
-
-                totalMiles += miles;
-
-                // Update leg badge
-                const stopItem = document.querySelector(`[data-index="${i + 1}"]`);
-                if (stopItem) {
-                    const badge = stopItem.querySelector('.stop-distance');
-                    badge.textContent = `${miles} mi`;
-                    badge.style.display  = 'block';
-                    badge.style.background = '';
-                }
-            }
-
-            // Persist any newly fetched legs to cache
-            localStorage.setItem('maps_distances_v2', JSON.stringify(cachedDistances));
-
-            // Update total display
-            totalDistance = totalMiles;
-            document.getElementById('total-value').innerHTML = `${totalMiles.toFixed(1)}<span class="total-unit">miles</span>`;
-            document.getElementById('day-total').style.display = 'block';
-            document.getElementById('total-miles-display').textContent = totalMiles.toFixed(1);
-            updateMapsStatus('connected');
-            updateButtons();
-
-            // Return a dummy object so the caller doesn't break
-            return { _handled: true };
-        }
-
-        function updateDistanceDisplay(distanceMatrix) {
-            // This function is now a no-op when getDistanceMatrix handles display directly.
-            // It remains here as a safety shim for any legacy call paths.
-            if (distanceMatrix && distanceMatrix._handled) return;
-
-            // Legacy fallback path (should not normally be reached)
-            console.warn('updateDistanceDisplay called with unhandled matrix — this is a bug.');
-        }
-
+        // Zeroes out totalDistance, hides the Day Total panel and all leg
+                // badges, and disables the Preview and Save buttons.
         function resetDistanceDisplay() {
             totalDistance = 0;
             document.getElementById('day-total').style.display = 'none';
@@ -4297,6 +4428,8 @@
             updateButtons();
         }
 
+        // Enables or disables the Preview Route and Save Route buttons based
+                // on whether there are at least 2 stops and a non-zero total distance.
         function updateButtons() {
             const previewBtn = document.getElementById('preview-btn');
             const saveBtn = document.getElementById('save-btn');
@@ -4306,7 +4439,14 @@
             saveBtn.disabled = !hasValidRoute || totalDistance === 0;
         }
 
-        // Google Maps Integration
+        // ════════════════════════════════════════════════════════════════════
+        //  GOOGLE MAPS INTEGRATION
+        //  Initialize the Maps JS client, render route previews, draw custom
+        //  SVG markers (H=Home, C=Corporate, 1-N=dealerships).
+        // ════════════════════════════════════════════════════════════════════
+
+        // Google Maps JS API callback. Initializes the Map, DirectionsService,
+                // and DirectionsRenderer. Updates the Maps status pill on success/failure.
         function initMap() {
             try {
                 isMapInitialized = true;
@@ -4358,6 +4498,8 @@
             }
         }
 
+        // Shows the map container, mounts the map div, and calls
+                // displayRouteOnMap() to draw the current route on screen.
         function previewRoute() {
             const validStops = currentRoute.filter(stop => stop.location);
             
@@ -4393,6 +4535,8 @@
             document.getElementById('map-toggle-btn').textContent = 'Hide Map';
         }
 
+        // Sends a Directions request for the full route (with waypoints) and
+                // hands the result to directionsRenderer. No traffic, distance only.
         function displayRouteOnMap(stops) {
             const waypoints = stops.slice(1, -1).map(stop => {
                 const loc = ALM_LOCATIONS[stop.location];
@@ -4410,26 +4554,17 @@
                 destination: new google.maps.LatLng(end.lat, end.lng),
                 waypoints: waypoints,
                 travelMode: google.maps.TravelMode.DRIVING,
-                optimizeWaypoints: true,  // Enable route optimization for shortest path
-                avoidHighways: false,     // Allow highways for potentially shorter routes
-                avoidTolls: false,        // Allow toll roads if they're shorter
-                region: 'US',             // Optimize for US routing
-                drivingOptions: {
-                    departureTime: new Date(),
-                    trafficModel: google.maps.TrafficModel.BEST_GUESS
-                },
-                provideRouteAlternatives: false  // Use the single best route
+                optimizeWaypoints: true,
+                avoidHighways: false,
+                avoidTolls: false,
+                region: 'US',
+                provideRouteAlternatives: false
+                // No drivingOptions — pure road distance, no traffic
             };
 
             directionsService.route(request, (result, status) => {
                 if (status === 'OK') {
                     directionsRenderer.setDirections(result);
-                    
-                    // Log optimized route info
-                    console.log('Route optimized:', result.routes[0].optimized_waypoint_order);
-                    console.log('Total distance:', result.routes[0].legs.reduce((sum, leg) => sum + leg.distance.value, 0) * 0.000621371, 'miles');
-                    
-                    // Add custom markers for ALM locations
                     addCustomMarkers(stops);
                 } else {
                     console.error('Directions request failed:', status);
@@ -4438,6 +4573,9 @@
             });
         }
 
+        // Places SVG markers on the map for each stop: H (green) for Home,
+                // C (red) for Corporate, numbered amber circles for dealerships.
+                // Uses AdvancedMarkerElement with a fallback to legacy Marker.
         function addCustomMarkers(stops) {
             stops.forEach((stop, index) => {
                 const location = ALM_LOCATIONS[stop.location];
@@ -4506,6 +4644,8 @@
             });
         }
 
+        // If the map is hidden, calls previewRoute() to show it.
+                // If visible, hides it and resets the toggle button label.
         function toggleMapPreview() {
             const mapSection = document.getElementById('map-preview');
             const toggleBtn = document.getElementById('map-toggle-btn');
@@ -4518,7 +4658,14 @@
             }
         }
 
-        // Route Management
+        // ════════════════════════════════════════════════════════════════════
+        //  ROUTE SAVE, DRAFT & STATUS
+        //  Save completed routes to localStorage, manage the auto-draft
+        //  (resume/discard), and update the header status pills.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Resets currentRoute, clears the stops list and pickers, hides the
+                // map, and re-initializes the default two-stop layout.
         function clearRoute() {
             currentRoute = [];
             document.getElementById('stops-list').innerHTML = '';
@@ -4537,6 +4684,8 @@
             clearDraft();
         }
 
+        // Validates the form, builds a route data object, appends it to
+                // localStorage, then clears the form and draft.
         function saveRoute() {
             const date = document.getElementById('trip-date').value;
             const purpose = document.getElementById('trip-purpose').value;
@@ -4577,6 +4726,8 @@
             showToast(`Trip saved successfully! ${isNonReimbursable ? '(Non-reimbursable)' : ''}`, 'success');
         }
 
+        // Returns true if the route is a direct Home ↔ Corporate commute,
+                // which is excluded from mileage reimbursement.
         function checkNonReimbursable(stops) {
             // Home <-> Corporate is non-reimbursable
             if (stops.length === 2) {
@@ -4588,6 +4739,8 @@
         }
 
         // Draft Management
+        // Serializes the current date, purpose, and stop selections to
+                // localStorage so work is not lost if the user navigates away.
         function saveDraft() {
             const draftData = {
                 date: document.getElementById('trip-date').value,
@@ -4599,6 +4752,8 @@
             localStorage.setItem('alm_draft_route', JSON.stringify(draftData));
         }
 
+        // On startup, checks if a draft exists and shows the resume banner
+                // if one is found.
         function checkDraft() {
             const draft = localStorage.getItem('alm_draft_route');
             if (draft) {
@@ -4607,6 +4762,8 @@
             }
         }
 
+        // Restores date, purpose, and stop selections from the saved draft,
+                // then recalculates the route.
         function resumeDraft() {
             const draft = localStorage.getItem('alm_draft_route');
             if (draft) {
@@ -4628,16 +4785,20 @@
             }
         }
 
+        // Deletes the draft from localStorage and hides the resume banner.
         function discardDraft() {
             clearDraft();
             document.getElementById('draft-banner').classList.remove('show');
             showToast('Draft discarded', 'warning');
         }
 
+        // Low-level: removes the draft key from localStorage.
         function clearDraft() {
             localStorage.removeItem('alm_draft_route');
         }
 
+        // Reconstructs the stop rows from the currentRoute array — used
+                // after resuming a draft to restore the full UI state.
         function rebuildStopsList() {
             const stopsList = document.getElementById('stops-list');
             stopsList.innerHTML = '';
@@ -4680,6 +4841,8 @@
         }
 
         // Status Management
+        // Checks Maps API availability and updates both status pills in the
+                // header (Maps and Sheets).
         function updateStatus() {
             updateMapsStatus('checking');
             updateSheetsStatus('checking');
@@ -4703,6 +4866,7 @@
             }, 1000);
         }
 
+        // Sets the Maps status pill to green (MAPS ACTIVE) or red (MAPS ERROR).
         function updateMapsStatus(status) {
             const pill = document.getElementById('maps-status');
             if (status === 'connected') {
@@ -4714,6 +4878,7 @@
             }
         }
 
+        // Sets the Sheets status pill to green (connected) or red (sign in).
         function updateSheetsStatus(status) {
             const pill = document.getElementById('sheets-status');
             if (status === 'connected') {
@@ -4725,14 +4890,27 @@
             }
         }
 
-        // ── Distance Refresh Page ─────────────────────────────────────────
+        // ════════════════════════════════════════════════════════════════════
+        //  DISTANCE REFRESH
+        //  Bulk-fetch driving distances for all pairs (or used-only) via the
+        //  Directions API. Results shown as a route picker — user selects
+        //  preferred route per pair, then saves all at once.
+        // ════════════════════════════════════════════════════════════════════
 
         let drRunning = false;
 
+        // Called when the Distance Refresh page becomes active. Refreshes
+                // the status bar and updates the dynamic pair count on the button.
         function initDistRefreshPage() {
             updateDrStatusBar();
+            // Dynamic pair count: N locations × (N-1) directions
+            const n = Object.keys(ALM_LOCATIONS).length;
+            const el = document.getElementById('dr-pair-count');
+            if (el) el.textContent = n * (n - 1);
         }
 
+        // Reads cache and sync metadata from localStorage and updates all
+                // four status bar values (Last Sync, Cache Entries, API, Health).
         function updateDrStatusBar() {
             const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
             const count = Object.keys(cache).length;
@@ -4771,6 +4949,8 @@
             }
         }
 
+        // Appends an HTML line to the terminal output, removes the old
+                // blinking cursor, re-adds it at the end, and auto-scrolls.
         function drLog(html) {
             const terminal = document.getElementById('dr-terminal');
             // Remove cursor if present
@@ -4784,16 +4964,21 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
+        // Returns the current time as HH:MM:SS (24h) for terminal log lines.
         function drTimestamp() {
             return new Date().toLocaleTimeString('en-US', { hour12: false });
         }
 
+        // Enables or disables all three Distance Refresh action buttons
+                // while a fetch is in progress.
         function drSetButtonsDisabled(disabled) {
             ['dr-btn-all', 'dr-btn-used', 'dr-btn-clear'].forEach(id => {
                 document.getElementById(id).disabled = disabled;
             });
         }
 
+        // Wipes maps_distances_v2 and the last-sync timestamp from
+                // localStorage and logs the result to the terminal.
         function clearDistanceCache() {
             const terminal = document.getElementById('dr-terminal');
             terminal.innerHTML = '';
@@ -4808,9 +4993,16 @@
             showToast('Distance cache cleared', 'success');
         }
 
+        // Holds fetched route alternatives keyed by "fromKey_toKey"
+        let drFetchedRoutes = {};
+        let drPickerSelections = {};
+
+        // Main refresh loop. Determines pairs (all or used-routes-only),
+                // fetches Directions API alternatives for each, stores results in
+                // drFetchedRoutes, then renders the route picker cards.
         async function runDistanceRefresh(mode) {
             if (drRunning) return;
-            if (typeof google === 'undefined' || !google.maps) {
+            if (typeof google === 'undefined' || !google.maps || !directionsService) {
                 showToast('Google Maps API not available', 'error');
                 const terminal = document.getElementById('dr-terminal');
                 terminal.innerHTML = '';
@@ -4820,37 +5012,33 @@
             }
 
             drRunning = true;
+            drFetchedRoutes = {};
+            drPickerSelections = {};
             drSetButtonsDisabled(true);
+
+            // Hide picker section from previous run
+            document.getElementById('dr-picker-section').style.display = 'none';
+            document.getElementById('dr-picker-list').innerHTML = '';
 
             const terminal = document.getElementById('dr-terminal');
             terminal.innerHTML = '';
 
             drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-hi">ALM Distance Refresh — ${mode === 'all' ? 'Full (All Pairs)' : 'Used Routes Only'}</span>`);
             drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Using Directions API — pure road distance, no traffic. You pick the route.</span>`);
 
-            // Step 1: Clear cache
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 1: Clearing existing cache…</span>`);
-            await drDelay(300);
-            const oldCache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
-            const oldCount = Object.keys(oldCache).length;
-            localStorage.removeItem('maps_distances_v2');
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Cache cleared.</span> <span class="t-dim">${oldCount} old entries removed.</span>`);
-
-            // Step 2: Determine pairs
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 2: Determining location pairs…</span>`);
+            // Step 1: Determine pairs
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 1: Determining location pairs…</span>`);
             await drDelay(200);
             let pairs = [];
             const allKeys = Object.keys(ALM_LOCATIONS);
 
             if (mode === 'all') {
-                for (let i = 0; i < allKeys.length; i++) {
-                    for (let j = 0; j < allKeys.length; j++) {
+                for (let i = 0; i < allKeys.length; i++)
+                    for (let j = 0; j < allKeys.length; j++)
                         if (i !== j) pairs.push([allKeys[i], allKeys[j]]);
-                    }
-                }
-                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Mode: All Pairs.</span> <span class="t-dim">${pairs.length} pairs identified (${allKeys.length} locations).</span>`);
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Mode: All Pairs.</span> <span class="t-dim">${pairs.length} directional pairs (${allKeys.length} locations).</span>`);
             } else {
-                // Build pairs from saved routes
                 const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
                 const pairSet = new Set();
                 routes.forEach(route => {
@@ -4858,124 +5046,197 @@
                         for (let i = 0; i < route.stops.length - 1; i++) {
                             const a = route.stops[i].location;
                             const b = route.stops[i + 1].location;
-                            if (a && b && a !== b) {
-                                pairSet.add(`${a}|${b}`);
-                                pairSet.add(`${b}|${a}`);
-                            }
+                            if (a && b && a !== b) pairSet.add(`${a}|${b}`);
                         }
                     }
                 });
                 pairs = Array.from(pairSet).map(s => s.split('|'));
                 if (pairs.length === 0) {
                     drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">⚠ No saved routes found. No pairs to refresh.</span>`);
-                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Save some routes first, or use "Refresh All Pairs".</span>`);
                     drRunning = false;
                     drSetButtonsDisabled(false);
                     updateDrStatusBar();
                     return;
                 }
-                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Mode: Used Routes.</span> <span class="t-dim">${pairs.length} unique pairs from ${routes.length} saved routes.</span>`);
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Mode: Used Routes.</span> <span class="t-dim">${pairs.length} unique directional pairs from ${routes.length} saved routes.</span>`);
             }
 
-            // Step 3: Fetch distances via Distance Matrix API
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 3: Fetching distances from Google Distance Matrix API…</span>`);
+            // Step 2: Fetch all alternatives for each pair
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 2: Fetching route alternatives for ${pairs.length} pairs…</span>`);
             await drDelay(300);
 
-            const newCache = {};
-            let done = 0;
+            let fetched = 0;
             let errors = 0;
-            const service = new google.maps.DistanceMatrixService();
 
-            // Process in batches of 10 to be kind to API quotas
-            const batchSize = 10;
-            for (let b = 0; b < pairs.length; b += batchSize) {
-                const batch = pairs.slice(b, b + batchSize);
-                const origins = batch.map(p => {
-                    const loc = ALM_LOCATIONS[p[0]];
-                    return new google.maps.LatLng(loc.lat, loc.lng);
-                });
-                const destinations = batch.map(p => {
-                    const loc = ALM_LOCATIONS[p[1]];
-                    return new google.maps.LatLng(loc.lat, loc.lng);
-                });
+            for (let i = 0; i < pairs.length; i++) {
+                const [fromKey, toKey] = pairs[i];
+                const fromLoc = ALM_LOCATIONS[fromKey];
+                const toLoc   = ALM_LOCATIONS[toKey];
+                const pairKey = `${fromKey}_${toKey}`;
+
+                if (!fromLoc || !toLoc) { errors++; continue; }
 
                 try {
                     const result = await new Promise((resolve, reject) => {
-                        service.getDistanceMatrix({
-                            origins,
-                            destinations,
-                            travelMode: google.maps.TravelMode.DRIVING,
-                            unitSystem: google.maps.UnitSystem.IMPERIAL,
+                        directionsService.route({
+                            origin:      new google.maps.LatLng(fromLoc.lat, fromLoc.lng),
+                            destination: new google.maps.LatLng(toLoc.lat,   toLoc.lng),
+                            travelMode:  google.maps.TravelMode.DRIVING,
                             avoidHighways: false,
-                            avoidTolls: false
-                        }, (resp, status) => {
-                            if (status === 'OK') resolve(resp);
-                            else reject(new Error(status));
-                        });
+                            avoidTolls:    false,
+                            region: 'US',
+                            provideRouteAlternatives: true
+                        }, (res, status) => status === 'OK' ? resolve(res) : reject(new Error(status)));
                     });
 
-                    result.rows.forEach((row, ri) => {
-                        row.elements.forEach((el, ci) => {
-                            const from = batch[ri][0];
-                            const to   = batch[ri][1];
-                            if (el.status === 'OK') {
-                                const miles = (el.distance.value * 0.000621371).toFixed(2);
-                                newCache[`${from}_${to}`] = parseFloat(miles);
-                                done++;
-                                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">  ✓</span> <span class="t-dim">${ALM_LOCATIONS[from].name} → ${ALM_LOCATIONS[to].name}:</span> <span class="t-hi">${miles} mi</span>`);
-                            } else {
-                                errors++;
-                                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-error">  ✗ ${ALM_LOCATIONS[from].name} → ${ALM_LOCATIONS[to].name}: ${el.status}</span>`);
-                            }
-                        });
+                    // Sort alternatives shortest first
+                    const sorted = [...result.routes].sort((a, b) => {
+                        const distA = a.legs.reduce((s, l) => s + l.distance.value, 0);
+                        const distB = b.legs.reduce((s, l) => s + l.distance.value, 0);
+                        return distA - distB;
                     });
+
+                    const options = sorted.map(route => ({
+                        miles: parseFloat((route.legs.reduce((s, l) => s + l.distance.value, 0) * 0.000621371).toFixed(2))
+                    }));
+
+                    drFetchedRoutes[pairKey] = { fromKey, toKey, fromName: fromLoc.name, toName: toLoc.name, options };
+                    fetched++;
+                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">  ✓</span> <span class="t-dim">${fromLoc.name} → ${toLoc.name}:</span> ${options.map((o,i) => `<span class="t-hi">${o.miles}mi</span>`).join(' / ')}`);
+
                 } catch (err) {
                     errors++;
-                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-error">  ✗ Batch error: ${err.message}</span>`);
+                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-error">  ✗ ${fromLoc.name} → ${toLoc.name}: ${err.message}</span>`);
                 }
 
-                // Small delay between batches to avoid rate limiting
-                if (b + batchSize < pairs.length) await drDelay(200);
+                if (i > 0 && i % 5 === 0) await drDelay(150);
             }
 
-            // Step 4: Save cache
             drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 4: Saving cache to localStorage…</span>`);
-            await drDelay(200);
-            localStorage.setItem('maps_distances_v2', JSON.stringify(newCache));
-            const now = new Date().toISOString();
-            localStorage.setItem('alm_last_distance_sync', now);
-
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Cache saved.</span> <span class="t-dim">${done} entries written.</span>`);
-
-            if (errors > 0) {
-                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">⚠ ${errors} pair(s) failed. Check your Maps API quota.</span>`);
-            }
-
-            // Step 5: Confirmation
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
-            if (errors === 0) {
-                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ SYNC COMPLETE — All ${done} pairs updated successfully.</span>`);
-                showToast(`Distance sync complete — ${done} pairs updated`, 'success');
-            } else {
-                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">⚠ SYNC COMPLETE WITH ERRORS — ${done} ok, ${errors} failed.</span>`);
-                showToast(`Sync done with ${errors} error(s)`, 'warning');
-            }
-            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Sync timestamp: ${new Date(now).toLocaleString()}</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Fetch complete — ${fetched} pairs ready${errors > 0 ? `, ${errors} failed` : ''}.</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Choose your preferred route for each pair below, then click Save All.</span>`);
 
             drRunning = false;
             drSetButtonsDisabled(false);
-            updateDrStatusBar();
+
+            // Render the picker cards
+            drRenderPickerCards(fetched);
         }
 
+        // Builds one picker card per fetched pair below the terminal.
+                // Each card shows route option buttons sorted shortest first.
+        function drRenderPickerCards(fetchedCount) {
+            const section = document.getElementById('dr-picker-section');
+            const list    = document.getElementById('dr-picker-list');
+            section.style.display = 'block';
+
+            document.getElementById('dr-picker-fetched').textContent   = fetchedCount;
+            document.getElementById('dr-picker-done').textContent      = '0';
+            document.getElementById('dr-picker-remaining').textContent = fetchedCount;
+
+            list.innerHTML = '';
+
+            Object.entries(drFetchedRoutes).forEach(([pairKey, pair]) => {
+                const card = document.createElement('div');
+                card.className = 'route-picker';
+                card.id = `drcard-${pairKey}`;
+                card.style.marginBottom = '10px';
+
+                const optionsHtml = pair.options.length === 1
+                    ? `<span class="route-picker-single">Only 1 route available — </span>
+                       <button class="route-option-btn" onclick="drPickRoute('${pairKey}', ${pair.options[0].miles}, this)">
+                           <span class="route-option-miles">${pair.options[0].miles} mi</span>
+                           <span class="route-option-sub">Confirm</span>
+                       </button>`
+                    : pair.options.map((opt, idx) =>
+                        `<button class="route-option-btn" onclick="drPickRoute('${pairKey}', ${opt.miles}, this)">
+                            <span class="route-option-miles">${opt.miles} mi</span>
+                            <span class="route-option-sub">Route ${idx + 1}</span>
+                         </button>`
+                    ).join('');
+
+                card.innerHTML = `
+                    <div class="route-picker-label">${pair.fromName} → ${pair.toName}</div>
+                    <div class="route-picker-options">${optionsHtml}</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Records the user's route choice for one pair, highlights the
+                // selected button, and updates the done/remaining counters.
+                // Unlocks the Save button when all pairs have a selection.
+        function drPickRoute(pairKey, miles, btn) {
+            const card = document.getElementById(`drcard-${pairKey}`);
+            if (card) card.querySelectorAll('.route-option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            const wasSelected = pairKey in drPickerSelections;
+            drPickerSelections[pairKey] = miles;
+
+            if (!wasSelected) {
+                const done      = Object.keys(drPickerSelections).length;
+                const total     = Object.keys(drFetchedRoutes).length;
+                const remaining = total - done;
+                document.getElementById('dr-picker-done').textContent      = done;
+                document.getElementById('dr-picker-remaining').textContent = remaining;
+
+                // Enable Save button once all pairs have a selection
+                document.getElementById('dr-save-btn').disabled = remaining > 0;
+            }
+        }
+
+        // Writes all picker selections to the distance cache at once,
+                // stamps the sync timestamp, and refreshes the matrix if visible.
+        function drSaveAllPicked() {
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            let count = 0;
+
+            Object.entries(drPickerSelections).forEach(([pairKey, miles]) => {
+                cache[pairKey] = miles;
+                count++;
+            });
+
+            localStorage.setItem('maps_distances_v2', JSON.stringify(cache));
+            const now = new Date().toISOString();
+            localStorage.setItem('alm_last_distance_sync', now);
+
+            // Log to terminal
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ SAVED — ${count} route selections written to cache.</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Sync timestamp: ${new Date(now).toLocaleString()}</span>`);
+
+            // Refresh matrix live if it's the active page
+            if (document.getElementById('matrix-page')?.classList.contains('active')) {
+                loadDistanceMatrix();
+            }
+
+            // Hide picker, update status
+            document.getElementById('dr-picker-section').style.display = 'none';
+            updateDrStatusBar();
+            showToast(`${count} distances saved to cache`, 'success');
+
+            // Reset state
+            drFetchedRoutes = {};
+            drPickerSelections = {};
+        }
+
+        // Simple Promise-based delay used to pace terminal log output
+                // so it feels like a real terminal rather than instant output.
         function drDelay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        // ── Distance Spot-Check Page ──────────────────────────────────────
+        // ════════════════════════════════════════════════════════════════════
+        //  DISTANCE SPOT-CHECK
+        //  Test a single location pair against the live API. Shows cached vs
+        //  live distance, diff %, and a route picker to update the cache.
+        // ════════════════════════════════════════════════════════════════════
 
         let scLog = [];
 
+        // Populates the start and end dropdowns with all current locations
+                // and renders the session check log.
         function initSpotCheckPage() {
             const startSel = document.getElementById('sc-start');
             const endSel   = document.getElementById('sc-end');
@@ -4988,6 +5249,9 @@
             renderScLog();
         }
 
+        // Fetches the live Directions API distance for the selected pair,
+                // compares it to the cached value, shows the diff, and renders
+                // route picker buttons so the user can update the cache.
         async function runSpotCheck() {
             const fromKey = document.getElementById('sc-start').value;
             const toKey   = document.getElementById('sc-end').value;
@@ -5025,6 +5289,10 @@
             diffEl.textContent  = '—';
             badgeEl.innerHTML   = '';
 
+            // Hide picker from any previous run
+            const pickerEl = document.getElementById('sc-route-picker');
+            if (pickerEl) { pickerEl.style.display = 'none'; document.getElementById('sc-picker-options').innerHTML = ''; }
+
             document.getElementById('sc-btn').disabled = true;
 
             if (typeof google === 'undefined' || !google.maps) {
@@ -5036,44 +5304,67 @@
             }
 
             try {
-                const service = new google.maps.DistanceMatrixService();
+                // Use Directions API with alternatives — same as route builder
                 const result = await new Promise((resolve, reject) => {
-                    service.getDistanceMatrix({
-                        origins:      [new google.maps.LatLng(fromLoc.lat, fromLoc.lng)],
-                        destinations: [new google.maps.LatLng(toLoc.lat,   toLoc.lng)],
-                        travelMode: google.maps.TravelMode.DRIVING,
-                        unitSystem: google.maps.UnitSystem.IMPERIAL
-                    }, (resp, status) => status === 'OK' ? resolve(resp) : reject(new Error(status)));
+                    directionsService.route({
+                        origin:      new google.maps.LatLng(fromLoc.lat, fromLoc.lng),
+                        destination: new google.maps.LatLng(toLoc.lat,   toLoc.lng),
+                        travelMode:  google.maps.TravelMode.DRIVING,
+                        avoidHighways: false,
+                        avoidTolls:    false,
+                        region: 'US',
+                        provideRouteAlternatives: true
+                        // No drivingOptions — pure road distance, no traffic
+                    }, (res, status) => status === 'OK' ? resolve(res) : reject(new Error(status)));
                 });
 
-                const el = result.rows[0].elements[0];
-                if (el.status === 'OK') {
-                    const liveMiles = parseFloat((el.distance.value * 0.000621371).toFixed(2));
-                    liveEl.textContent = liveMiles + ' mi';
-                    liveEl.className   = 'spotcheck-val match';
+                // Sort all routes shortest first
+                const sorted = [...result.routes].sort((a, b) => {
+                    const dA = a.legs.reduce((s, l) => s + l.distance.value, 0);
+                    const dB = b.legs.reduce((s, l) => s + l.distance.value, 0);
+                    return dA - dB;
+                });
+                const options = sorted.map(r => parseFloat((r.legs.reduce((s, l) => s + l.distance.value, 0) * 0.000621371).toFixed(2)));
+                const liveMiles = options[0]; // shortest for display/comparison
 
-                    if (cached !== undefined) {
-                        const diff = Math.abs(liveMiles - cached).toFixed(2);
-                        const pct  = ((Math.abs(liveMiles - cached) / liveMiles) * 100).toFixed(1);
-                        diffEl.textContent = `${diff} mi (${pct}%)`;
-                        diffEl.className   = parseFloat(diff) < 0.5 ? 'spotcheck-val match' : 'spotcheck-val mismatch';
+                liveEl.textContent = `${liveMiles} mi (${options.length} route${options.length > 1 ? 's found' : ' available'})`;
+                liveEl.className   = 'spotcheck-val match';
 
-                        const isMatch = parseFloat(diff) < 0.5;
-                        badgeEl.innerHTML = isMatch
-                            ? '<span class="match-badge match">✓ MATCH</span>'
-                            : '<span class="match-badge mismatch">✗ MISMATCH</span>';
-
-                        scLog.unshift({ time: new Date().toLocaleTimeString(), from: fromLoc.name, to: toLoc.name, cached, live: liveMiles, diff, match: isMatch });
-                    } else {
-                        diffEl.textContent = 'No cache to compare';
-                        badgeEl.innerHTML  = '<span class="match-badge no-cache">NO CACHE</span>';
-                        scLog.unshift({ time: new Date().toLocaleTimeString(), from: fromLoc.name, to: toLoc.name, cached: null, live: liveMiles, diff: null, match: null });
-                    }
+                if (cached !== undefined) {
+                    const diff = Math.abs(liveMiles - cached).toFixed(2);
+                    const pct  = ((Math.abs(liveMiles - cached) / liveMiles) * 100).toFixed(1);
+                    diffEl.textContent = `${diff} mi (${pct}%)`;
+                    diffEl.className   = parseFloat(diff) < 0.5 ? 'spotcheck-val match' : 'spotcheck-val mismatch';
+                    const isMatch = parseFloat(diff) < 0.5;
+                    badgeEl.innerHTML = isMatch
+                        ? '<span class="match-badge match">✓ MATCH</span>'
+                        : '<span class="match-badge mismatch">✗ MISMATCH</span>';
+                    scLog.unshift({ time: new Date().toLocaleTimeString(), from: fromLoc.name, to: toLoc.name, cached, live: liveMiles, diff, match: isMatch });
                 } else {
-                    liveEl.textContent = 'API Error: ' + el.status;
-                    liveEl.className   = 'spotcheck-val mismatch';
-                    badgeEl.innerHTML  = '<span class="match-badge mismatch">API ERROR</span>';
+                    diffEl.textContent = 'No cache to compare';
+                    badgeEl.innerHTML  = '<span class="match-badge no-cache">NO CACHE</span>';
+                    scLog.unshift({ time: new Date().toLocaleTimeString(), from: fromLoc.name, to: toLoc.name, cached: null, live: liveMiles, diff: null, match: null });
                 }
+
+                // Always show route picker so user can choose which to cache
+                const pickerEl = document.getElementById('sc-route-picker');
+                const pickerId = 'sc-picker-options';
+                if (pickerEl) {
+                    pickerEl.style.display = 'block';
+                    document.getElementById(pickerId).innerHTML = options.length === 1
+                        ? `<span class="route-picker-single">Only 1 route available — </span>
+                           <button class="route-option-btn" onclick="scPickAndSave('${fromKey}','${toKey}',${options[0]},this)">
+                               <span class="route-option-miles">${options[0]} mi</span>
+                               <span class="route-option-sub">Save to Matrix</span>
+                           </button>`
+                        : options.map((mi, i) =>
+                            `<button class="route-option-btn" onclick="scPickAndSave('${fromKey}','${toKey}',${mi},this)">
+                                <span class="route-option-miles">${mi} mi</span>
+                                <span class="route-option-sub">Route ${i + 1}${i === 0 ? ' — shortest' : ''}</span>
+                             </button>`
+                          ).join('');
+                }
+
             } catch (err) {
                 liveEl.textContent = 'Error: ' + err.message;
                 liveEl.className   = 'spotcheck-val mismatch';
@@ -5084,6 +5375,8 @@
             renderScLog();
         }
 
+        // Rebuilds the Recent Checks log from the in-memory scLog array
+                // (last 20 entries, newest first).
         function renderScLog() {
             const container = document.getElementById('sc-log');
             if (!container) return;
@@ -5106,21 +5399,81 @@
             }).join('');
         }
 
+        // Empties the scLog array and clears the log display.
         function clearSpotCheckLog() {
             scLog = [];
             renderScLog();
         }
 
-        // ── Legacy stub (kept for any lingering references) ───────────────
+        // Saves the user's chosen route distance to the cache, refreshes
+                // the matrix if open, and updates the result panel to show SAVED.
+        function scPickAndSave(fromKey, toKey, miles, btn) {
+            // Highlight selected button
+            document.querySelectorAll('#sc-picker-options .route-option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            // Write to cache
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            cache[`${fromKey}_${toKey}`] = miles;
+            localStorage.setItem('maps_distances_v2', JSON.stringify(cache));
+
+            // Refresh matrix if it's currently the active page
+            if (document.getElementById('matrix-page')?.classList.contains('active')) {
+                loadDistanceMatrix();
+            }
+
+            showToast(`✓ Matrix updated: ${ALM_LOCATIONS[fromKey].name} → ${ALM_LOCATIONS[toKey].name} = ${miles} mi`, 'success');
+
+            // Update the cached row in the result panel to reflect the new value
+            const cachedEl = document.getElementById('sc-cached');
+            if (cachedEl) {
+                cachedEl.textContent = miles + ' mi';
+                cachedEl.className = 'spotcheck-val match';
+            }
+            const diffEl = document.getElementById('sc-diff');
+            if (diffEl) { diffEl.textContent = '0.00 mi (0.0%)'; diffEl.className = 'spotcheck-val match'; }
+            const badgeEl = document.getElementById('sc-badge');
+            if (badgeEl) badgeEl.innerHTML = '<span class="match-badge match">✓ SAVED</span>';
+        }
+
+        // Keep scWriteToCache as alias so any lingering references don't break
+        // Legacy alias kept so any old inline onclick references still work.
+                // Prefer scPickAndSave() for new code.
+        function scWriteToCache(fromKey, toKey, miles) {
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            cache[`${fromKey}_${toKey}`] = miles;
+            localStorage.setItem('maps_distances_v2', JSON.stringify(cache));
+            if (document.getElementById('matrix-page')?.classList.contains('active')) loadDistanceMatrix();
+            showToast(`Cached: ${ALM_LOCATIONS[fromKey].name} → ${ALM_LOCATIONS[toKey].name} = ${miles} mi`, 'success');
+            runSpotCheck();
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        //  LEGACY STUBS
+        //  Thin wrappers kept so any old references in localStorage or bookmarks
+        //  don't throw errors. Do not add new code here.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Legacy navigation helper — clicks the nav item for the given page
+                // name. Use the nav item's click() directly in new code.
         function navigateTo(page) {
             const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
             if (navItem) navItem.click();
         }
 
+        // Legacy stub — navigates to the Distance Refresh page.
         function refreshDistances() {
             navigateTo('dist-refresh');
         }
 
+        // ════════════════════════════════════════════════════════════════════
+        //  EXCEL EXPORT
+        //  Generate a SheetJS workbook with a Summary sheet (one row per trip)
+        //  and a Detailed Legs sheet, then trigger a browser download.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Builds a SheetJS workbook with a Summary sheet (one row per saved
+                // route) and a Detailed Legs sheet, then triggers a .xlsx download.
         function downloadExcel() {
             const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
             
@@ -5190,6 +5543,14 @@
             showToast(`Exported ${routes.length} routes to ${filename}`, 'success');
         }
 
+        // ════════════════════════════════════════════════════════════════════
+        //  MATH & DISTANCE UTILITIES
+        //  calculateLegDistance: cache-only lookup (returns 0 if missing).
+        //  haversineDistance/toRadians: kept for reference, not used in routes.
+        // ════════════════════════════════════════════════════════════════════
+
+        // Looks up the cached API distance for a leg. Returns 0 if the
+                // pair is not yet cached — run Distance Refresh to populate.
         function calculateLegDistance(fromStop, toStop) {
             // Only use cached API values — no haversine fallback (it's too inaccurate)
             const cachedDistances = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
@@ -5202,6 +5563,8 @@
             return 0;
         }
 
+        // Great-circle distance between two lat/lng points in miles.
+                // Kept for reference — not used in active route calculations.
         function haversineDistance(lat1, lon1, lat2, lon2) {
             const R = 3959; // Earth's radius in miles
             const dLat = toRadians(lat2 - lat1);
@@ -5213,38 +5576,19 @@
             return R * c;
         }
 
+        // Converts decimal degrees to radians. Used by haversineDistance.
         function toRadians(degrees) {
             return degrees * (Math.PI / 180);
         }
 
-        function importExcel() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.xlsx,.xls';
-            
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                showToast('Processing Excel file...', 'warning');
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    try {
-                        // This would typically use SheetJS to parse the Excel file
-                        // For now, we'll simulate some imported data with potential conflicts
-                        simulateExcelImport();
-                    } catch (error) {
-                        console.error('Excel import error:', error);
-                        showToast('Error processing Excel file', 'error');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            };
-            
-            input.click();
-        }
+        // ════════════════════════════════════════════════════════════════════
+        //  EXCEL IMPORT
+        //  Open a file picker, read the .xlsx with SheetJS, parse rows into
+        //  route objects, and run conflict detection before merging.
+        // ════════════════════════════════════════════════════════════════════
 
+        // Opens a file picker for .xlsx/.xls files, reads the file with
+                // SheetJS, parses rows, and runs conflict detection before merging.
         function importExcel() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -5288,6 +5632,8 @@
             input.click();
         }
 
+        // Converts raw SheetJS row objects (with flexible column names) into
+                // the internal route format used by handleImportedRoutes().
         function parseExcelData(data) {
             const routes = [];
             
@@ -5355,6 +5701,8 @@
             return routes;
         }
 
+        // Looks up a location key in ALM_LOCATIONS by matching the display
+                // name (case-insensitive). Returns undefined if not found.
         function findLocationKey(locationName) {
             const name = locationName.toLowerCase();
             
@@ -5369,6 +5717,8 @@
             return null;
         }
 
+        // Checks imported routes for conflicts with existing data.
+                // Shows the conflict modal if any exist, or merges directly if clean.
         function handleImportedRoutes(importedRoutes) {
             if (importedRoutes.length === 0) {
                 showToast('No valid routes found in Excel file', 'warning');
@@ -5389,6 +5739,14 @@
             }
         }
 
+        // ════════════════════════════════════════════════════════════════════
+        //  TOAST NOTIFICATIONS
+        //  showToast(message, type) — displays a temporary overlay message.
+        //  Types: 'success' (green), 'warning' (amber), 'error' (red).
+        // ════════════════════════════════════════════════════════════════════
+
+        // Creates a toast notification div, appends it to the body,
+                // and removes it after 3 seconds. Type controls the color.
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
