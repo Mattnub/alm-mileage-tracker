@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v13.4</title>
+    <title>ALM Mileage Tracker v13.5</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -1313,6 +1313,240 @@
         .print-btn:hover {
             background: #ff9800;
         }
+
+        /* ── Distance Refresh & Spot-Check Pages ─────────────────────────── */
+
+        .sync-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 25px;
+            background: #1c1c1c;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .sync-status-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sync-status-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .sync-status-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .sync-status-value.good { color: #22c55e; }
+        .sync-status-value.warn { color: #ffa726; }
+        .sync-status-value.bad  { color: #ef4444; }
+
+        .sync-divider {
+            width: 1px;
+            height: 36px;
+            background: #2a2a2a;
+        }
+
+        .refresh-btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-refresh-all {
+            background: #ffa726;
+            color: #000;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-refresh-all:hover { background: #ff9800; }
+        .btn-refresh-all:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-refresh-used {
+            background: transparent;
+            color: #ffa726;
+            border: 1px solid #ffa726;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-refresh-used:hover { background: rgba(255,167,38,0.1); }
+        .btn-refresh-used:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-clear-cache {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear-cache:hover { background: rgba(239,68,68,0.1); }
+
+        /* Terminal */
+        .terminal-wrap {
+            background: #0a0a0a;
+            border: 1px solid #1e3a1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: #111;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #1e3a1e;
+        }
+
+        .terminal-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+        .terminal-dot.red   { background: #ef4444; }
+        .terminal-dot.yellow{ background: #ffa726; }
+        .terminal-dot.green { background: #22c55e; }
+
+        .terminal-title {
+            font-size: 11px;
+            color: #666;
+            margin-left: 6px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .terminal-body {
+            padding: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            color: #22c55e;
+        }
+
+        .terminal-body .t-dim    { color: #444; }
+        .terminal-body .t-info   { color: #22c55e; }
+        .terminal-body .t-warn   { color: #ffa726; }
+        .terminal-body .t-error  { color: #ef4444; }
+        .terminal-body .t-ok     { color: #22c55e; font-weight: bold; }
+        .terminal-body .t-ts     { color: #555; }
+        .terminal-body .t-hi     { color: #fff; font-weight: bold; }
+        .terminal-body .t-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: #22c55e;
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        /* Spot-Check */
+        .spotcheck-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .spotcheck-result {
+            background: #0f1f0f;
+            border: 1px solid #1e3a1e;
+            border-radius: 8px;
+            padding: 20px 25px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            display: none;
+        }
+
+        .spotcheck-result.show { display: block; }
+
+        .spotcheck-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1a2a1a;
+            color: #ccc;
+        }
+
+        .spotcheck-row:last-child { border-bottom: none; }
+
+        .spotcheck-key { color: #666; }
+        .spotcheck-val { font-weight: bold; color: #22c55e; }
+        .spotcheck-val.mismatch { color: #ef4444; }
+        .spotcheck-val.match    { color: #22c55e; }
+        .spotcheck-val.pending  { color: #ffa726; }
+
+        .match-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .match-badge.match    { background: rgba(34,197,94,0.2);  color: #22c55e; border: 1px solid #22c55e; }
+        .match-badge.mismatch { background: rgba(239,68,68,0.2);  color: #ef4444; border: 1px solid #ef4444; }
+        .match-badge.no-cache { background: rgba(255,167,38,0.2); color: #ffa726; border: 1px solid #ffa726; }
+
+        .spotcheck-log {
+            margin-top: 20px;
+        }
+
+        .spotcheck-log-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid #1a2a1a;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .spotcheck-log-entry .log-time { color: #444; }
+        .spotcheck-log-entry .log-match { color: #22c55e; }
+        .spotcheck-log-entry .log-miss  { color: #ef4444; }
     </style>
 </head>
 <body>
@@ -1321,7 +1555,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v13.4</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v13.5</div>
             </div>
             
             <div class="nav-section">
@@ -1345,10 +1579,6 @@
                 <a href="#" class="nav-item" data-page="matrix">
                     <span class="nav-item-icon">⊞</span>
                     Distance Matrix
-                </a>
-                <a href="#" class="nav-item" onclick="refreshDistances()">
-                    <span class="nav-item-icon">⟲</span>
-                    Refresh Distances
                 </a>
             </div>
 
@@ -1378,6 +1608,14 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">APP</div>
+                <a href="#" class="nav-item" data-page="dist-refresh">
+                    <span class="nav-item-icon">⟲</span>
+                    Distance Refresh
+                </a>
+                <a href="#" class="nav-item" data-page="dist-spotcheck">
+                    <span class="nav-item-icon">🔍</span>
+                    Distance Spot-Check
+                </a>
                 <a href="#" class="nav-item" data-page="changelog">
                     <span class="nav-item-icon">📋</span>
                     Changelog
@@ -1741,6 +1979,139 @@
                             
                             <div id="monthly-cost-table">
                                 <!-- Monthly cost table will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Distance Refresh Page -->
+                <div class="page" id="dist-refresh-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Distance Refresh</h1>
+                        <p class="page-subtitle">CACHE MANAGEMENT & DISTANCE RECALCULATION</p>
+                    </div>
+
+                    <!-- Status Bar -->
+                    <div class="sync-status-bar">
+                        <div class="sync-status-item">
+                            <span class="sync-status-label">Last Sync</span>
+                            <span class="sync-status-value" id="dr-last-sync">Never</span>
+                        </div>
+                        <div class="sync-divider"></div>
+                        <div class="sync-status-item">
+                            <span class="sync-status-label">Cache Entries</span>
+                            <span class="sync-status-value" id="dr-cache-count">—</span>
+                        </div>
+                        <div class="sync-divider"></div>
+                        <div class="sync-status-item">
+                            <span class="sync-status-label">Maps API</span>
+                            <span class="sync-status-value" id="dr-api-status">Checking…</span>
+                        </div>
+                        <div class="sync-divider"></div>
+                        <div class="sync-status-item">
+                            <span class="sync-status-label">Status</span>
+                            <span class="sync-status-value" id="dr-sync-health">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="refresh-btn-group">
+                        <button class="btn-refresh-all" id="dr-btn-all" onclick="runDistanceRefresh('all')">
+                            ⟲ Refresh All Pairs (45)
+                        </button>
+                        <button class="btn-refresh-used" id="dr-btn-used" onclick="runDistanceRefresh('used')">
+                            ⟲ Refresh Used Routes Only
+                        </button>
+                        <button class="btn-clear-cache" id="dr-btn-clear" onclick="clearDistanceCache()">
+                            ✕ Clear Cache Only
+                        </button>
+                    </div>
+
+                    <!-- Terminal -->
+                    <div class="terminal-wrap">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                            <span class="terminal-title">alm-distance-refresh — bash</span>
+                        </div>
+                        <div class="terminal-body" id="dr-terminal">
+                            <span class="t-dim">ALM Distance Refresh Terminal v13.5</span><br>
+                            <span class="t-dim">── Ready. Choose a refresh option above to begin. ──</span><br>
+                            <span class="t-cursor"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Distance Spot-Check Page -->
+                <div class="page" id="dist-spotcheck-page">
+                    <div class="page-header">
+                        <h1 class="page-title">Distance Spot-Check</h1>
+                        <p class="page-subtitle">TEST A SINGLE PAIR WITHOUT BURNING API CALLS</p>
+                    </div>
+
+                    <div class="route-card">
+                        <div class="route-card-header">
+                            <div class="section-title">Check a Route Pair</div>
+                        </div>
+                        <div class="route-builder">
+                            <div class="spotcheck-form">
+                                <div class="form-field">
+                                    <label>Start Location</label>
+                                    <select id="sc-start" class="stop-select">
+                                        <option value="">Choose start…</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>End Location</label>
+                                    <select id="sc-end" class="stop-select">
+                                        <option value="">Choose end…</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <button class="btn-refresh-all" onclick="runSpotCheck()" id="sc-btn" style="white-space:nowrap;">
+                                        🔍 Check Distance
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Result panel -->
+                            <div class="spotcheck-result" id="sc-result">
+                                <div class="spotcheck-row">
+                                    <span class="spotcheck-key">Route Pair</span>
+                                    <span class="spotcheck-val" id="sc-pair">—</span>
+                                </div>
+                                <div class="spotcheck-row">
+                                    <span class="spotcheck-key">Cached Distance</span>
+                                    <span class="spotcheck-val" id="sc-cached">—</span>
+                                </div>
+                                <div class="spotcheck-row">
+                                    <span class="spotcheck-key">Live API Distance</span>
+                                    <span class="spotcheck-val pending" id="sc-live">Fetching…</span>
+                                </div>
+                                <div class="spotcheck-row">
+                                    <span class="spotcheck-key">Difference</span>
+                                    <span class="spotcheck-val" id="sc-diff">—</span>
+                                </div>
+                                <div class="spotcheck-row" style="border-bottom:none; margin-top:8px;">
+                                    <span class="spotcheck-key">Result</span>
+                                    <span id="sc-badge"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Check Log -->
+                    <div class="route-card" style="margin-top:20px;">
+                        <div class="route-card-header">
+                            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                <div class="section-title" style="margin-bottom:0;">Recent Checks</div>
+                                <button class="btn btn-clear" style="font-size:11px; padding:6px 14px;" onclick="clearSpotCheckLog()">Clear Log</button>
+                            </div>
+                        </div>
+                        <div class="route-builder">
+                            <div id="sc-log">
+                                <div style="color:#555; font-size:13px; font-family:'Courier New',monospace;">No checks run yet.</div>
                             </div>
                         </div>
                     </div>
@@ -2355,6 +2726,12 @@
                     break;
                 case 'changelog':
                     loadChangelog();
+                    break;
+                case 'dist-refresh':
+                    initDistRefreshPage();
+                    break;
+                case 'dist-spotcheck':
+                    initSpotCheckPage();
                     break;
             }
         }
@@ -4147,26 +4524,400 @@
             }
         }
 
-        // Utility Functions
-        function refreshDistances() {
-            if (!confirm('This will clear all cached distances and may require recalculation. Continue?')) {
+        // ── Distance Refresh Page ─────────────────────────────────────────
+
+        let drRunning = false;
+
+        function initDistRefreshPage() {
+            updateDrStatusBar();
+        }
+
+        function updateDrStatusBar() {
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            const count = Object.keys(cache).length;
+            const lastSync = localStorage.getItem('alm_last_distance_sync');
+            const apiOk = typeof google !== 'undefined' && google.maps;
+
+            document.getElementById('dr-cache-count').textContent = count > 0 ? count + ' pairs' : 'Empty';
+            document.getElementById('dr-cache-count').className = 'sync-status-value ' + (count > 0 ? 'good' : 'warn');
+
+            if (lastSync) {
+                const d = new Date(lastSync);
+                document.getElementById('dr-last-sync').textContent = d.toLocaleString();
+                document.getElementById('dr-last-sync').className = 'sync-status-value good';
+            } else {
+                document.getElementById('dr-last-sync').textContent = 'Never';
+                document.getElementById('dr-last-sync').className = 'sync-status-value warn';
+            }
+
+            const apiEl = document.getElementById('dr-api-status');
+            apiEl.textContent = apiOk ? 'Connected' : 'Not Available';
+            apiEl.className = 'sync-status-value ' + (apiOk ? 'good' : 'bad');
+
+            const healthEl = document.getElementById('dr-sync-health');
+            if (!apiOk) {
+                healthEl.textContent = 'Maps API Offline';
+                healthEl.className = 'sync-status-value bad';
+            } else if (count === 0) {
+                healthEl.textContent = 'Cache Empty';
+                healthEl.className = 'sync-status-value warn';
+            } else if (!lastSync) {
+                healthEl.textContent = 'Never Synced';
+                healthEl.className = 'sync-status-value warn';
+            } else {
+                healthEl.textContent = 'OK';
+                healthEl.className = 'sync-status-value good';
+            }
+        }
+
+        function drLog(html) {
+            const terminal = document.getElementById('dr-terminal');
+            // Remove cursor if present
+            const cursor = terminal.querySelector('.t-cursor');
+            if (cursor) cursor.remove();
+            terminal.innerHTML += html + '<br>';
+            // Re-add cursor at end
+            const cur = document.createElement('span');
+            cur.className = 't-cursor';
+            terminal.appendChild(cur);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function drTimestamp() {
+            return new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+
+        function drSetButtonsDisabled(disabled) {
+            ['dr-btn-all', 'dr-btn-used', 'dr-btn-clear'].forEach(id => {
+                document.getElementById(id).disabled = disabled;
+            });
+        }
+
+        function clearDistanceCache() {
+            const terminal = document.getElementById('dr-terminal');
+            terminal.innerHTML = '';
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Clearing distance cache…</span>`);
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            const count = Object.keys(cache).length;
+            localStorage.removeItem('maps_distances_v2');
+            localStorage.removeItem('alm_last_distance_sync');
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Cache cleared.</span> <span class="t-dim">${count} entries removed.</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Ready for next sync.</span>`);
+            updateDrStatusBar();
+            showToast('Distance cache cleared', 'success');
+        }
+
+        async function runDistanceRefresh(mode) {
+            if (drRunning) return;
+            if (typeof google === 'undefined' || !google.maps) {
+                showToast('Google Maps API not available', 'error');
+                const terminal = document.getElementById('dr-terminal');
+                terminal.innerHTML = '';
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-error">✗ ERROR: Google Maps API not available.</span>`);
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Check API connection and try again.</span>`);
                 return;
             }
-            
-            // Clear the distance cache
+
+            drRunning = true;
+            drSetButtonsDisabled(true);
+
+            const terminal = document.getElementById('dr-terminal');
+            terminal.innerHTML = '';
+
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-hi">ALM Distance Refresh — ${mode === 'all' ? 'Full (All Pairs)' : 'Used Routes Only'}</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
+
+            // Step 1: Clear cache
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 1: Clearing existing cache…</span>`);
+            await drDelay(300);
+            const oldCache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            const oldCount = Object.keys(oldCache).length;
             localStorage.removeItem('maps_distances_v2');
-            showToast('Distance cache cleared', 'success');
-            
-            // If we're on the distance matrix page, refresh it
-            const matrixPage = document.getElementById('matrix-page');
-            if (matrixPage && matrixPage.classList.contains('active')) {
-                loadDistanceMatrix();
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Cache cleared.</span> <span class="t-dim">${oldCount} old entries removed.</span>`);
+
+            // Step 2: Determine pairs
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 2: Determining location pairs…</span>`);
+            await drDelay(200);
+            let pairs = [];
+            const allKeys = Object.keys(ALM_LOCATIONS);
+
+            if (mode === 'all') {
+                for (let i = 0; i < allKeys.length; i++) {
+                    for (let j = 0; j < allKeys.length; j++) {
+                        if (i !== j) pairs.push([allKeys[i], allKeys[j]]);
+                    }
+                }
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Mode: All Pairs.</span> <span class="t-dim">${pairs.length} pairs identified (${allKeys.length} locations).</span>`);
+            } else {
+                // Build pairs from saved routes
+                const routes = JSON.parse(localStorage.getItem('alm_routes') || '[]');
+                const pairSet = new Set();
+                routes.forEach(route => {
+                    if (route.stops && route.stops.length > 1) {
+                        for (let i = 0; i < route.stops.length - 1; i++) {
+                            const a = route.stops[i].location;
+                            const b = route.stops[i + 1].location;
+                            if (a && b && a !== b) {
+                                pairSet.add(`${a}|${b}`);
+                                pairSet.add(`${b}|${a}`);
+                            }
+                        }
+                    }
+                });
+                pairs = Array.from(pairSet).map(s => s.split('|'));
+                if (pairs.length === 0) {
+                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">⚠ No saved routes found. No pairs to refresh.</span>`);
+                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Save some routes first, or use "Refresh All Pairs".</span>`);
+                    drRunning = false;
+                    drSetButtonsDisabled(false);
+                    updateDrStatusBar();
+                    return;
+                }
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Mode: Used Routes.</span> <span class="t-dim">${pairs.length} unique pairs from ${routes.length} saved routes.</span>`);
             }
-            
-            // Optionally, recalculate distances for current route
-            if (currentRoute.length > 1) {
-                calculateOptimalRoute();
+
+            // Step 3: Fetch distances via Distance Matrix API
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 3: Fetching distances from Google Distance Matrix API…</span>`);
+            await drDelay(300);
+
+            const newCache = {};
+            let done = 0;
+            let errors = 0;
+            const service = new google.maps.DistanceMatrixService();
+
+            // Process in batches of 10 to be kind to API quotas
+            const batchSize = 10;
+            for (let b = 0; b < pairs.length; b += batchSize) {
+                const batch = pairs.slice(b, b + batchSize);
+                const origins = batch.map(p => {
+                    const loc = ALM_LOCATIONS[p[0]];
+                    return new google.maps.LatLng(loc.lat, loc.lng);
+                });
+                const destinations = batch.map(p => {
+                    const loc = ALM_LOCATIONS[p[1]];
+                    return new google.maps.LatLng(loc.lat, loc.lng);
+                });
+
+                try {
+                    const result = await new Promise((resolve, reject) => {
+                        service.getDistanceMatrix({
+                            origins,
+                            destinations,
+                            travelMode: google.maps.TravelMode.DRIVING,
+                            unitSystem: google.maps.UnitSystem.IMPERIAL,
+                            avoidHighways: false,
+                            avoidTolls: false
+                        }, (resp, status) => {
+                            if (status === 'OK') resolve(resp);
+                            else reject(new Error(status));
+                        });
+                    });
+
+                    result.rows.forEach((row, ri) => {
+                        row.elements.forEach((el, ci) => {
+                            const from = batch[ri][0];
+                            const to   = batch[ri][1];
+                            if (el.status === 'OK') {
+                                const miles = (el.distance.value * 0.000621371).toFixed(2);
+                                newCache[`${from}_${to}`] = parseFloat(miles);
+                                done++;
+                                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">  ✓</span> <span class="t-dim">${ALM_LOCATIONS[from].name} → ${ALM_LOCATIONS[to].name}:</span> <span class="t-hi">${miles} mi</span>`);
+                            } else {
+                                errors++;
+                                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-error">  ✗ ${ALM_LOCATIONS[from].name} → ${ALM_LOCATIONS[to].name}: ${el.status}</span>`);
+                            }
+                        });
+                    });
+                } catch (err) {
+                    errors++;
+                    drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-error">  ✗ Batch error: ${err.message}</span>`);
+                }
+
+                // Small delay between batches to avoid rate limiting
+                if (b + batchSize < pairs.length) await drDelay(200);
             }
+
+            // Step 4: Save cache
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">Step 4: Saving cache to localStorage…</span>`);
+            await drDelay(200);
+            localStorage.setItem('maps_distances_v2', JSON.stringify(newCache));
+            const now = new Date().toISOString();
+            localStorage.setItem('alm_last_distance_sync', now);
+
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ Cache saved.</span> <span class="t-dim">${done} entries written.</span>`);
+
+            if (errors > 0) {
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">⚠ ${errors} pair(s) failed. Check your Maps API quota.</span>`);
+            }
+
+            // Step 5: Confirmation
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">──────────────────────────────────────</span>`);
+            if (errors === 0) {
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-ok">✓ SYNC COMPLETE — All ${done} pairs updated successfully.</span>`);
+                showToast(`Distance sync complete — ${done} pairs updated`, 'success');
+            } else {
+                drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-warn">⚠ SYNC COMPLETE WITH ERRORS — ${done} ok, ${errors} failed.</span>`);
+                showToast(`Sync done with ${errors} error(s)`, 'warning');
+            }
+            drLog(`<span class="t-ts">[${drTimestamp()}]</span> <span class="t-dim">Sync timestamp: ${new Date(now).toLocaleString()}</span>`);
+
+            drRunning = false;
+            drSetButtonsDisabled(false);
+            updateDrStatusBar();
+        }
+
+        function drDelay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ── Distance Spot-Check Page ──────────────────────────────────────
+
+        let scLog = [];
+
+        function initSpotCheckPage() {
+            const startSel = document.getElementById('sc-start');
+            const endSel   = document.getElementById('sc-end');
+            startSel.innerHTML = '<option value="">Choose start…</option>';
+            endSel.innerHTML   = '<option value="">Choose end…</option>';
+            Object.entries(ALM_LOCATIONS).forEach(([key, loc]) => {
+                startSel.innerHTML += `<option value="${key}">${loc.name}</option>`;
+                endSel.innerHTML   += `<option value="${key}">${loc.name}</option>`;
+            });
+            renderScLog();
+        }
+
+        async function runSpotCheck() {
+            const fromKey = document.getElementById('sc-start').value;
+            const toKey   = document.getElementById('sc-end').value;
+
+            if (!fromKey || !toKey) { showToast('Choose both locations', 'warning'); return; }
+            if (fromKey === toKey)  { showToast('Start and end must differ', 'warning'); return; }
+
+            const fromLoc = ALM_LOCATIONS[fromKey];
+            const toLoc   = ALM_LOCATIONS[toKey];
+
+            // Show result panel
+            const panel = document.getElementById('sc-result');
+            panel.classList.add('show');
+            document.getElementById('sc-pair').textContent = `${fromLoc.name} → ${toLoc.name}`;
+
+            // Cached distance
+            const cache = JSON.parse(localStorage.getItem('maps_distances_v2') || '{}');
+            const cacheKey = `${fromKey}_${toKey}`;
+            const cached = cache[cacheKey];
+            const cachedEl = document.getElementById('sc-cached');
+            if (cached !== undefined) {
+                cachedEl.textContent = cached + ' mi';
+                cachedEl.className = 'spotcheck-val';
+            } else {
+                cachedEl.textContent = 'Not in cache';
+                cachedEl.className = 'spotcheck-val mismatch';
+            }
+
+            // Live API
+            const liveEl  = document.getElementById('sc-live');
+            const diffEl  = document.getElementById('sc-diff');
+            const badgeEl = document.getElementById('sc-badge');
+            liveEl.textContent  = 'Fetching from API…';
+            liveEl.className    = 'spotcheck-val pending';
+            diffEl.textContent  = '—';
+            badgeEl.innerHTML   = '';
+
+            document.getElementById('sc-btn').disabled = true;
+
+            if (typeof google === 'undefined' || !google.maps) {
+                liveEl.textContent = 'Maps API unavailable';
+                liveEl.className   = 'spotcheck-val mismatch';
+                badgeEl.innerHTML  = '<span class="match-badge mismatch">API ERROR</span>';
+                document.getElementById('sc-btn').disabled = false;
+                return;
+            }
+
+            try {
+                const service = new google.maps.DistanceMatrixService();
+                const result = await new Promise((resolve, reject) => {
+                    service.getDistanceMatrix({
+                        origins:      [new google.maps.LatLng(fromLoc.lat, fromLoc.lng)],
+                        destinations: [new google.maps.LatLng(toLoc.lat,   toLoc.lng)],
+                        travelMode: google.maps.TravelMode.DRIVING,
+                        unitSystem: google.maps.UnitSystem.IMPERIAL
+                    }, (resp, status) => status === 'OK' ? resolve(resp) : reject(new Error(status)));
+                });
+
+                const el = result.rows[0].elements[0];
+                if (el.status === 'OK') {
+                    const liveMiles = parseFloat((el.distance.value * 0.000621371).toFixed(2));
+                    liveEl.textContent = liveMiles + ' mi';
+                    liveEl.className   = 'spotcheck-val match';
+
+                    if (cached !== undefined) {
+                        const diff = Math.abs(liveMiles - cached).toFixed(2);
+                        const pct  = ((Math.abs(liveMiles - cached) / liveMiles) * 100).toFixed(1);
+                        diffEl.textContent = `${diff} mi (${pct}%)`;
+                        diffEl.className   = parseFloat(diff) < 0.5 ? 'spotcheck-val match' : 'spotcheck-val mismatch';
+
+                        const isMatch = parseFloat(diff) < 0.5;
+                        badgeEl.innerHTML = isMatch
+                            ? '<span class="match-badge match">✓ MATCH</span>'
+                            : '<span class="match-badge mismatch">✗ MISMATCH</span>';
+
+                        scLog.unshift({ time: new Date().toLocaleTimeString(), from: fromLoc.name, to: toLoc.name, cached, live: liveMiles, diff, match: isMatch });
+                    } else {
+                        diffEl.textContent = 'No cache to compare';
+                        badgeEl.innerHTML  = '<span class="match-badge no-cache">NO CACHE</span>';
+                        scLog.unshift({ time: new Date().toLocaleTimeString(), from: fromLoc.name, to: toLoc.name, cached: null, live: liveMiles, diff: null, match: null });
+                    }
+                } else {
+                    liveEl.textContent = 'API Error: ' + el.status;
+                    liveEl.className   = 'spotcheck-val mismatch';
+                    badgeEl.innerHTML  = '<span class="match-badge mismatch">API ERROR</span>';
+                }
+            } catch (err) {
+                liveEl.textContent = 'Error: ' + err.message;
+                liveEl.className   = 'spotcheck-val mismatch';
+                badgeEl.innerHTML  = '<span class="match-badge mismatch">ERROR</span>';
+            }
+
+            document.getElementById('sc-btn').disabled = false;
+            renderScLog();
+        }
+
+        function renderScLog() {
+            const container = document.getElementById('sc-log');
+            if (!container) return;
+            if (scLog.length === 0) {
+                container.innerHTML = '<div style="color:#555; font-size:13px; font-family:\'Courier New\',monospace;">No checks run yet.</div>';
+                return;
+            }
+            container.innerHTML = scLog.slice(0, 20).map(entry => {
+                let result;
+                if (entry.match === null && entry.cached === null) {
+                    result = `<span class="log-miss">NO CACHE — live: ${entry.live} mi</span>`;
+                } else if (entry.match) {
+                    result = `<span class="log-match">✓ MATCH — cached: ${entry.cached} mi, live: ${entry.live} mi (Δ${entry.diff} mi)</span>`;
+                } else if (entry.match === false) {
+                    result = `<span class="log-miss">✗ MISMATCH — cached: ${entry.cached} mi, live: ${entry.live} mi (Δ${entry.diff} mi)</span>`;
+                } else {
+                    result = `<span style="color:#ffa726;">ERROR</span>`;
+                }
+                return `<div class="spotcheck-log-entry"><span class="log-time">[${entry.time}]</span>  ${entry.from} → ${entry.to} — ${result}</div>`;
+            }).join('');
+        }
+
+        function clearSpotCheckLog() {
+            scLog = [];
+            renderScLog();
+        }
+
+        // ── Legacy stub (kept for any lingering references) ───────────────
+        function navigateTo(page) {
+            const navItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+            if (navItem) navItem.click();
+        }
+
+        function refreshDistances() {
+            navigateTo('dist-refresh');
         }
 
         function downloadExcel() {
