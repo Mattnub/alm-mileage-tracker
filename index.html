@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALM Mileage Tracker v13.2</title>
+    <title>ALM Mileage Tracker v13.3</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -954,6 +954,25 @@
             padding: 8px 4px;
         }
 
+        .distance-matrix th.location-header {
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 8px 4px;
+        }
+
+        .distance-matrix td.location-header {
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
+            writing-mode: horizontal-tb;
+            text-orientation: initial;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
         .distance-cell {
             color: #ffa726;
             font-weight: 600;
@@ -1130,9 +1149,16 @@
         .distance-matrix td:first-child {
             position: sticky;
             left: 0;
-            background: #252525;
+            background: #ffa726;
+            color: black;
+            font-weight: 700;
             z-index: 2;
             border-right: 2px solid #333;
+        }
+
+        .distance-matrix th:first-child {
+            background: #444;
+            color: white;
         }
 
         /* Print Styles */
@@ -1295,7 +1321,7 @@
         <aside class="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-text">ALM</div>
-                <div class="logo-subtitle">MILEAGE TRACKER v13.2</div>
+                <div class="logo-subtitle">MILEAGE TRACKER v13.3</div>
             </div>
             
             <div class="nav-section">
@@ -2447,19 +2473,19 @@
             const allLocations = { ...ALM_LOCATIONS, ...customLocations };
             
             const locationCards = Object.entries(allLocations).map(([key, location]) => {
-                const isCustom = !ALM_LOCATIONS[key];
+                const isCustom = !ALM_LOCATIONS[key] || customLocations[key]; // Include edited built-in locations
+                const isOriginalALM = ALM_LOCATIONS[key] && !customLocations[key];
+                
                 return `
                     <div class="location-card" id="location-card-${key}">
-                        <div class="location-name">${location.name} ${isCustom ? '(Custom)' : ''}</div>
+                        <div class="location-name">${location.name} ${isCustom && !isOriginalALM ? '(Custom)' : ''}</div>
                         <div class="location-type ${location.type}">${location.type}</div>
                         <div class="location-address">${location.address}</div>
                         <div class="location-coords">${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</div>
-                        ${isCustom ? `
-                            <div style="margin-top: 10px; display: flex; gap: 5px;">
-                                <button class="conflict-btn keep-both" onclick="editCustomLocation('${key}')" style="padding: 4px 8px; font-size: 10px;">Edit</button>
-                                <button class="conflict-btn skip" onclick="deleteCustomLocation('${key}')" style="padding: 4px 8px; font-size: 10px;">Delete</button>
-                            </div>
-                        ` : ''}
+                        <div style="margin-top: 10px; display: flex; gap: 5px;">
+                            <button class="conflict-btn keep-both" onclick="editLocation('${key}')" style="padding: 4px 8px; font-size: 10px;">Edit</button>
+                            ${isCustom && !isOriginalALM ? `<button class="conflict-btn skip" onclick="deleteCustomLocation('${key}')" style="padding: 4px 8px; font-size: 10px;">Delete</button>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -2598,14 +2624,11 @@
             showToast(`Location "${name}" added successfully`, 'success');
         }
 
-        function editCustomLocation(key) {
-            if (!key.startsWith('custom_')) {
-                showToast('Cannot edit built-in ALM locations', 'error');
-                return;
-            }
-            
+        function editLocation(key) {
             const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
-            const location = customLocations[key];
+            
+            // Get location from custom storage first, then fallback to ALM_LOCATIONS
+            const location = customLocations[key] || ALM_LOCATIONS[key];
             
             if (!location) {
                 showToast('Location not found', 'error');
@@ -2677,11 +2700,13 @@
                 return;
             }
             
-            // Update the location
+            // Get existing locations
             const customLocations = JSON.parse(localStorage.getItem('alm_custom_locations') || '{}');
-            const originalName = customLocations[key]?.name || 'Unknown';
+            const originalLocation = customLocations[key] || ALM_LOCATIONS[key];
+            const originalName = originalLocation?.name || 'Unknown';
             
-            customLocations[key] = {
+            // Create/update the location
+            const updatedLocation = {
                 name: name,
                 address: address,
                 lat: lat,
@@ -2689,11 +2714,31 @@
                 type: type
             };
             
+            // If editing a built-in ALM location, create a new custom key
+            let finalKey = key;
+            if (ALM_LOCATIONS[key] && !key.startsWith('custom_')) {
+                // Create new custom key for edited built-in location
+                finalKey = 'custom_' + key + '_edited_' + Date.now();
+                customLocations[finalKey] = updatedLocation;
+                
+                // Remove the old custom entry if it exists
+                if (customLocations[key]) {
+                    delete customLocations[key];
+                }
+            } else {
+                // Editing an existing custom location
+                customLocations[key] = updatedLocation;
+            }
+            
             // Save to localStorage
             localStorage.setItem('alm_custom_locations', JSON.stringify(customLocations));
             
             // Update runtime locations
-            ALM_LOCATIONS[key] = customLocations[key];
+            ALM_LOCATIONS[finalKey] = updatedLocation;
+            if (finalKey !== key && !ALM_LOCATIONS.hasOwnProperty(key)) {
+                // Remove old key if it was purely custom
+                delete ALM_LOCATIONS[key];
+            }
             
             // Exit edit mode
             cancelLocationEdit();
@@ -3069,6 +3114,16 @@
             const container = document.getElementById('changelog-content');
             
             const changelog = [
+                {
+                    version: 'v13.3',
+                    date: 'February 2026',
+                    features: [
+                        'Edit ALL Locations - Now edit built-in ALM locations, not just custom ones',
+                        'Improved Distance Matrix Readability - Fixed dark header colors for better text visibility',
+                        'Universal Location Management - Edit any location name, address, coordinates, type',
+                        'Enhanced Edit Mode - Better handling of built-in vs custom location editing'
+                    ]
+                },
                 {
                     version: 'v13.2',
                     date: 'February 2026',
